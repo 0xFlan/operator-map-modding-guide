@@ -51,6 +51,32 @@ material onto a live installed shader. Create a live material from the
 installed family, restore readable maps/tints from a transport proxy, then
 apply only values audited for that family.
 
+### Required foliage repair sequence
+
+Use this exact order when leaves, bushes, or grass show as opaque rectangles,
+grey cards, or flat shapes in the game:
+
+1. Confirm the mesh is the complete authored LOD0/full prefab, not a branch,
+   billboard, or a stripped child.
+2. Record the matching shipped material identity and its installed shader.
+   In the current OPERATOR family, opaque bark/rock and cutout foliage use
+   different BotD shader families; re-check the installed build rather than
+   assuming a name or a portable editor shader is authoritative.
+3. Package every map the material reads: base color with alpha where used,
+   normal, mask, and thickness/height/detail maps when the family requires
+   them. Preserve color space and mips.
+4. At runtime create the material from the installed shader, restore maps and
+   tint, then apply the recorded queue, alpha-test/cutoff, material-type,
+   culling/double-sided, depth/shadow, wind, transmission, normal, and
+   vertex-color/AO state.
+5. Inspect it from a normal player camera after the scene has rendered for
+   several frames. An editor preview or a transparent PNG is not proof.
+
+Use alpha **cutout**, not generic alpha blending, unless the shipped material
+uses blending. Cutout foliage must participate in depth and shadows as its
+source does; replacing it with a generic transparent material commonly fixes
+the rectangle while breaking lighting and ordering.
+
 ## Terrain, roots, props, and cover
 
 Sample the final collision surface for every placement. Use controlled root
@@ -61,6 +87,13 @@ embedding rather than a constant world Y:
 - rigid cover must be tested across its full footprint;
 - incomplete or one-sided rock meshes must be rejected from a multi-angle
   player-height review.
+
+For rotated rigid cover, sample the final collision height at the complete
+mesh/collider center and all footprint corners after applying the cover's yaw.
+Flatten only the actual support footprint plus a short feather when required.
+An axis-aligned early-out must conservatively enclose the rotated footprint;
+otherwise grass or props near a rotated support pad can retain the old hillside
+height and float.
 
 Avoid rows. Use deterministic but nonuniform position, yaw, spacing, species,
 and scale variation. Preserve deliberate paths and spawn/camera clearances.

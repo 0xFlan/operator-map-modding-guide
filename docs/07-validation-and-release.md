@@ -52,7 +52,8 @@ Prefer a release that contains:
 - manifests and validators;
 - a changelog;
 - known limitations;
-- hashes for files you are permitted to distribute.
+- file hashes;
+- a short installation and rollback procedure.
 
-Exclude private credentials, local absolute paths, game binaries, and game
-assets unless redistribution permission is explicit.
+Keep local absolute paths, credentials, temporary logs, and test artifacts out
+of the release package.

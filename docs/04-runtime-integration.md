@@ -13,6 +13,31 @@ Never hard-code a particular map bundle as a default. Never broadly destroy
 unknown scene objects. Configuration should be local, reversible, and
 documented.
 
+## Use the generic Map Replacement Toolkit
+
+The companion toolkit is deliberately an injector, not a map generator or a
+forest loader. Its safe workflow is:
+
+1. Build the toolkit against the user's local OPERATOR/BepInEx IL2CPP
+   installation and install only its DLL. It ships no map bundle.
+2. Start the game once with the toolkit disabled so BepInEx writes its config.
+3. With the game closed, set `Enabled=true`, one exact `SceneName` and/or
+   `BuildIndex`, `LocalBundlePath`, and the exact lower-case
+   `PrefabAssetPath` reported by the bundle. If both scene identifiers are
+   supplied, both must match.
+4. Keep `SceneRootNamesToDisable` empty for the first test. This is overlay
+   mode: the custom prefab is added while the original scene remains alive.
+5. Only after a target-scene inventory proves which roots are disposable
+   static geometry, add their exact root names one at a time. Never suppress
+   spawn, networking, camera, UI, game-mode, lighting, or unknown roots.
+6. Test locally, inspect the toolkit log for the exact scene/bundle/prefab
+   handoff, then disable the plugin again before changing bundles.
+
+The configured bundle path is local. Relative paths resolve under the
+toolkit's plugin directory; absolute local paths are also supported. The
+toolkit deliberately does not download a map, discover the first asset in a
+bundle, remap spawns, repair materials, or claim that an overlay is playable.
+
 ## Do not load a large bundle inside a scene callback
 
 Scene activation callbacks are timing-sensitive. Queue map application, then

@@ -1,59 +1,65 @@
-# OPERATOR Map Modding Guide
+# OPERATOR Map Modding Manual
 
-An open community guide for planning, authoring, injecting, validating, and
-sharing OPERATOR map mods without redistributing game content.
+A technical manual for people building, packaging, injecting, and validating
+custom OPERATOR maps by hand. It assumes a Windows PC, a local OPERATOR
+installation, Unity, AssetRipper, BepInEx IL2CPP, and the companion generic
+Map Replacement Toolkit.
 
-This is intentionally a broad method guide, not a release of a particular map.
-It contains no AssetBundles, extracted meshes, textures, materials, audio,
-game binaries, private build paths, credentials, screenshots, or proprietary
-asset payloads.
+## Build a map in this order
 
-## Start here
+1. Install the tools in [docs/00-toolchain.md](docs/00-toolchain.md).
+2. Create the workspace described in [docs/01-workspace-setup.md](docs/01-workspace-setup.md).
+3. Inspect a shipped reference map using [docs/02-recon-first.md](docs/02-recon-first.md).
+4. Export reference assets, create a clean Unity project, and build a Windows
+   bundle using [docs/03a-assetripper-to-bundle.md](docs/03a-assetripper-to-bundle.md).
+5. Author terrain, full prefabs, foliage, cover, and LOD using
+   [docs/03-authoring-native-quality.md](docs/03-authoring-native-quality.md).
+6. Configure the generic injector using [docs/04-runtime-integration.md](docs/04-runtime-integration.md).
+7. Implement and test first-spawn, respawn, collision, and bounds using
+   [docs/05-spawn-and-gameplay.md](docs/05-spawn-and-gameplay.md).
+8. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
+   [docs/06-hdrp-and-fidelity.md](docs/06-hdrp-and-fidelity.md).
+9. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
 
-1. Read docs/01-project-boundaries.md before collecting source material.
-2. Read docs/02-recon-first.md before writing an injector or editing a scene.
-3. Build the playable ground, collision, and spawn plan before decoration.
-4. Use complete, legally obtained native-quality assets and preserve their
-   material dependency closure.
-5. Test through a normal player/game-mode flow, not only an editor view.
-6. Share source code, tools, documentation, manifests, and reproducible
-   validation results. Do not share content you are not permitted to publish.
+## Toolkit
 
-## Companion software
+The [OPERATOR Map Replacement Toolkit](https://github.com/0xFlan/operator-map-replacement-toolkit)
+loads one explicitly configured local bundle prefab into one explicitly
+configured game scene. It is disabled by default, contains no map bundle, and
+does not select a forest or any other map automatically.
 
-The separate OPERATOR Map Replacement Toolkit is a generic local bundle/prefab
-injector. It starts disabled and does not contain or select a forest map.
-Injection alone does not make a bundle playable: map authors still own terrain,
-spawns, lighting, materials, navigation, collision, and quality assurance.
+The injector does not make a map playable by itself. The map author must
+provide working terrain/collision, spawns, material recovery, lighting,
+boundary behavior, and validation.
 
 ## Documentation map
 
-- docs/01-project-boundaries.md — legal, ethical, and project boundaries.
-- docs/02-recon-first.md — inspect the shipped target before editing.
-- docs/03-authoring-native-quality.md — geometry, terrain, props, materials,
-  foliage, LOD, and placement.
-- docs/04-runtime-integration.md — bundle delivery and runtime ownership.
-- docs/05-spawn-and-gameplay.md — safe map handoff and spawn QA.
-- docs/06-hdrp-and-fidelity.md — lighting, atmosphere, texture quality, and
-  player-camera comparison.
-- docs/07-validation-and-release.md — build gates and release artifacts.
-- docs/08-troubleshooting.md — symptom-driven debugging.
-- docs/ASSET_PROVENANCE_TEMPLATE.md — a non-asset manifest template.
+- [00 Toolchain](docs/00-toolchain.md): required downloads and working order.
+- [01 Workspace setup](docs/01-workspace-setup.md): folder layout and baseline
+  Unity project setup.
+- [02 Recon first](docs/02-recon-first.md): inspect the target scene and game
+  systems before changing anything.
+- [03 Asset authoring](docs/03-authoring-native-quality.md): complete assets,
+  terrain, materials, foliage, grounding, props, and LOD.
+- [03a AssetRipper to bundle](docs/03a-assetripper-to-bundle.md): reference
+  export, asset closure, map prefab, and `StandaloneWindows64` bundle build.
+- [04 Runtime integration](docs/04-runtime-integration.md): configure and use
+  the generic injector.
+- [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,
+  network player order, and test matrix.
+- [06 HDRP and fidelity](docs/06-hdrp-and-fidelity.md): sun/Volume ownership,
+  terrain, foliage, and player-camera comparison.
+- [07 Validation and release](docs/07-validation-and-release.md): static,
+  runtime, and in-game gates.
+- [08 Troubleshooting](docs/08-troubleshooting.md): symptom-to-layer guide.
 
 ## Status vocabulary
 
-Use precise status language:
+- **Authoring candidate:** opens in Unity; not runtime tested.
+- **Static candidate:** bundle and structural checks pass; gameplay not proven.
+- **Runtime candidate:** loads in a normal session; visual/gameplay QA remains.
+- **Release candidate:** normal player-camera, first-spawn, respawn, collision,
+  material, lighting, and bounds checks pass.
 
-- Authoring candidate: opens in Unity; not runtime tested.
-- Static candidate: builds and passes structural checks; not gameplay proven.
-- Runtime candidate: loads in a normal session; visual/gameplay QA remains.
-- Release candidate: all documented player-camera, spawn, respawn, collision,
-  and provenance checks passed.
-
-Do not call a map ready because an editor scene or forced camera looks good.
-
-## License
-
-The guide is MIT licensed. It is independent community documentation and is
-not affiliated with OPERATOR, its developers, Unity, BepInEx, or other
-third-party owners.
+Do not call a map ready because it looks correct in the Unity editor or in a
+forced-camera capture.
