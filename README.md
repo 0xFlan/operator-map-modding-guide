@@ -1,11 +1,9 @@
 # OPERATOR Map Modding Manual
 
-A technical manual for people building, packaging, injecting, and validating
-custom OPERATOR maps by hand. It assumes a Windows PC, a local OPERATOR
+A technical manual for building, packaging, injecting, and validating
+custom OPERATOR maps. It assumes a Windows PC, a local OPERATOR
 installation, Unity, AssetRipper, BepInEx IL2CPP, and OPERATOR MapBridge.
 
-This manual is self-contained. It does not require an AI assistant or the
-internal engineering BIBLE.
 
 ## Build a map in this order
 
@@ -26,7 +24,7 @@ internal engineering BIBLE.
 ## Toolkit
 
 The [OPERATOR MapBridge](https://github.com/0xFlan/operator-mapbridge)
-loads one explicitly configured local bundle prefab into one explicitly
+loads one configured local bundle prefab into one explicitly
 configured game scene. It is disabled by default, contains no map bundle, and
 does not select a map automatically.
 
