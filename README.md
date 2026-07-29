@@ -29,7 +29,7 @@ internal engineering BIBLE.
 The [OPERATOR MapBridge](https://github.com/0xFlan/operator-mapbridge)
 loads one explicitly configured local bundle prefab into one explicitly
 configured game scene. It is disabled by default, contains no map bundle, and
-does not select a forest or any other map automatically.
+does not select a map automatically.
 
 The injector does not make a map playable by itself. The map author must
 provide working terrain/collision, spawns, material recovery, lighting,

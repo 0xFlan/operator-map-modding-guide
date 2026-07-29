@@ -15,8 +15,8 @@ documented.
 
 ## Use OPERATOR MapBridge
 
-The companion toolkit is deliberately an injector, not a map generator or a
-forest loader. Its safe workflow is:
+OPERATOR MapBridge is deliberately an injector, not a map generator or a
+preconfigured map loader. Its safe workflow is:
 
 1. Build the toolkit against the user's local OPERATOR/BepInEx IL2CPP
    installation and install only its DLL. It ships no map bundle.
