@@ -3,7 +3,10 @@
 A technical manual for people building, packaging, injecting, and validating
 custom OPERATOR maps by hand. It assumes a Windows PC, a local OPERATOR
 installation, Unity, AssetRipper, BepInEx IL2CPP, and the companion generic
-Map Replacement Toolkit.
+OPERATOR MapBridge.
+
+This manual is self-contained. It does not require an AI assistant or the
+internal engineering BIBLE.
 
 ## Build a map in this order
 
@@ -23,7 +26,7 @@ Map Replacement Toolkit.
 
 ## Toolkit
 
-The [OPERATOR Map Replacement Toolkit](https://github.com/0xFlan/operator-map-replacement-toolkit)
+The [OPERATOR MapBridge](https://github.com/0xFlan/operator-mapbridge)
 loads one explicitly configured local bundle prefab into one explicitly
 configured game scene. It is disabled by default, contains no map bundle, and
 does not select a forest or any other map automatically.

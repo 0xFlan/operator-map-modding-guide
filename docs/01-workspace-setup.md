@@ -65,9 +65,9 @@ current plugin files, copy the new DLL and bundle, and compare SHA-256 hashes:
 ```powershell
 .\tools\Deploy-LocalMapCandidate.ps1 `
   -GameDirectory "D:\Games\OPERATOR" `
-  -SourcePluginDll ".\OperatorMapReplacement.dll" `
+  -SourcePluginDll ".\OperatorMapBridge.dll" `
   -SourceBundle ".\Builds\your_map_bundle" `
-  -PluginFolderName "OperatorMapReplacement" `
+  -PluginFolderName "OperatorMapBridge" `
   -BundleFileName "your_map_bundle" `
   -BuildNotesPath ".\Builds\your_map_bundle.build.txt"
 ```

@@ -13,7 +13,7 @@ Never hard-code a particular map bundle as a default. Never broadly destroy
 unknown scene objects. Configuration should be local, reversible, and
 documented.
 
-## Use the generic Map Replacement Toolkit
+## Use OPERATOR MapBridge
 
 The companion toolkit is deliberately an injector, not a map generator or a
 forest loader. Its safe workflow is:
