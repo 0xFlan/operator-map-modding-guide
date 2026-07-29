@@ -8,7 +8,7 @@ project or AssetRipper workspace.
 | Game install | Run OPERATOR and host BepInEx/plugin output. |
 | Reference export | AssetRipper output used for inspection and selective local imports. |
 | Unity authoring project | Your editable map prefab, editor scripts, textures, terrain payloads, and bundle output. |
-| Release workspace | Generic injector source, guide, backups, hashes, test logs, and final local bundles. |
+| Release workspace | MapBridge source, guide, backups, hashes, test logs, and final local bundles. |
 
 ## Create the Unity project
 

@@ -15,8 +15,8 @@ documented.
 
 ## Use OPERATOR MapBridge
 
-OPERATOR MapBridge is deliberately an injector, not a map generator or a
-preconfigured map loader. Its safe workflow is:
+OPERATOR MapBridge loads the bundle and prefab asset path that you configure.
+Its safe workflow is:
 
 1. Build the toolkit against the user's local OPERATOR/BepInEx IL2CPP
    installation and install only its DLL. It ships no map bundle.
@@ -63,7 +63,7 @@ the editor. If the target game needs a material repair stage:
 4. apply the audited property/keyword/render-state profile;
 5. audit the final live material after more than one rendered frame.
 
-Do not select a profile from a proxy wrapper name. Do not use a generic
+Do not select a profile from a proxy wrapper name. Do not use an unrelated
 transparent shader as a shortcut for foliage.
 
 ## Reconstruct runtime-only data only when proven necessary

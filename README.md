@@ -2,8 +2,7 @@
 
 A technical manual for people building, packaging, injecting, and validating
 custom OPERATOR maps by hand. It assumes a Windows PC, a local OPERATOR
-installation, Unity, AssetRipper, BepInEx IL2CPP, and the companion generic
-OPERATOR MapBridge.
+installation, Unity, AssetRipper, BepInEx IL2CPP, and OPERATOR MapBridge.
 
 This manual is self-contained. It does not require an AI assistant or the
 internal engineering BIBLE.
@@ -17,7 +16,7 @@ internal engineering BIBLE.
    bundle using [docs/03a-assetripper-to-bundle.md](docs/03a-assetripper-to-bundle.md).
 5. Author terrain, full prefabs, foliage, cover, and LOD using
    [docs/03-authoring-native-quality.md](docs/03-authoring-native-quality.md).
-6. Configure the generic injector using [docs/04-runtime-integration.md](docs/04-runtime-integration.md).
+6. Configure OPERATOR MapBridge using [docs/04-runtime-integration.md](docs/04-runtime-integration.md).
 7. Implement and test first-spawn, respawn, collision, and bounds using
    [docs/05-spawn-and-gameplay.md](docs/05-spawn-and-gameplay.md).
 8. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
@@ -47,7 +46,7 @@ boundary behavior, and validation.
 - [03a AssetRipper to bundle](docs/03a-assetripper-to-bundle.md): reference
   export, asset closure, map prefab, and `StandaloneWindows64` bundle build.
 - [04 Runtime integration](docs/04-runtime-integration.md): configure and use
-  the generic injector.
+  OPERATOR MapBridge.
 - [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,
   network player order, and test matrix.
 - [06 HDRP and fidelity](docs/06-hdrp-and-fidelity.md): sun/Volume ownership,

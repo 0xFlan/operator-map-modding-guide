@@ -25,7 +25,7 @@ For every direct asset, retain the complete relationship between:
 - collider intent;
 - material keywords, render state, color/tint, queue, and property values.
 
-Do not use a branch, root fragment, billboard, loose atlas image, generic
+Do not use a branch, root fragment, billboard, loose atlas image, unrelated
 primitive, or approximately named material as a substitute for a complete
 native asset.
 
@@ -72,9 +72,9 @@ grey cards, or flat shapes in the game:
 5. Inspect it from a normal player camera after the scene has rendered for
    several frames. An editor preview or a transparent PNG is not proof.
 
-Use alpha **cutout**, not generic alpha blending, unless the shipped material
+Use alpha **cutout**, not ordinary alpha blending, unless the shipped material
 uses blending. Cutout foliage must participate in depth and shadows as its
-source does; replacing it with a generic transparent material commonly fixes
+source does; replacing it with an unrelated transparent material commonly fixes
 the rectangle while breaking lighting and ordering.
 
 ## Terrain, roots, props, and cover

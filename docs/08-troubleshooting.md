@@ -14,6 +14,7 @@
 | Different red dot/laser | player-camera exposure, tone map, bloom, optic camera/custom pass | environment stack |
 | Works in editor but not game | bundle platform/version, installed shader availability, IL2CPP object validity | runtime integration |
 
-Do not fix a symptom by adding unrelated geometry, light, or generic shaders.
+Do not fix a symptom by adding unrelated geometry, light, or shaders with an
+unrelated rendering contract.
 Trace it to the narrowest responsible layer, add a regression check, and
 record what evidence ruled out the alternatives.

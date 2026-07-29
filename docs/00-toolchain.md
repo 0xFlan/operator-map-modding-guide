@@ -10,7 +10,7 @@ anything. The links below are the complete manual toolchain for this guide.
 | Unity Hub and the exact matching Unity Editor | Open the authoring project and build a Windows AssetBundle. Match the target game's Unity version. | [Unity Hub](https://docs.unity.com/en-us/hub/install-hub), [Editor archive](https://unity.com/releases/editor/archive) |
 | AssetRipper | Create a local Unity-project reference export for asset, material, hierarchy, and dependency inspection. | [AssetRipper](https://github.com/AssetRipper/AssetRipper) |
 | BepInEx IL2CPP | Load/configure the injection plugin in an IL2CPP Unity game. | [BepInEx IL2CPP install guide](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html) |
-| OPERATOR MapBridge | Configure an explicit target scene, local bundle path, and prefab asset path. It is generic and ships no map. | [MapBridge repository](https://github.com/0xFlan/operator-mapbridge) |
+| OPERATOR MapBridge | Configure an explicit target scene, local bundle path, and prefab asset path. | [MapBridge repository](https://github.com/0xFlan/operator-mapbridge) |
 | .NET SDK | Build the toolkit source against the user's local generated BepInEx interop assemblies. | [Download .NET](https://dotnet.microsoft.com/download) |
 | Unity AssetBundle documentation | Verify the correct `BuildPipeline.BuildAssetBundles` workflow and target platform. | [Unity AssetBundle guide](https://docs.unity.cn/Manual/AssetBundles-Building.html) |
 
@@ -36,5 +36,5 @@ anything. The links below are the complete manual toolchain for this guide.
   contract check before packaging.
 - `tools/Deploy-LocalMapCandidate.ps1`: game-closed backup/copy/hash template.
 
-These templates are generic starting points. Set their paths, root names, and
+These are starter templates. Set their paths, root names, and
 deployment destination for each map.

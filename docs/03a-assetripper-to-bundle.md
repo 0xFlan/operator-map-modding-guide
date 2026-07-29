@@ -120,7 +120,7 @@ Before deployment, load the bundle in Unity and inspect:
 
 ## 5. Hand the bundle to the injector
 
-Copy the bundle to a local path, then configure the generic toolkit with the
+Copy the bundle to a local path, then configure OPERATOR MapBridge with the
 exact scene identifier and the exact prefab asset path. Start in overlay mode.
 The injector can instantiate a bundle; it cannot know whether your source
 map's game-mode spawn owner, terrain data, material family, light owner, or

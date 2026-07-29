@@ -32,7 +32,7 @@ The general solution is:
 5. use a bounded local-owner-only repair for late-created network player
    objects, including velocity clear and replication-aware teleport behavior.
 
-Never use a generic repair to move remote players, bots, or every object above
+Never use a broad repair to move remote players, bots, or every object above
 an arbitrary Y threshold.
 
 ## Mandatory tests
