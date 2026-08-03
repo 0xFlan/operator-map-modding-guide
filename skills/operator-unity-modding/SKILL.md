@@ -22,6 +22,9 @@ Read only the references that match the task:
   rows, boards, selectors, or shared laptop state.
 - Read [references/interactive-prefabs.md](references/interactive-prefabs.md)
   for `DoorV2`, `DoorHandleV2`, FinalIK, damage parts, or A* door links.
+- Read [references/implementation-locators.md](references/implementation-locators.md)
+  for privacy-safe path tokens, exact assembly names, source members, bundle
+  names, scene identity, or Ukrainian Forest runtime evidence.
 
 Read the project's complete evidence log before you change a project that has
 one. Treat its latest explicit superseding section as controlling.
@@ -146,3 +149,6 @@ navigation, interaction, restart, or multiplayer problem is not retested.
 - Keep diagnostic auto-launch, forced-scene, and capture controls out of a
   release.
 - Preserve unrelated user files and dirty worktree changes.
+- Use tokens such as `<OPERATOR_INSTALL>`, `<AUTHOR_WORKSPACE>`, and
+  `<USER_PROFILE>` in reusable documentation. Do not publish a private drive
+  path or an operating-system account name.

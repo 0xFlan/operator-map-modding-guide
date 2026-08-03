@@ -1,5 +1,12 @@
 # OPERATOR Standalone Map Modding BIBLE
 
+Use [`docs/13-exact-implementation-reference.md`](docs/13-exact-implementation-reference.md)
+to find the current framework members, companion members, assembly names,
+bundle names, scene objects, terrain payload addresses, and verified Ukrainian
+Forest material identities. That reference uses privacy-safe path tokens. Do
+not put a private drive path or an operating-system account name in a public
+procedure.
+
 This document is the normative technical contract for a standalone OPERATOR
 map. It is written for human authors and automated engineering tools.
 
@@ -56,6 +63,42 @@ technical identities.
 
 Use *Cerberus* only for the shipped mission-laptop location and its native UI
 contract. Do not use *Cerberus Mod* as the public framework name.
+
+### 3.1 Current implementation locators
+
+Use these exact technical identities for the current worked reference. Do not
+change an identity to match a display name.
+
+| Object | Exact identity |
+| --- | --- |
+| Generic framework assembly | `OperatorModdedOperations.dll` |
+| Generic framework source file | `CerberusNativeTabFix.cs` |
+| Native selector builder | `BuildPackageInfiltrationMapPrefab` |
+| Native launch calls | `InfilSelectorDisplayer.SpawnMap`, `CerebusOpboard.Start_Operation` |
+| Scene contract gate | `ValidateStandaloneSceneContract` |
+| PVE count selector | `ChooseStandalonePveEnemyCount` |
+| Ukrainian Forest companion assembly | `OperatorUkrainianForest.dll` |
+| Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
+| Companion exact-scene entry | `ProcessStandalonePackageScene` |
+| Companion navigation owner | `EnsureStandaloneNavigationGraph` |
+| Package ID | `community.ukrainian-forest` |
+| Map ID | `community.ukrainian-forest.ukrainian-forest` |
+| Dependency bundle | `content/operator_ukrainian_forest` |
+| Scene bundle | `content/operator_ukrainian_forest_scene` |
+| Scene path | `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity` |
+| PVE operation and range | `community.ukrainian-forest.pve`, `10` through `15` enemies |
+| PVP operation and AI count | `community.ukrainian-forest.pvp`, zero AI |
+| Terrain object | `NATIVE_Ground_HillyTerrain` |
+
+The public authoring code is
+[`templates/Editor/BuildStandaloneMapBundles.cs`](templates/Editor/BuildStandaloneMapBundles.cs)
+and
+[`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
+The closed package contract is
+[`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
+The full version `0.3.5` file records, terrain payload addresses, material
+identities, marker families, and load sequence are in the
+[exact implementation reference](docs/13-exact-implementation-reference.md).
 
 ## 4. Four-owner architecture
 
@@ -482,13 +525,20 @@ Before actor creation, require:
 - expected world root and nontrivial authored transform count;
 - required active renderer and collider counts;
 - zero required proxy or error-shader renderers;
-- usable terrain and `TerrainCollider` when declared;
+- usable terrain and a matching `TerrainCollider` on the same object when
+  declared, with both components bound to the same `TerrainData`;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
 - every required marker tightly grounded and on the live graph;
-- enough valid markers for the package PVE minimum;
+- enough ordinary enemy markers for the selected PVE operation's package
+  `minEnemies`; a selected PVP operation can have zero AI markers;
 - no missing critical model, material, texture, collider, or interactive
   reference.
+
+Treat wall clearance as a world-space distance. If a bounds collider uses a
+scaled transform, convert that distance into collider-local units separately
+for each checked axis before comparing it with `BoxCollider.size`. Do not
+subtract world metres directly from local extents.
 
 Fail closed when one required condition is false. Log expected and actual
 values.
