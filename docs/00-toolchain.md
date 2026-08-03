@@ -1,40 +1,59 @@
-# 0. Toolchain and working order
+# 0. Toolchain and work order
 
-Install the exact Unity editor version used by the target game before building
-anything. The links below are the complete manual toolchain for this guide.
+Install the exact Unity editor version that the target OPERATOR build uses.
+Do not use a nearby editor version for a release build.
 
-## Required
+## Required tools
 
-| Tool | Use | Link |
+| Tool | Use | Source |
 | --- | --- | --- |
-| Unity Hub and the exact matching Unity Editor | Open the authoring project and build a Windows AssetBundle. Match the target game's Unity version. | [Unity Hub](https://docs.unity.com/en-us/hub/install-hub), [Editor archive](https://unity.com/releases/editor/archive) |
-| AssetRipper | Create a local Unity-project reference export for asset, material, hierarchy, and dependency inspection. | [AssetRipper](https://github.com/AssetRipper/AssetRipper) |
-| BepInEx IL2CPP | Load/configure the injection plugin in an IL2CPP Unity game. | [BepInEx IL2CPP install guide](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html) |
-| OPERATOR MapBridge | Configure an explicit target scene, local bundle path, and prefab asset path. | [MapBridge repository](https://github.com/0xFlan/operator-mapbridge) |
-| .NET SDK | Build the toolkit source against the user's local generated BepInEx interop assemblies. | [Download .NET](https://dotnet.microsoft.com/download) |
-| Unity AssetBundle documentation | Verify the correct `BuildPipeline.BuildAssetBundles` workflow and target platform. | [Unity AssetBundle guide](https://docs.unity.cn/Manual/AssetBundles-Building.html) |
+| Unity Hub and exact Unity Editor | Author and build Windows dependency and scene AssetBundles | [Unity Hub](https://docs.unity.com/en-us/hub/install-hub) and [Unity archive](https://unity.com/releases/editor/archive) |
+| AssetRipper | Create a local reference project for hierarchy, asset, material, and dependency inspection | [AssetRipper](https://github.com/AssetRipper/AssetRipper) |
+| BepInEx IL2CPP | Load the exact-build Core, generic framework, and optional map companion | [BepInEx IL2CPP guide](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html) |
+| .NET SDK | Build the exact-build BepInEx components against the local interop assemblies | [.NET downloads](https://dotnet.microsoft.com/download) |
+| Unity AssetBundle tools | Build strict Windows bundles and inspect scene/asset addresses | [Unity AssetBundle guide](https://docs.unity.cn/Manual/AssetBundles-Building.html) |
+| SHA-256 tool | Create and compare source, staged, archive, and deployed file hashes | `Get-FileHash` is included with PowerShell |
+| ZIP reader | Inspect final archive entries without installing them | PowerShell and common archive tools are sufficient |
 
-## Optional reference tools
+The current standalone runtime also needs the compatible Core and generic
+Modded Operations framework. A map that needs runtime reconstruction also
+needs its exact-scene companion.
 
-| Tool | Use | Link |
+## Optional tools
+
+| Tool | Valid use | Status |
 | --- | --- | --- |
-| Official/public OPERATOR Modding Toolkit | Reference existing community conventions and compatible workflows; audit before reusing code. | [operator-modding-toolkit](https://github.com/ArchdukePierre/operator-modding-toolkit) |
+| [OPERATOR MapBridge](https://github.com/0xFlan/operator-mapbridge) | Explicit local prefab-overlay diagnostics | `RETIRED` for standalone mission parity |
+| [Community OPERATOR Modding Toolkit](https://github.com/ArchdukePierre/operator-modding-toolkit) | Read-only API and architecture reference after current-build verification | Reference only |
+
 ## Work in this order
 
-1. Build and test OPERATOR MapBridge first. Its configuration
-   must name one explicit scene, one local bundle path, and one prefab asset
-   path.
-2. Follow this guide to create a bundle, then validate it in overlay mode.
-3. Move to root-only replacement only after terrain, spawns, materials,
-   lighting, and player-camera tests pass.
+1. Fingerprint the installed game and runtime dependencies.
+2. Create a separate AssetRipper reference export.
+3. Create a clean exact-version Unity authoring project.
+4. Build and validate one minimal real scene bundle.
+5. Create and validate one strict data-only package.
+6. Verify mission row, selector, exact scene, and player spawn with simple
+   materials.
+7. Add complete terrain, models, textures, materials, foliage, and collision.
+8. Add a map companion only for installed-runtime reconstruction that scene
+   data cannot preserve.
+9. Add and validate the playable-only A* graph and all mission markers.
+10. Add and validate native interactive objects.
+11. Run PVE, PVP, restart, teardown, and player-camera gates.
+12. Build final archives from a clean staging directory.
 
-## Reusable templates released with this guide
+## Templates in this repository
 
-- `templates/Editor/BuildLocalMapBundle.cs`: deterministic Windows bundle
-  build template with an explicit prefab path and strict build mode.
-- `templates/Editor/ValidateMapRoot.cs`: editor-side prefab/root/collider
-  contract check before packaging.
-- `tools/Deploy-LocalMapCandidate.ps1`: game-closed backup/copy/hash template.
+- `templates/Editor/BuildStandaloneMapBundles.cs` builds dependencies before
+  the real scene bundle.
+- `templates/Editor/ValidateStandaloneMapScene.cs` validates scene identity,
+  terrain, collision, walls, and marker structure.
+- `templates/Editor/BuildLocalMapBundle.cs` is a legacy prefab-overlay build
+  template. Do not use it for a standalone mission.
+- `templates/Editor/ValidateMapRoot.cs` is a legacy prefab-root validator.
+- `tools/Deploy-LocalMapCandidate.ps1` is a legacy MapBridge deployment
+  template.
 
-These are starter templates. Set their paths, root names, and
-deployment destination for each map.
+Set all project-specific paths and IDs before use. Treat a template as source,
+not as a prebuilt release.

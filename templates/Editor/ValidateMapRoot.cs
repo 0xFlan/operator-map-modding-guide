@@ -1,3 +1,7 @@
+// RETIRED FOR STANDALONE MISSIONS.
+// This file validates the historical prefab-overlay root.
+// Use ValidateStandaloneMapScene.cs for the current real-scene method.
+
 using System;
 using System.Collections.Generic;
 using System.IO;

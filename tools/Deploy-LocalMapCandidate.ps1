@@ -1,4 +1,8 @@
 [CmdletBinding()]
+# RETIRED FOR STANDALONE MISSIONS.
+# This script deploys the historical MapBridge prefab-overlay candidate.
+# Use the standalone package and companion layout in docs/10 instead.
+
 param(
     [Parameter(Mandatory = $true)]
     [string]$GameDirectory,

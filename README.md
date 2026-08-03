@@ -1,39 +1,57 @@
 # OPERATOR Map Modding Manual
 
-A technical manual for building, packaging, injecting, and validating
-custom OPERATOR maps. It assumes a Windows PC, a local OPERATOR
-installation, Unity, AssetRipper, BepInEx IL2CPP, and OPERATOR MapBridge.
+A technical manual for people who build, package, load, and validate custom
+OPERATOR maps. It uses the current standalone Modded Operations method. It
+assumes a Windows PC, a legal local OPERATOR installation, Unity, AssetRipper,
+and BepInEx IL2CPP.
 
 
 ## Build a map in this order
 
-1. Install the tools in [docs/00-toolchain.md](docs/00-toolchain.md).
-2. Create the workspace described in [docs/01-workspace-setup.md](docs/01-workspace-setup.md).
-3. Inspect a shipped reference map using [docs/02-recon-first.md](docs/02-recon-first.md).
-4. Export reference assets, create a clean Unity project, and build a Windows
+1. Read the [language and evidence rules](docs/00-writing-standard.md).
+2. Install the tools in [docs/00-toolchain.md](docs/00-toolchain.md).
+3. Create the workspace in [docs/01-workspace-setup.md](docs/01-workspace-setup.md).
+4. Inspect a shipped reference map with [docs/02-recon-first.md](docs/02-recon-first.md).
+5. Export reference assets, create a clean Unity project, and build a Windows
    bundle using [docs/03a-assetripper-to-bundle.md](docs/03a-assetripper-to-bundle.md).
-5. Author terrain, full prefabs, foliage, cover, and LOD using
+6. Author terrain, full prefabs, foliage, cover, and LOD using
    [docs/03-authoring-native-quality.md](docs/03-authoring-native-quality.md).
-6. Configure OPERATOR MapBridge using [docs/04-runtime-integration.md](docs/04-runtime-integration.md).
-7. Implement and test first-spawn, respawn, collision, and bounds using
+7. Build the [standalone package](docs/10-standalone-packages.md).
+8. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
+9. Implement and test first spawn, respawn, collision, and bounds using
    [docs/05-spawn-and-gameplay.md](docs/05-spawn-and-gameplay.md).
-8. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
+10. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
+11. Wire native interactive objects with the
+    [`DoorV2` reference method](docs/09-interactive-prefabs-and-doorsv2.md).
+12. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
    [docs/06-hdrp-and-fidelity.md](docs/06-hdrp-and-fidelity.md).
-9. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
+13. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
 
-## Toolkit
+## Runtime paths
 
-The [OPERATOR MapBridge](https://github.com/0xFlan/operator-mapbridge)
-loads one configured local bundle prefab into one explicitly
-configured game scene. It is disabled by default, contains no map bundle, and
-does not select a map automatically.
+For a map selected from the mission laptop and loaded without a retail donor
+map, use the standalone architecture: a strict data-only package, the generic
+Modded Operations framework, and an optional exact-scene map companion for
+native material, TerrainData, navigation, or other runtime-only
+reconstruction. Map-specific reconstruction does not belong in the generic
+framework.
 
-The injector does not make a map playable by itself. The map author must
-provide working terrain/collision, spawns, material recovery, lighting,
-boundary behavior, and validation.
+The scene/package owns marker coordinates, combat walls, tree families, and
+PVE `minEnemies`/`maxEnemies`. The exact-scene companion builds navigation
+from the authoritative gameplay physics/bullet volume and rejects outside
+markers before graph lookup. Generic Cerberus consumes the declared population
+range and stays free of map coordinates. Tree-family acceptance also requires
+close/mid/far player-camera crown silhouettes; structural asset closure alone
+does not prove foliage quality.
+
+The MapBridge retail-scene overlay method is `RETIRED` for mission parity. It
+remains available for explicit local diagnostics. See the
+[archived overlay method](docs/archive/legacy-mapbridge-overlay.md).
 
 ## Documentation map
 
+- [Writing standard](docs/00-writing-standard.md): ASD-STE100 language and
+  evidence-status rules.
 - [00 Toolchain](docs/00-toolchain.md): required downloads and working order.
 - [01 Workspace setup](docs/01-workspace-setup.md): folder layout and baseline
   Unity project setup.
@@ -43,8 +61,8 @@ boundary behavior, and validation.
   terrain, materials, foliage, grounding, props, and LOD.
 - [03a AssetRipper to bundle](docs/03a-assetripper-to-bundle.md): reference
   export, asset closure, map prefab, and `StandaloneWindows64` bundle build.
-- [04 Runtime integration](docs/04-runtime-integration.md): configure and use
-  OPERATOR MapBridge.
+- [04 Runtime integration](docs/04-runtime-integration.md): standalone
+  ownership, exact load order, readiness, mode owner, restart, and teardown.
 - [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,
   network player order, and test matrix.
 - [06 HDRP and fidelity](docs/06-hdrp-and-fidelity.md): sun/Volume ownership,
@@ -52,6 +70,35 @@ boundary behavior, and validation.
 - [07 Validation and release](docs/07-validation-and-release.md): static,
   runtime, and in-game gates.
 - [08 Troubleshooting](docs/08-troubleshooting.md): symptom-to-layer guide.
+- [09 Interactive prefabs and `DoorV2`](docs/09-interactive-prefabs-and-doorsv2.md):
+  lost AssetRipper fields, exact object wiring, lifecycle, networking,
+  navigation links, and test matrix.
+- [10 Standalone packages](docs/10-standalone-packages.md): manifest fields,
+  file closure, identity, markers, terrain payloads, and load validation.
+- [Package JSON Schema](schemas/operator-map-package.schema.json): closed
+  machine-readable pre-v1 manifest contract.
+- [11 AI navigation and behavior](docs/11-ai-navigation-and-behavior.md):
+  playable-only A* graph, marker grounding, routes, cover, combat, and restart.
+- [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,
+  pivot, texture, material, foliage, tree-family, terrain, and runtime-audit
+  requirements.
+- [Archived methods](docs/archive/README.md): methods that MUST NOT be used as
+  current standalone release proof.
+- [Codex skill](skills/operator-unity-modding/SKILL.md): reusable instructions
+  for human-supervised AI work on OPERATOR mods.
+
+## Install the Codex skill
+
+Copy the complete `skills/operator-unity-modding` directory to the Codex
+skills directory. On Windows, the default destination is:
+
+```text
+%USERPROFILE%/.codex/skills/operator-unity-modding/
+```
+
+Keep `SKILL.md`, `agents/openai.yaml`, and the `references` directory together.
+Start a new Codex task after installation. Invoke the skill as
+`$operator-unity-modding`.
 
 ## Status vocabulary
 
@@ -59,7 +106,12 @@ boundary behavior, and validation.
 - **Static candidate:** bundle and structural checks pass; gameplay not proven.
 - **Runtime candidate:** loads in a normal session; visual/gameplay QA remains.
 - **Release candidate:** normal player-camera, first-spawn, respawn, collision,
-  material, lighting, and bounds checks pass.
+  material, lighting, pre-nav marker containment, playable-only
+  navigation/all-marker grounding, package PVE range, reciprocal combat,
+  close/mid/far foliage silhouettes, restart, teardown, and bounds checks pass.
+  Death/KIA restart remains a separate gate. It MUST use the generic
+  framework's native-compatible mode owner and the shipped failure UI. The
+  map bundle MUST NOT own this UI.
 
 Do not call a map ready because it looks correct in the Unity editor or in a
 forced-camera capture.

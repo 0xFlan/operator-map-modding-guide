@@ -1,3 +1,7 @@
+// RETIRED FOR STANDALONE MISSIONS.
+// This file builds the historical prefab-overlay bundle.
+// Use BuildStandaloneMapBundles.cs for the current real-scene method.
+
 using System;
 using System.Collections.Generic;
 using System.IO;

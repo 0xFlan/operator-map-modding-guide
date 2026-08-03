@@ -35,6 +35,40 @@ The general solution is:
 Never use a broad repair to move remote players, bots, or every object above
 an arbitrary Y threshold.
 
+## AI markers require both ground and navigation
+
+An authored transform is not a usable AI spawn merely because a ray eventually
+finds terrain below it. Before generic PVE creation runs:
+
+- define the authoritative playable physics and bullet-interaction volume;
+- reject or quarantine every AI marker outside that volume before navigation
+  lookup;
+- require one scanned graph that covers only the playable region, not a larger
+  render-only terrain or scenery apron;
+- snap every enemy, HVT, and other operation-consumed AI marker to a nearest
+  walkable node within an explicit correction limit;
+- place it at only the intended foot clearance above that node;
+- verify ground within a tight post-snap tolerance;
+- verify `AstarPath.IsPointOnNavmesh` for every marker class;
+- repeat the same assertions after Restart Operation.
+
+If any marker is rejected, fail the map contract instead of spawning an actor
+that will fall or initialize off graph.
+
+Graph coverage by itself is insufficient. A walkable node can exist outside a
+gameplay wall when the graph was sized from a larger visual terrain. That
+failure spawns enemies behind the barrier where actors and bullets cannot
+interact. Marker placement is map/package data; exact playable bounds and
+  runtime graph construction belong to the map companion; the generic Cerberus
+  adapter MUST remain map-independent.
+
+## PVE population range
+
+Declare `minEnemies` and `maxEnemies` on each PVE operation. The generic host
+selects an inclusive deterministic count from that range and MUST have at least
+`minEnemies` valid scene markers. PVP operations omit both fields. Do not
+hard-code one map's count or marker coordinates in the generic adapter.
+
 ## Mandatory tests
 
 Run from a normal settled user session:
@@ -42,6 +76,12 @@ Run from a normal settled user session:
 - first spawn on every team;
 - several free-for-all spawns if supported;
 - at least one death/respawn;
+- normal alive Restart Operation;
+- death/KIA end-screen Restart Operation as a separately recorded result;
+- PVE AI grounding and graph coverage before and after restart;
+- PVE AI count within the package range and every actor inside the playable
+  bullet-interaction volume;
+- reciprocal player/AI line-of-fire testing across representative routes;
 - terrain raycast/grounded evidence at each test;
 - player/camera position after the network client settles;
 - collision, route, and boundary checks.

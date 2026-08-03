@@ -1,5 +1,20 @@
 # 6. HDRP, lighting, and fidelity
 
+## Treat bundle materials as transport when private shaders are unavailable
+
+A clean authoring project cannot compile an installed game's private HDRP
+shader simply from its name. A scene can therefore be completely present while
+terrain and foliage render brown, flat, or as fallback materials. Preserve
+material identity and texture/property closure in portable proxies, then let
+the exact-scene map companion create fresh materials from installed native
+shader families and restore audited queue, alpha, pass, keyword, culling, and
+numeric state.
+
+Do not diagnose a proven exact-scene load as a selector failure merely because
+its proxies render poorly. Conversely, do not call the scene visually loaded
+until active-renderer auditing reports no portable/error shaders after several
+player-camera frames.
+
 ## Find the actual environment owner
 
 Before changing daylight, fog, exposure, or a sun:
@@ -37,7 +52,7 @@ optic material.
 ## Use player-camera proof
 
 Offscreen cameras can miss camera-bound vegetation or use an invalid HDRP
-history. They are diagnostic only. Player-camera evidence should inspect:
+history. They are diagnostic only. Player-camera evidence MUST inspect:
 
 - one sun/shadow direction;
 - terrain blend at near and middle distance;
