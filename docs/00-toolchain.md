@@ -15,9 +15,9 @@ Do not use a nearby editor version for a release build.
 | SHA-256 tool | Create and compare source, staged, archive, and deployed file hashes | `Get-FileHash` is included with PowerShell |
 | ZIP reader | Inspect final archive entries without installing them | PowerShell and common archive tools are sufficient |
 
-The current standalone runtime also needs the compatible Core and generic
-Modded Operations framework. A map that needs runtime reconstruction also
-needs its exact-scene companion.
+The current standalone runtime also needs compatible Core and
+**OPERATOR: Modded Operations — Standalone Map Framework** files. A map that
+needs runtime reconstruction also needs its exact-scene companion.
 
 ## Optional tools
 

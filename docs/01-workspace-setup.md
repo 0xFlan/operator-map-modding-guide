@@ -93,7 +93,7 @@ Do not use a prefab-overlay result as this gate.
 Keep these projects separate:
 
 - Core and package catalog;
-- generic Modded Operations framework;
+- OPERATOR: Modded Operations framework;
 - map-specific companion.
 
 The map companion can depend on exact Core and framework versions. The generic

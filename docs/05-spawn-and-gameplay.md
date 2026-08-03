@@ -58,9 +58,9 @@ that will fall or initialize off graph.
 Graph coverage by itself is insufficient. A walkable node can exist outside a
 gameplay wall when the graph was sized from a larger visual terrain. That
 failure spawns enemies behind the barrier where actors and bullets cannot
-interact. Marker placement is map/package data; exact playable bounds and
-  runtime graph construction belong to the map companion; the generic Cerberus
-  adapter MUST remain map-independent.
+interact. Marker placement is map/package data. Exact playable bounds and
+runtime graph construction belong to the map companion. OPERATOR: Modded
+Operations MUST remain map-independent.
 
 ## PVE population range
 

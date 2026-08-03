@@ -3,6 +3,9 @@
 Status: `SUPPORTED` for the current pre-v1 package contract. The contract can
 change before version 1. Pin the exact Core and framework version.
 
+The framework in this document is **OPERATOR: Modded Operations — Standalone
+Map Framework**.
+
 The machine-readable contract is
 [`schemas/operator-map-package.schema.json`](../schemas/operator-map-package.schema.json).
 

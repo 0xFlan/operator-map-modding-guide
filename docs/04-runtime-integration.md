@@ -6,6 +6,9 @@ the exact installed build and run the full matrix before a public release.
 Use the standalone method when the map MUST appear in the mission section and
 load as its own scene.
 
+The public framework name is **OPERATOR: Modded Operations — Standalone Map
+Framework**. This document uses *framework* as the short technical term.
+
 ## Ownership model
 
 Keep four owners separate.
@@ -13,7 +16,7 @@ Keep four owners separate.
 | Owner | Owns | MUST NOT own |
 | --- | --- | --- |
 | Core and catalog | Package validation, immutable identity, deterministic catalog | Map-specific Unity or game code |
-| Generic Modded Operations framework | Private native-style UI, exact bundle and scene load, readiness, native-compatible mode owner, generic player/PVE/PVP lifecycle, shipped failure UI handoff, restart | Map names, shader profiles, terrain dimensions, graph sizes, marker coordinates |
+| OPERATOR: Modded Operations framework | Private native-style UI, exact bundle and scene load, readiness, native-compatible mode owner, generic player/PVE/PVP lifecycle, shipped failure UI handoff, restart | Map names, shader profiles, terrain dimensions, graph sizes, marker coordinates |
 | Data-only package and scene | Manifest, operations, bundles, preview, lighting payload, world, collision, walls, portable assets, markers | Executable code or generic mission UI |
 | Optional map companion | Exact-package and exact-scene reconstruction, strict world validation, teardown of map-owned runtime state | Catalog, generic UI, failure UI, other maps |
 

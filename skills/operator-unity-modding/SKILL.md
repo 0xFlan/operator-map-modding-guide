@@ -1,12 +1,16 @@
 ---
 name: operator-unity-modding
-description: Build, repair, research, and verify native-quality standalone OPERATOR Unity maps and additive BepInEx IL2CPP integrations. Use for data-only map packages, Modded Operations UI, scene bundles, map companions, native HDRP materials, TerrainData, foliage, A* navigation, AI markers, DoorV2, spawns, restart, and release QA.
+description: Build, repair, research, and verify native-quality standalone OPERATOR Unity maps and additive BepInEx IL2CPP integrations. Use for data-only map packages, OPERATOR Modded Operations UI, scene bundles, map companions, native HDRP materials, TerrainData, foliage, A* navigation, AI markers, DoorV2, spawns, restart, and release QA.
 ---
 
 # OPERATOR Unity Modding
 
 Use this skill when an OPERATOR map MUST load through the mission section and
 behave like a shipped operation.
+
+Use **OPERATOR: Modded Operations — Standalone Map Framework** as the public
+framework name. Use **OPERATOR: Modded Operations** as the short name and
+**MODDED OPS** as the mission-laptop label.
 
 Read only the references that match the task:
 

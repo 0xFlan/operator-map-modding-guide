@@ -5,6 +5,11 @@ OPERATOR maps. It uses the current standalone Modded Operations method. It
 assumes a Windows PC, a legal local OPERATOR installation, Unity, AssetRipper,
 and BepInEx IL2CPP.
 
+The framework in this manual is **OPERATOR: Modded Operations — Standalone Map
+Framework**. Read the
+[OPERATOR Standalone Map Modding BIBLE](OPERATOR_MAP_MODDING_BIBLE.md) before
+you make a release package.
+
 
 ## Build a map in this order
 
@@ -30,17 +35,17 @@ and BepInEx IL2CPP.
 ## Runtime paths
 
 For a map selected from the mission laptop and loaded without a retail donor
-map, use the standalone architecture: a strict data-only package, the generic
-Modded Operations framework, and an optional exact-scene map companion for
-native material, TerrainData, navigation, or other runtime-only
+map, use the standalone architecture. Use a strict data-only package,
+**OPERATOR: Modded Operations**, and an optional exact-scene map companion for
+native material, `TerrainData`, navigation, or other runtime-only
 reconstruction. Map-specific reconstruction does not belong in the generic
 framework.
 
 The scene/package owns marker coordinates, combat walls, tree families, and
 PVE `minEnemies`/`maxEnemies`. The exact-scene companion builds navigation
 from the authoritative gameplay physics/bullet volume and rejects outside
-markers before graph lookup. Generic Cerberus consumes the declared population
-range and stays free of map coordinates. Tree-family acceptance also requires
+markers before graph lookup. OPERATOR: Modded Operations consumes the declared
+population range and stays free of map coordinates. Tree-family acceptance also requires
 close/mid/far player-camera crown silhouettes; structural asset closure alone
 does not prove foliage quality.
 
@@ -50,6 +55,9 @@ remains available for explicit local diagnostics. See the
 
 ## Documentation map
 
+- [Technical BIBLE](OPERATOR_MAP_MODDING_BIBLE.md): normative ownership,
+  package, asset, runtime, AI, interactive-object, lifecycle, multiplayer, and
+  release contracts.
 - [Writing standard](docs/00-writing-standard.md): ASD-STE100 language and
   evidence-status rules.
 - [00 Toolchain](docs/00-toolchain.md): required downloads and working order.

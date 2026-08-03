@@ -2,9 +2,9 @@
 
 ## Current method
 
-Use one data-only map package, one map-independent Modded Operations framework,
-one real package-owned scene, and an optional separately installed exact-scene
-companion.
+Use one data-only map package, one map-independent **OPERATOR: Modded
+Operations — Standalone Map Framework**, one real package-owned scene, and an
+optional separately installed exact-scene companion.
 
 The retired MapBridge method overlays a prefab in a retail scene. It does not
 provide standalone mission parity.
