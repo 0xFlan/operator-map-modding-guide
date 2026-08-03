@@ -12,6 +12,7 @@
 | Hard grass/dirt change at a boundary hill | native Terrain extent versus render-only mesh extent, shared world-space weights, material family | terrain/exterior handoff |
 | Blank edge/sky | collision terrain extent, visual exterior buffer, boundary position | bounds/exterior |
 | Player starts high or falls | source markers, game-mode path, first network-object order, ground availability | spawn handoff |
+| Player camera stays under terrain and input does not work | `PlayerMaster.PlayerSpawnedObject`, host server-body execution, current-scene spawn list, shipped `MovePlayerToSpawn` | generic framework player lifecycle |
 | Double sun or odd shadows | scene light hierarchy, controller ownership, mod-created lights | lighting ownership |
 | Different red dot/laser | player-camera exposure, tone map, bloom, optic camera/custom pass | environment stack |
 | Works in editor but not game | bundle platform/version, installed shader availability, IL2CPP object validity | runtime integration |

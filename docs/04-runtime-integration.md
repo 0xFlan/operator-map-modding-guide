@@ -1,7 +1,8 @@
 # 4. Standalone runtime integration
 
-Status: `SUPPORTED` for the stated current-build local PVE/PVP scope. Re-check
-the exact installed build and run the full matrix before a public release.
+Status: `SUPPORTED` for the previously proved package, exact-scene, world, and
+restart boundaries. The current host player-spawn and selected-map prefetch
+corrections are `PROVEN-STATIC` until the physical PVE/PVP matrix passes.
 
 Use the standalone method when the map MUST appear in the mission section and
 load as its own scene.
@@ -33,7 +34,9 @@ process starts
 -> generic framework creates private native-style UI
 -> user selects one immutable package operation
 -> framework binds package-owned infiltration data
--> framework verifies and loads dependency bundles in manifest order
+-> framework starts one selected-map bundle prefetch
+-> Confirm joins that request or uses its completed content-ID cache
+-> framework verifies dependencies in manifest order
 -> framework verifies the exact scene path in the scene bundle
 -> framework loads the exact scene additively
 -> companion verifies package, map, operation, scene, and build identity
@@ -94,6 +97,13 @@ selector, and fullscreen controls to private package state.
 
 The selection MUST stay stable from row click through restart. Do not use a
 mutable row index or an official operation identity as package identity.
+
+The framework MAY start one bounded selected-map bundle prefetch after the row
+selection is stable. It MUST keep manifest dependency order, validate the
+content ID and scene path, and attach Confirm to the same request. It MUST NOT
+prefetch all maps. It MUST log the file bytes, per-bundle time, total time, and
+remaining Confirm wait. Prefetch moves cold I/O earlier; it does not remove the
+bundle bytes.
 
 ## Scene-bundle ownership
 
@@ -241,6 +251,17 @@ The framework MUST wait for all of these conditions:
 
 Only then can the framework create or move players. Only the server can create
 PVE actors. PVP MUST create zero PVE actors.
+
+On the current exact build, `PlayerMaster.SpawnPlayer()` and
+`SpawnPlayerServer()` both enter the generated Mirror command sender. The
+generated server implementation is
+`PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. It selects a shipped
+spawn point, instantiates the shipped player prefab, calls owner-aware
+`NetworkServer.Spawn`, assigns the spawned-player object, and sends the retail
+spawn RPC. A host adapter MAY enter this exact generated server method after
+the server readiness barrier. A non-server owned client MUST keep the command
+path. Treat this route as `PROVEN-STATIC` until physical player, camera,
+movement, and combat tests pass.
 
 For PVE, the package declares `minEnemies` and `maxEnemies`. The framework
 selects one inclusive deterministic count from the valid sorted markers. It

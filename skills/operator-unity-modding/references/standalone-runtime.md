@@ -66,6 +66,39 @@ same final frame.
 Treat this correction as `PROVEN-STATIC` until one physical first Confirm
 launches without a second laptop interaction.
 
+## Selected-map bundle prefetch
+
+Start one selected-map prefetch after the immutable row selection. Keep
+manifest dependency order. Keep the content ID with the cache. Confirm MUST
+attach to that request or use its completed cache. Do not prefetch all maps.
+
+Log each file name, byte count, request time, total time, and remaining Confirm
+wait. An active `AssetBundleCreateRequest` has no safe cancellation contract.
+Finish the one bounded request. Prefetch moves cold I/O earlier; it does not
+remove the bytes.
+
+Treat this method as `PROVEN-STATIC` until a physical row-to-Confirm run
+records the expected timings and launches once.
+
+## Host player spawn
+
+On the current exact build, `PlayerMaster.SpawnPlayer()` and
+`SpawnPlayerServer()` both enter the Mirror command sender. The generated
+server method is `PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. It
+selects a shipped spawn point, instantiates the shipped player prefab, calls
+owner-aware `NetworkServer.Spawn`, assigns the spawned-player object, and sends
+the retail spawn RPC.
+
+After the server readiness barrier, a host adapter can enter that exact
+generated server method when `NetworkServer.active`. Pass the `PlayerMaster`
+network identity. Keep the normal command path for a non-server owned client.
+Do not create an independent player prefab and do not call lifecycle methods.
+
+Require a non-null `PlayerSpawnedObject`, the shipped
+`GameManager.MovePlayerToSpawn` path, and player-camera proof above the package
+terrain. Treat this route as `PROVEN-STATIC` until movement, camera, and
+reciprocal combat pass in a physical run. Test remote clients separately.
+
 ## Native AI population
 
 Filter `GameManager.AllAITypes` for root `BrainAI`, root `NetworkIdentity`,

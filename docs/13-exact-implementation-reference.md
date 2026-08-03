@@ -309,6 +309,7 @@ standalone flow:
 | Member | Responsibility |
 | --- | --- |
 | `BuildPackageInfiltrationMapPrefab` | Build the native selector presentation for a package operation. |
+| `BeginSelectedMapPrefetch` | Start one bounded selected-map dependency and scene-bundle load after row selection. |
 | `BeginCatalogOperationLaunch` | Capture the selected operation and exact player-owned laptop before asynchronous package I/O. |
 | `RestoreCapturedLaunchLaptop` | Restore only the captured `playerNetworking` field when the same laptop released it during loading. |
 | `SetNativeConfirmationLoadingState` | Keep the private modal visible and non-interactable until loading succeeds or fails. |
@@ -316,6 +317,7 @@ standalone flow:
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
+| `RequestStandalonePlayerSpawn` | On a host, enter the current-build generated Mirror server spawn body; keep the command path for a non-server owned client. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
 | `TrySpawnStandalonePveEnemies` | Filter registered firearm-capable prefabs and call `RaidManager.ServerSpawnAI(false)` after world readiness. |
 | `ReleaseStandaloneGameMode` | Release the mode owner during lifecycle transitions. |
@@ -349,27 +351,31 @@ The loader MUST use this order:
 6. Reject an absolute path, a backslash, a drive prefix, or a traversal
    segment in a manifest path.
 7. Verify each declared byte count and SHA-256 value.
-8. Capture the exact player-owned `MissionLaptop` and its `PlayerNetworking`
-   before asynchronous bundle I/O.
-9. Keep the private Confirm modal in a disabled loading state.
-10. Load `content/operator_ukrainian_forest` as the dependency bundle.
-11. Prove that the dependency bundle has zero scene paths.
-12. Load `content/operator_ukrainian_forest_scene` as the scene bundle.
-13. Prove that the scene bundle has exactly
+8. After stable row selection, start one selected-map bundle prefetch. Do not
+   prefetch all maps.
+9. Load `content/operator_ukrainian_forest` as the dependency bundle.
+10. Prove that the dependency bundle has zero scene paths.
+11. Load `content/operator_ukrainian_forest_scene` as the scene bundle.
+12. At Confirm, capture the exact player-owned `MissionLaptop` and its
+    `PlayerNetworking`. Attach them to the same in-flight request or use the
+    completed same-content cache.
+13. Keep the private Confirm modal in a disabled loading state when bundle
+    work remains.
+14. Prove that the scene bundle has exactly
     `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
-14. Restore only the captured laptop field when loading released it, then
+15. Restore only the captured laptop field when loading released it, then
     close the modal and call `CerebusOpboard.Start_Operation` in one frame.
-15. Load that exact scene.
-16. Run the exact-scene companion.
-17. Reconstruct `TerrainData`, terrain materials, native tree materials, and
+16. Load that exact scene.
+17. Run the exact-scene companion.
+18. Reconstruct `TerrainData`, terrain materials, native tree materials, and
     the playable-only A* graph.
-18. Prove the map marker, selected spawn set, terrain collision, combat
+19. Prove the map marker, selected spawn set, terrain collision, combat
     bounds, and valid marker capacity.
-19. Release the generic mode owner only after the world-ready contract passes.
-20. Spawn the player and PVE actors through the shipped owner-aware server
+20. Create the generic mode owner only after the world-ready contract passes.
+21. Spawn the player and PVE actors through the shipped owner-aware server
     path.
 
-Do not spawn actors before steps 16 through 18 finish. A brown flat terrain
+Do not spawn actors before steps 17 through 19 finish. A brown flat terrain
 with falling enemies is evidence that actor creation ran before the complete
 world-ready contract or that runtime reconstruction did not finish.
 

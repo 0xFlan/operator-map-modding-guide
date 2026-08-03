@@ -376,7 +376,9 @@ Core validates and freezes packages
 -> Modded Operations creates private native-style mission UI
 -> user selects one immutable package operation
 -> framework binds package-owned board and infiltration data
--> framework loads verified dependency bundles in manifest order
+-> framework starts one selected-map bundle prefetch
+-> Confirm joins that request or uses the same-content cache
+-> framework verifies dependency bundles in manifest order
 -> framework verifies and loads the exact scene bundle and scene path
 -> companion verifies exact package, map, operation, scene, and build identity
 -> companion reconstructs native materials, TerrainData, navigation, and interactives
@@ -412,6 +414,11 @@ only that field, restore the captured owned player. Close the modal and call
 `CerebusOpboard.Start_Operation` in the same final frame. Do not make the user
 leave and re-enter the laptop.
 
+A stable row selection can start one bounded selected-map bundle prefetch.
+Load dependencies in manifest order, then the scene bundle. Keep the content
+ID with the cache. Confirm MUST attach to the same request. Do not prefetch all
+maps. Log file bytes, per-bundle time, total time, and remaining Confirm wait.
+
 Test with physical pointer input. A direct UnityEvent call is diagnostic
 evidence only.
 
@@ -423,6 +430,15 @@ game path requires it.
 
 Wait for exact scene identity, world validation, mode ownership, the shipped
 readiness barrier, and the current-scene spawn list.
+
+On the current exact build, `PlayerMaster.SpawnPlayer()` and
+`SpawnPlayerServer()` both enter the Mirror command sender. The generated
+server implementation is
+`PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. A host adapter can
+enter that exact method after server readiness. Keep the command path for a
+non-server owned client. Require a non-null spawned-player object and the
+shipped `GameManager.MovePlayerToSpawn` path. This route is `PROVEN-STATIC`
+until the physical player, camera, movement, and combat gates pass.
 
 For standalone PVE, a bare `GameMode` is insufficient. The generic framework
 MUST provide:
@@ -660,6 +676,7 @@ retested.
 | First Confirm does nothing but a second laptop interaction works | The framework released `MissionLaptop.playerNetworking` during asynchronous package I/O; capture and restore the exact same-laptop owner before native start |
 | Exact scene is brown or flat | Portable material reconstruction, not scene selection |
 | Actor falls from the sky | Terrain collision, marker foot position, graph grounding, and readiness order |
+| Player camera is under terrain and movement does not work | `PlayerMaster.PlayerSpawnedObject`, host server spawn execution, and the shipped move-to-spawn path |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |
 | Pine reads as a bare trunk | Tree-family crown silhouette failed despite static closure |
