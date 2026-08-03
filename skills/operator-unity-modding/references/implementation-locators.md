@@ -23,10 +23,14 @@ drive-specific workspace, a private log, or a private test control.
 - Native selector builder: `BuildPackageInfiltrationMapPrefab`.
 - Native launch calls: `InfilSelectorDisplayer.SpawnMap` and
   `CerebusOpboard.Start_Operation`.
+- Confirm capture: `BeginCatalogOperationLaunch` and `PendingMapLaunch`.
+- Confirm owner repair: `RestoreCapturedLaunchLaptop`.
+- Confirm loading state: `SetNativeConfirmationLoadingState`.
 - Scene gate: `ValidateStandaloneSceneContract`.
 - Gameplay bootstrap: `CreateStandaloneGameplayBootstrap`.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
-- PVE creation: `TrySpawnStandalonePveEnemies`.
+- PVE creation: `TrySpawnStandalonePveEnemies` and
+  `RaidManager.ServerSpawnAI(false)`.
 - Lifecycle release: `ReleaseStandaloneGameMode`.
 
 The framework MUST NOT contain a map name, map coordinate, shader profile, or
@@ -34,7 +38,7 @@ graph size.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.5`.
+- Package: `community.ukrainian-forest`, version `0.3.6`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.

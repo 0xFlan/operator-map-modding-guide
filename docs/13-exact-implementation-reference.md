@@ -5,7 +5,7 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.5` package manifest, the current
+status. The values came from the version `0.3.6` package manifest, the current
 framework and companion source, and the emitted bundles. A new build can have
 different byte counts and SHA-256 values.
 
@@ -128,7 +128,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.5` value |
+| Field | Version `0.3.6` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -137,7 +137,7 @@ between IDs, file names, and Unity asset addresses.
 | `sceneBundle` | `content/operator_ukrainian_forest_scene` |
 | first `dependencyBundles[]` value | `content/operator_ukrainian_forest` |
 | `scenePath` | `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity` |
-| `previewImage` | `media/ukraine_forest_preview.png` |
+| `previewImage` | `media/ukraine_forest_preview.jpg` |
 | LUT path | `lighting/AgX_Powerful_RGBAHalf_32.bytes` |
 | LUT contract | dimension `32`, format `rgba-half`, `262144` bytes |
 | LUT SHA-256 | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
@@ -149,10 +149,10 @@ The exact emitted package files had these manifest records:
 | `content/operator_ukrainian_forest` | `630286065` | `05436ac4b474a54877a0d3bdaafe029e6c35edc2dbd30898e6e094f2a2138b32` |
 | `content/operator_ukrainian_forest_scene` | `17606767` | `6bdd50f61cbce1ca28f79f6c198db45d7fd752d96d2f5468c7b1dc5f5c1e94d1` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
-| `media/ukraine_forest_preview.png` | `1921917` | `8288f6ccbde19981a450bfb50a09b3d220df6c311047de9aeabb526220b0ad1e` |
+| `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.5` values into a different archive.
+these version `0.3.6` values into a different archive.
 
 ## Ukrainian Forest operation records
 
@@ -309,12 +309,15 @@ standalone flow:
 | Member | Responsibility |
 | --- | --- |
 | `BuildPackageInfiltrationMapPrefab` | Build the native selector presentation for a package operation. |
+| `BeginCatalogOperationLaunch` | Capture the selected operation and exact player-owned laptop before asynchronous package I/O. |
+| `RestoreCapturedLaunchLaptop` | Restore only the captured `playerNetworking` field when the same laptop released it during loading. |
+| `SetNativeConfirmationLoadingState` | Keep the private modal visible and non-interactable until loading succeeds or fails. |
 | `InfilSelectorDisplayer.SpawnMap` | Start the selected native map flow. |
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
-| `TrySpawnStandalonePveEnemies` | Create PVE actors after world readiness. |
+| `TrySpawnStandalonePveEnemies` | Filter registered firearm-capable prefabs and call `RaidManager.ServerSpawnAI(false)` after world readiness. |
 | `ReleaseStandaloneGameMode` | Release the mode owner during lifecycle transitions. |
 
 The Ukrainian Forest companion assembly is `OperatorUkrainianForest.dll`. Its
@@ -346,21 +349,27 @@ The loader MUST use this order:
 6. Reject an absolute path, a backslash, a drive prefix, or a traversal
    segment in a manifest path.
 7. Verify each declared byte count and SHA-256 value.
-8. Load `content/operator_ukrainian_forest` as the dependency bundle.
-9. Prove that the dependency bundle has zero scene paths.
-10. Load `content/operator_ukrainian_forest_scene` as the scene bundle.
-11. Prove that the scene bundle has exactly
+8. Capture the exact player-owned `MissionLaptop` and its `PlayerNetworking`
+   before asynchronous bundle I/O.
+9. Keep the private Confirm modal in a disabled loading state.
+10. Load `content/operator_ukrainian_forest` as the dependency bundle.
+11. Prove that the dependency bundle has zero scene paths.
+12. Load `content/operator_ukrainian_forest_scene` as the scene bundle.
+13. Prove that the scene bundle has exactly
     `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
-12. Load that exact scene.
-13. Run the exact-scene companion.
-14. Reconstruct `TerrainData`, terrain materials, native tree materials, and
+14. Restore only the captured laptop field when loading released it, then
+    close the modal and call `CerebusOpboard.Start_Operation` in one frame.
+15. Load that exact scene.
+16. Run the exact-scene companion.
+17. Reconstruct `TerrainData`, terrain materials, native tree materials, and
     the playable-only A* graph.
-15. Prove the map marker, selected spawn set, terrain collision, combat
+18. Prove the map marker, selected spawn set, terrain collision, combat
     bounds, and valid marker capacity.
-16. Release the generic mode owner only after the world-ready contract passes.
-17. Spawn the player and PVE actors.
+19. Release the generic mode owner only after the world-ready contract passes.
+20. Spawn the player and PVE actors through the shipped owner-aware server
+    path.
 
-Do not spawn actors before steps 13 through 15 finish. A brown flat terrain
+Do not spawn actors before steps 16 through 18 finish. A brown flat terrain
 with falling enemies is evidence that actor creation ran before the complete
 world-ready contract or that runtime reconstruction did not finish.
 
@@ -408,7 +417,7 @@ A release candidate needs separate proof for each row:
 
 | Gate | Required evidence |
 | --- | --- |
-| Selector | The mission row, preview, infiltration selector, and confirm action use the selected package operation. |
+| Selector | The mission row, preview, infiltration selector, and one physical first Confirm use the selected package operation without a second laptop interaction. |
 | Scene | The loaded scene path is the exact manifest `scenePath`. |
 | Terrain | `Terrain` and `TerrainCollider` exist on `NATIVE_Ground_HillyTerrain` and share one `TerrainData`. |
 | Materials | Terrain and tree materials use the expected installed shader and texture identities. |

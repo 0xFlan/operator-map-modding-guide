@@ -4,6 +4,10 @@ Status: `SUPPORTED` for a current-build map-owned A* `GridGraph` and generic
 native PVE actor flow. Re-check the installed A* and game interop after each
 update.
 
+The owner-retention and owner-aware firearm-population corrections described
+below are `PROVEN-STATIC` for the current candidate. Keep them below
+`SUPPORTED` until one physical first Confirm and reciprocal firearm test pass.
+
 ## Use the native AI stack
 
 OPERATOR bots use the A* Pathfinding Project for map traversal. Unity NavMesh
@@ -107,6 +111,17 @@ actor at the nearest distant node.
 The package declares `minEnemies` and `maxEnemies`. The framework validates
 the range and the valid-marker count. The server selects an inclusive
 deterministic count from sorted markers.
+
+Use OPERATOR's shipped population owner. In the current inspected build,
+`RaidManager.ServerSpawnAI(false)` selects `standardAI`, instantiates the bot,
+calls `NetworkServer.Spawn(bot, GameManager.instance.gameObject)`, and then
+applies `BotSpawnDetails`. Preserve this order and owner argument. Do not
+replace it with one-argument `NetworkServer.Spawn(bot)`.
+
+Before the call, restrict `standardAI` to registered prefabs that have root
+`BrainAI`, root `NetworkIdentity`, `WeaponsAI.SpawnWeapon=true`, and a
+non-empty `WeaponsAI.weaponList`. A grenade result does not prove the firearm
+lifecycle. Require reciprocal firearm damage in the physical runtime test.
 
 The map companion MUST NOT create actors. The generic framework MUST NOT
 contain a map name, map coordinate, graph size, or hard-coded population for

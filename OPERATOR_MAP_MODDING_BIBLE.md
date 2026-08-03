@@ -26,6 +26,10 @@ BepInEx, Il2CppInterop, A*, Core, or framework update.
 The method does not yet prove general multiplayer content agreement, late
 join, or all possible maps. Treat these claims as separate gates.
 
+The current first-Confirm owner-retention and owner-aware firearm-population
+corrections are `PROVEN-STATIC`. Do not label those corrections `SUPPORTED`
+until one physical first Confirm and reciprocal firearm damage pass.
+
 The old retail-scene prefab overlay is `RETIRED` for standalone mission
 parity. Keep it only for an explicit diagnostic test. See
 [Archived methods](docs/archive/README.md).
@@ -75,8 +79,10 @@ change an identity to match a display name.
 | Generic framework source file | `CerberusNativeTabFix.cs` |
 | Native selector builder | `BuildPackageInfiltrationMapPrefab` |
 | Native launch calls | `InfilSelectorDisplayer.SpawnMap`, `CerebusOpboard.Start_Operation` |
+| Confirm owner retention | `BeginCatalogOperationLaunch`, `RestoreCapturedLaunchLaptop`, `SetNativeConfirmationLoadingState` |
 | Scene contract gate | `ValidateStandaloneSceneContract` |
 | PVE count selector | `ChooseStandalonePveEnemyCount` |
+| PVE creator | `TrySpawnStandalonePveEnemies`, `RaidManager.ServerSpawnAI(false)` |
 | Ukrainian Forest companion assembly | `OperatorUkrainianForest.dll` |
 | Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
 | Companion exact-scene entry | `ProcessStandalonePackageScene` |
@@ -96,7 +102,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.5` file records, terrain payload addresses, material
+The full version `0.3.6` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -399,6 +405,13 @@ page through a global object-name search.
 Use the shipped infiltration selector with package-owned data. Do not call a
 retail setup method that requires a retail mission graph.
 
+At Confirm, capture the exact player-owned `MissionLaptop` and its exact
+`PlayerNetworking` before asynchronous package I/O. Keep the private modal
+visible and non-interactable while content loads. If the same laptop releases
+only that field, restore the captured owned player. Close the modal and call
+`CerebusOpboard.Start_Operation` in the same final frame. Do not make the user
+leave and re-enter the laptop.
+
 Test with physical pointer input. A direct UnityEvent call is diagnostic
 evidence only.
 
@@ -457,6 +470,12 @@ Use the shipped AI stack. The map owns route shape, cover geometry,
 collision, and markers. The framework owns generic actor creation. Native AI
 systems own perception, movement, weapons, cover search, and off-mesh
 traversal.
+
+Create generic PVE actors through the shipped owner-aware
+`RaidManager.ServerSpawnAI(false)` path. Supply only registered prefabs with
+root `BrainAI`, root `NetworkIdentity`, enabled weapon spawning, and a
+non-empty weapon list. Do not use a one-argument manual network spawn. A
+working grenade does not prove a working firearm owner.
 
 Test representative routes. Record each start, goal, path result, path length,
 and failed segment.
@@ -638,7 +657,7 @@ retested.
 
 | Symptom | First responsible layer to test |
 | --- | --- |
-| Confirm does nothing | Private board data, selector priming, and same-laptop UI ownership |
+| First Confirm does nothing but a second laptop interaction works | The framework released `MissionLaptop.playerNetworking` during asynchronous package I/O; capture and restore the exact same-laptop owner before native start |
 | Exact scene is brown or flat | Portable material reconstruction, not scene selection |
 | Actor falls from the sky | Terrain collision, marker foot position, graph grounding, and readiness order |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |

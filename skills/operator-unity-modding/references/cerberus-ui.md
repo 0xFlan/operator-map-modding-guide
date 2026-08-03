@@ -18,3 +18,8 @@ restart. The map companion MUST NOT own these tasks.
 Test physical pointer input. Test all tabs, repeated tab switching, Back,
 Cancel, Confirm, reopen, restart, and official-row isolation. One physical
 click MUST cause one logical transition.
+
+Package loading can outlive the Confirm frame. Capture the exact player-owned
+`MissionLaptop` and `PlayerNetworking` before I/O. Keep the private modal
+visible and disabled. Restore only that captured field on the same laptop when
+needed. Close the modal and call the native start in the same final frame.

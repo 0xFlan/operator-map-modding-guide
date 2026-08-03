@@ -14,6 +14,7 @@ provide standalone mission parity.
 ```text
 freeze verified catalog
 -> bind private mission UI
+-> capture exact player-owned laptop and player at Confirm
 -> verify and load dependencies
 -> verify and load exact scene
 -> run exact-scene companion reconstruction
@@ -53,3 +54,25 @@ one fresh generation.
 
 Record normal Restart Operation, death/respawn, and KIA/end-screen Restart as
 separate claims.
+
+## Confirm lifetime
+
+Package I/O can outlive the Confirm frame. Keep the exact owned
+`MissionLaptop` and its `PlayerNetworking` in the pending launch record. Keep
+the modal visible and disabled. Restore only the captured field when the same
+laptop released it. Close the modal and call the native board start in the
+same final frame.
+
+Treat this correction as `PROVEN-STATIC` until one physical first Confirm
+launches without a second laptop interaction.
+
+## Native AI population
+
+Filter `GameManager.AllAITypes` for root `BrainAI`, root `NetworkIdentity`,
+`WeaponsAI.SpawnWeapon=true`, and a non-empty `weaponList`. Give those prefabs
+and the package-valid markers to a scene-owned `RaidManager`. Call
+`RaidManager.ServerSpawnAI(false)`. Preserve its current shipped order:
+owner-aware network spawn first, then `BotSpawnDetails`.
+
+Treat this correction as `PROVEN-STATIC` until reciprocal firearm damage works
+in a physical PVE run. A grenade result is not sufficient.

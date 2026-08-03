@@ -97,10 +97,18 @@ framework.
 
 ## Spawn and mode rules
 
+- At Confirm, capture the exact player-owned `MissionLaptop` and
+  `PlayerNetworking` before asynchronous package I/O. Keep the modal in a
+  loading state. Close it and start the native operation in one final frame.
 - Install only the current package scene's player markers before native player
   creation.
 - Wait for the world contract and shipped all-players-loaded barrier.
 - Create PVE actors only on the server.
+- Filter registered AI prefabs for root `BrainAI`, root `NetworkIdentity`,
+  enabled `WeaponsAI.SpawnWeapon`, and a non-empty `weaponList`.
+- Create bots through the shipped owner-aware
+  `RaidManager.ServerSpawnAI(false)` path. Do not use a one-argument manual
+  `NetworkServer.Spawn` replacement.
 - Select an inclusive deterministic count from package `minEnemies` and
   `maxEnemies`.
 - Create zero PVE actors for PVP.
