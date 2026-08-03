@@ -31,6 +31,9 @@ you make a release package.
 12. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
    [docs/06-hdrp-and-fidelity.md](docs/06-hdrp-and-fidelity.md).
 13. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
+14. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
+    to locate current code, bundles, assets, object names, and verification
+    commands.
 
 ## Runtime paths
 
@@ -90,6 +93,9 @@ remains available for explicit local diagnostics. See the
 - [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,
   pivot, texture, material, foliage, tree-family, terrain, and runtime-audit
   requirements.
+- [13 Exact implementation reference](docs/13-exact-implementation-reference.md):
+  path tokens, source members, assembly names, bundle names, Ukrainian Forest
+  asset addresses, scene objects, and exact load order.
 - [Archived methods](docs/archive/README.md): methods that MUST NOT be used as
   current standalone release proof.
 - [Codex skill](skills/operator-unity-modding/SKILL.md): reusable instructions
@@ -101,8 +107,11 @@ Copy the complete `skills/operator-unity-modding` directory to the Codex
 skills directory. On Windows, the default destination is:
 
 ```text
-%USERPROFILE%/.codex/skills/operator-unity-modding/
+<USER_PROFILE>\.codex\skills\operator-unity-modding\
 ```
+
+`<USER_PROFILE>` means the operating-system user profile directory. Keep this
+token in public documentation. Do not publish an actual account name.
 
 Keep `SKILL.md`, `agents/openai.yaml`, and the `references` directory together.
 Start a new Codex task after installation. Invoke the skill as

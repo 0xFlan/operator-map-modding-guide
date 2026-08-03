@@ -54,6 +54,13 @@ needs runtime reconstruction also needs its exact-scene companion.
 - `templates/Editor/ValidateMapRoot.cs` is a legacy prefab-root validator.
 - `tools/Deploy-LocalMapCandidate.ps1` is a legacy MapBridge deployment
   template.
+- `docs/13-exact-implementation-reference.md` gives exact source members,
+  assembly names, bundle names, scene objects, Ukrainian Forest asset
+  addresses, and privacy-safe path tokens.
 
-Set all project-specific paths and IDs before use. Treat a template as source,
-not as a prebuilt release.
+Set all project-specific paths and IDs before use. In the standalone scene
+validator, set the package-manifest path and the exact operation ID. The
+validator reads the selected operation mode and `minEnemies` from that
+manifest. A PVP operation can have zero AI markers. A PVE operation must have
+at least its declared number of ordinary enemy markers. Treat a template as
+source, not as a prebuilt release.
