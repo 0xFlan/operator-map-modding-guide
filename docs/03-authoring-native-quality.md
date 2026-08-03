@@ -13,6 +13,26 @@ Before placing decorative content, create and test:
 An attractive ground mesh with no valid collider is not playable terrain.
 Likewise, distant scenery alone is not a boundary system.
 
+### Keep the gameplay boundary separate from the visual terrain boundary
+
+Do not end native `Terrain`/TerrainLayer rendering on the same contour as an
+invisible wall. Keep the player-accessible area and the terrain-rendering area
+as separate, explicit envelopes:
+
+1. Put the invisible walls at the intended gameplay boundary.
+2. Continue the same native `TerrainData`, terrain layers, height function,
+   normals, and material family 10-15m beyond those walls as a visual apron.
+3. Begin any render-only distant terrain only outside that apron. Sample the
+   same world coordinates for heights and surface weights on both sides.
+4. Place the horizon vegetation outside the player wall and inspect the wall
+   from player height at grazing light angles.
+
+This prevents a player from seeing a hard `Terrain`-to-mesh material switch
+where grass suddenly becomes dirt or rock. Do not hide a seam with a narrow
+painted color band, a second light, or a different shader family. Use a broad,
+continuous world-space blend for grass, dirt, and exposed rock, then validate
+weight continuity numerically and from the player camera.
+
 ## Use complete asset closures
 
 For every direct asset, retain the complete relationship between:
@@ -28,6 +48,24 @@ For every direct asset, retain the complete relationship between:
 Do not use a branch, root fragment, billboard, loose atlas image, unrelated
 primitive, or approximately named material as a substitute for a complete
 native asset.
+
+### Select arena props from official-scene evidence
+
+Before importing a tree, rock, fence, barrier, crate, or other cover item,
+inspect an official reference scene in AssetRipper and record:
+
+- the exact root GameObject and its full child hierarchy;
+- the highest-detail mesh or LOD0, vertex/submesh count, and material slots;
+- each required texture/map and the material/shader family that consumes it;
+- collider type, bounds, and whether the object is actual cover or decoration;
+- source-scene placement count and role; and
+- close front, side, rear, and grazing-angle views after it renders in game.
+
+Treat a candidate as rejected if it is an effect, billboard, loose fragment,
+open one-sided mesh, incomplete hierarchy, or has an unresolved material
+closure. Add a small, intentional set of verified props, then re-run spawn,
+route, slope, and performance checks. Do not fill an arena by bulk-instancing
+every object discovered in an asset export.
 
 ## Foliage is a rendering contract
 
@@ -70,12 +108,20 @@ grey cards, or flat shapes in the game:
    culling/double-sided, depth/shadow, wind, transmission, normal, and
    vertex-color/AO state.
 5. Inspect it from a normal player camera after the scene has rendered for
-   several frames. An editor preview or a transparent PNG is not proof.
+   several frames at close, middle, and far distances. Require a complete
+   crown silhouette and readable foliage mass. An editor preview, a transparent
+   PNG, or valid mesh/submesh/material counts are not proof.
 
 Use alpha **cutout**, not ordinary alpha blending, unless the shipped material
-uses blending. Cutout foliage must participate in depth and shadows as its
+uses blending. Cutout foliage MUST participate in depth and shadows as its
 source does; replacing it with an unrelated transparent material commonly fixes
 the rectangle while breaking lighting and ordering.
+
+If a tree family still reads primarily as bare trunks through the player
+camera, reject it from playable and perimeter placement even when its technical
+closure is complete. Substitute an audited complete native family and preserve
+its matching materials/textures; do not try to hide the silhouette defect by
+adding more instances.
 
 ## Terrain, roots, props, and cover
 
@@ -84,16 +130,17 @@ embedding rather than a constant world Y:
 
 - trees need full trunks and terrain contact;
 - bushes and grass need small downward embeds;
-- rigid cover must be tested across its full footprint;
-- incomplete or one-sided rock meshes must be rejected from a multi-angle
+- rigid cover MUST be tested across its full footprint;
+- incomplete or one-sided rock meshes MUST be rejected from a multi-angle
   player-height review.
 
 For rotated rigid cover, sample the final collision height at the complete
 mesh/collider center and all footprint corners after applying the cover's yaw.
-Flatten only the actual support footprint plus a short feather when required.
-An axis-aligned early-out must conservatively enclose the rotated footprint;
-otherwise grass or props near a rotated support pad can retain the old hillside
-height and float.
+If the full footprint cannot sit naturally on the authored grade, relocate or
+remove the prop rather than creating an artificial shelf. An axis-aligned
+early-out MUST conservatively enclose the rotated footprint; otherwise grass
+or props near a rotated support pad can retain the old hillside height and
+float.
 
 Avoid rows. Use deterministic but nonuniform position, yaw, spacing, species,
 and scale variation. Preserve deliberate paths and spawn/camera clearances.
