@@ -213,6 +213,19 @@ PVP_Team1Spawn_
 PVP_Team2Spawn_
 ```
 
+The current scene contains ten Team 1 markers and ten Team 2 markers. Team 1
+uses the normal PVE-player side. Its authored local Z range is `5.4` through
+`13.2`. Team 2 uses the PVE-enemy side. Its authored local Z range is `82.4`
+through `90.2`. The scene builder enforces ten markers per side with
+`TeamSpawnCountPerSide`. It also enforces `Z <= 15` for Team 1 and `Z >= 80`
+for Team 2 in `VerifyBuiltStandaloneSceneContract`.
+
+The source locators are
+`BuildHillyUkrainianForestBundle.cs:184-186`, `:415-417`, and
+`:1535-1558`. The independent layout gate is
+`tools/validate_hilly_forest_layout.py`. The source line numbers identify the
+current private worked example. Recalculate them after a source rewrite.
+
 `GameplayBounds` MUST have one `BoxCollider`. Place every AI marker inside the
 box with the required wall clearance. If the `GameplayBounds` transform has a
 scale, convert world-space clearance metres to local X and Z units. The public
@@ -317,7 +330,10 @@ standalone flow:
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
+| `ConfigureStandalonePlayerSpawnContract` | Convert only verified current-scene marker transforms to shipped `SpawnPoint` components and register the current global spawn list. |
 | `RequestStandalonePlayerSpawn` | On a host, enter the current-build generated Mirror server spawn body; keep the command path for a non-server owned client. |
+| `SelectPlayerMarker` | Select a current-scene marker for one `PlayerMaster`; reject PVP players without native team ID `1` or `2`. |
+| `PvpMarkerMatchesTeam` | Bind Team 1 prefixes to native ID `1` and Team 2 prefixes to native ID `2`. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
 | `TrySpawnStandalonePveEnemies` | Filter registered firearm-capable prefabs and call `RaidManager.ServerSpawnAI(false)` after world readiness. |
 | `ReleaseStandaloneGameMode` | Release the mode owner during lifecycle transitions. |
@@ -338,6 +354,31 @@ These members are implementation evidence. A map author MUST use the public
 schema and templates as the authoring interface. A different map companion
 MUST use a different exact scene gate and MUST own only its map-specific
 reconstruction.
+
+## Current-build native PVP team contract
+
+The current installed native build has these exact static relationships:
+
+| Native item | Exact locator | Proven behavior |
+| --- | --- | --- |
+| `GameManager.nextSpawnPosition(bool,int,int)` | RVA `0x00EF2CA0`; direct team comparison near RVA `0x00EF2F15` | Compares the input team ID directly with `SpawnPoint.Team` at native field offset `0x24`. |
+| `TeamIdentifier.TeamID` | managed field offset `0x70` | Supplies the player's numeric team identity. |
+| `PlayerMaster.MyTeamIdentifier` | managed field offset `0x88` | Supplies the player's `TeamIdentifier`. |
+| `PvpGameode.StartNewRound()` | RVA `0x00F1C0E0`; Team 1 writes near `0x00F1C336`; Team 2 writes near `0x00F1C3F6` | Writes `CanSpawnPlayer=true`, then writes Team 1 as `1` and Team 2 as `2`. |
+
+`CerberusNativeTabFix.cs:2955` applies the `1/2` assignment.
+`CerberusNativeTabFix.cs:3949-4008` reads `TeamID`, invalidates a cached marker
+after a team mismatch, and filters markers by team.
+
+These addresses and offsets are exact-build `PROVEN-STATIC` evidence. They
+are not portable API promises. Reinspect them after an OPERATOR update.
+
+The current standalone bootstrap still creates the generic
+`StandaloneGameMode`. A complete retail `PvpGameode` also owns serialized
+Team 1 and Team 2 lists, round state, UI, audio, and respawn sequencing. The
+correct team-side marker mapping does not, by itself, prove full retail PVP
+round ownership. Require a two-peer first-spawn and respawn test before a
+support claim.
 
 ## Exact load order
 
@@ -433,6 +474,7 @@ A release candidate needs separate proof for each row:
 | Combat | The player and enemies can damage each other across valid lines of fire. |
 | Navigation | All selected AI markers ground to the playable-only A* graph. |
 | PVP isolation | The Ukrainian Forest PVP operation creates zero AI actors. |
+| PVP teams | A host and client on different teams spawn and respawn on their authored opposite sides; Team 1 uses native ID `1` and Team 2 uses native ID `2`. |
 | Lifecycle | Normal restart, death/KIA restart, scene unload, and a second launch do not keep stale map state. |
 | Multiplayer | Host and client load the same package identity and content hashes. |
 

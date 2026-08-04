@@ -208,6 +208,18 @@ The framework converts current-scene player transforms into the shipped
 list with only the current package scene's points before native player
 creation.
 
+On the current exact OPERATOR build, team IDs are one-based. Set
+`SpawnPoint.Team` to `1` for a Team 1 marker and to `2` for a Team 2 marker.
+Read the player's numeric identity from
+`PlayerMaster.MyTeamIdentifier.TeamID`. Do not convert these values to `0`
+and `1`. Do not infer the team from `TeamIdentifier.ToString()`.
+
+If the framework caches a marker for one player, it MUST check the marker
+again after a team change. It MUST remove the cached assignment when the
+marker does not belong to the current `TeamID`. This numeric rule is
+`PROVEN-STATIC` for the fingerprinted build. Reinspect the native PVP methods
+after a game update.
+
 ## Optional runtime terrain fields
 
 Use `runtimeTerrain` only when serialized `TerrainData` cannot materialize as

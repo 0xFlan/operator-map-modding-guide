@@ -102,6 +102,12 @@ framework.
   loading state. Close it and start the native operation in one final frame.
 - Install only the current package scene's player markers before native player
   creation.
+- On the current exact build, assign `SpawnPoint.Team=1` to Team 1 markers and
+  `SpawnPoint.Team=2` to Team 2 markers. Read
+  `PlayerMaster.MyTeamIdentifier.TeamID`. Do not use a zero-based conversion
+  or `TeamIdentifier.ToString()`.
+- Remove a cached player marker when it does not match the player's current
+  team.
 - Wait for the world contract and shipped all-players-loaded barrier.
 - Create PVE actors only on the server.
 - Filter registered AI prefabs for root `BrainAI`, root `NetworkIdentity`,
@@ -139,7 +145,7 @@ framework.
 | Foliage | No cards and complete crown at close, middle, and far distance |
 | Navigation | One playable-only graph and all marker classes grounded/on graph |
 | PVE | Count in package range, all actors inside wall, reciprocal combat |
-| PVP | Zero PVE actors |
+| PVP | Zero PVE actors; host and client spawn and respawn on their authored opposite team sides |
 | Door | Two-sided interaction, damage, AI open/breach, host/client/late join |
 | Restart | Normal restart, respawn, and KIA restart recorded separately |
 | Teardown | No duplicate graph, callback, actor, door, material, or singleton |

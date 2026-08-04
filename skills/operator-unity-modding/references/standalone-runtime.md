@@ -99,6 +99,22 @@ Require a non-null `PlayerSpawnedObject`, the shipped
 terrain. Treat this route as `PROVEN-STATIC` until movement, camera, and
 reciprocal combat pass in a physical run. Test remote clients separately.
 
+## PVP team spawn
+
+On the current exact build, native PVP team IDs are one-based.
+`PvpGameode.StartNewRound()` assigns Team 1 spawn points to `Team=1` and Team
+2 spawn points to `Team=2`. `GameManager.nextSpawnPosition` compares that
+value directly with `PlayerMaster.MyTeamIdentifier.TeamID`.
+
+Assign `SpawnPoint.Team=1` to Team 1 markers and `SpawnPoint.Team=2` to Team 2
+markers. Read `TeamID`. Do not use `0/1` or `ToString()`. Invalidate a cached
+marker after a team change when it does not match the current team.
+
+This contract is `PROVEN-STATIC`. A generic standalone mode with the correct
+markers is not proof of the complete retail `PvpGameode` round graph. Require
+a host and client on different teams. Prove first spawn, death/respawn on each
+team, correct side and facing, zero PVE AI, and Restart Operation.
+
 ## Native AI population
 
 Filter `GameManager.AllAITypes` for root `BrainAI`, root `NetworkIdentity`,

@@ -69,11 +69,27 @@ selects an inclusive deterministic count from that range and MUST have at least
 `minEnemies` valid scene markers. PVP operations omit both fields. Do not
 hard-code one map's count or marker coordinates in the generic adapter.
 
+## Team PVP identity
+
+Do not assume that native team IDs are zero-based. In the current exact build,
+`PvpGameode.StartNewRound()` sets Team 1 spawn points to `Team=1` and Team 2
+spawn points to `Team=2`. `GameManager.nextSpawnPosition` compares that value
+directly with `PlayerMaster.MyTeamIdentifier.TeamID`.
+
+Use `TeamID`. Do not use `ToString()`. Remove a cached marker assignment when
+the player's current team does not match that marker. Treat this mapping as
+`PROVEN-STATIC` until a host and client prove first spawn and respawn on
+opposite teams.
+
 ## Mandatory tests
 
 Run from a normal settled user session:
 
 - first spawn on every team;
+- one host and one client on different teams, with each player on the authored
+  side for that team;
+- one death/respawn on each PVP team and one team-switch check when the mode
+  supports team switching;
 - several free-for-all spawns if supported;
 - at least one death/respawn;
 - normal alive Restart Operation;

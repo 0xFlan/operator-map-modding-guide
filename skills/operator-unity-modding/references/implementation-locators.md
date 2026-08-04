@@ -28,6 +28,10 @@ drive-specific workspace, a private log, or a private test control.
 - Confirm loading state: `SetNativeConfirmationLoadingState`.
 - Scene gate: `ValidateStandaloneSceneContract`.
 - Gameplay bootstrap: `CreateStandaloneGameplayBootstrap`.
+- Current-scene player spawn registration:
+  `ConfigureStandalonePlayerSpawnContract`.
+- Team-aware player marker selection: `SelectPlayerMarker` and
+  `PvpMarkerMatchesTeam`.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
 - PVE creation: `TrySpawnStandalonePveEnemies` and
   `RaidManager.ServerSpawnAI(false)`.
@@ -38,7 +42,7 @@ graph size.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.6`.
+- Package: `community.ukrainian-forest`, version `0.3.7`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
@@ -51,6 +55,10 @@ graph size.
 - Scene marker:
   `MAP_ID_community.ukrainian-forest.ukrainian-forest`.
 - Spawn sets: `SPAWN_SET_forest-pve` and `SPAWN_SET_forest-pvp`.
+- Team 1: native ID `1`, normal PVE-player side, ten markers, local Z range
+  `5.4` through `13.2`.
+- Team 2: native ID `2`, PVE-enemy side, ten markers, local Z range `82.4`
+  through `90.2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.

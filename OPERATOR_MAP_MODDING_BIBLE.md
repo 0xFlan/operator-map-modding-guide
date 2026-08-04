@@ -440,6 +440,20 @@ non-server owned client. Require a non-null spawned-player object and the
 shipped `GameManager.MovePlayerToSpawn` path. This route is `PROVEN-STATIC`
 until the physical player, camera, movement, and combat gates pass.
 
+Team PVP uses one-based native IDs on this exact build.
+`PvpGameode.StartNewRound()` writes `SpawnPoint.Team=1` for Team 1 and
+`SpawnPoint.Team=2` for Team 2. The player identity is
+`PlayerMaster.MyTeamIdentifier.TeamID`. The framework MUST keep these values
+as `1` and `2`. It MUST NOT convert them to `0` and `1` or use
+`TeamIdentifier.ToString()`. It MUST invalidate a cached marker after a team
+change when that marker does not match the current `TeamID`.
+
+This rule is `PROVEN-STATIC` for the fingerprinted build. A generic
+`StandaloneGameMode` with correct markers does not prove the complete retail
+`PvpGameode` round graph. Require a host and client on different teams, first
+spawn, death/respawn on both teams, correct opposite-side isolation, and
+Restart Operation before support wording.
+
 For standalone PVE, a bare `GameMode` is insufficient. The generic framework
 MUST provide:
 
@@ -659,7 +673,7 @@ Require these results for the exact release bytes.
 | Foliage | Complete close, middle, and far crown silhouettes |
 | Navigation | One playable-only graph; all mission marker classes inside, grounded, and on graph |
 | PVE | Count inside package range; actors stay inside walls; reciprocal combat |
-| PVP | Zero PVE actors; correct team spawn isolation |
+| PVP | Zero PVE actors; host and client first spawn and respawn on their authored opposite team sides; native IDs remain Team 1=`1` and Team 2=`2` |
 | Interactives | Complete applicable player, AI, network, restart, and unload matrix |
 | Lifecycle | Normal restart, respawn, KIA restart, and three clean generations |
 | Performance | Stable player-camera frame time at declared actor and foliage load |
