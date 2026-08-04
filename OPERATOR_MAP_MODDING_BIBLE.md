@@ -102,7 +102,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.6` file records, terrain payload addresses, material
+The full version `0.3.7` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 

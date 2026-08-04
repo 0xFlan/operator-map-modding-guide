@@ -5,7 +5,7 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.6` package manifest, the current
+status. The values came from the version `0.3.7` package manifest, the current
 framework and companion source, and the emitted bundles. A new build can have
 different byte counts and SHA-256 values.
 
@@ -128,7 +128,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.6` value |
+| Field | Version `0.3.7` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -152,7 +152,7 @@ The exact emitted package files had these manifest records:
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.6` values into a different archive.
+these version `0.3.7` values into a different archive.
 
 ## Ukrainian Forest operation records
 
