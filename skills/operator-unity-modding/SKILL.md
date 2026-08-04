@@ -61,6 +61,10 @@ Read [references/implementation-locators.md](references/implementation-locators.
     scans only the playable graph; OPERATOR: Modded Operations consumes the package's PVE
     `minEnemies`/`maxEnemies` without map names or coordinates.
 13. Treat normal `DoorV2` objects as authored map/building prefab content. Import an authorized complete source prefab with its original `.meta` and all dependencies, preserve its pivot, physics sync, paired handles, FinalIK objects, damage parts, navigation cut, and both A* links, and let normal scene and Mirror lifecycle initialize it. Do not spawn the normal door graph from a companion. Some AssetRipper exports lose custom fields; reject those damaged exports. Keep run-time cloning or component reconstruction experimental. Preserve serialized dead fields unless the game developer migrates the existing prefab data.
+    Run `templates/Editor/ValidateDoorV2Prefab.cs` before the map build. Its
+    serialized graph checks are necessary but not sufficient: A* endpoint
+    attachment, interaction, damage, replication, late join, restart, and
+    unload still require the live door matrix.
 14. Treat standalone player-spawn and time-code settings as reversible
     process-global state. Capture and conditionally restore the previous
     `SpawnPointsInScene`, `Pspawns`, `PnextSpawnIndex`, NVG colour, and runtime
@@ -75,6 +79,11 @@ Read [references/implementation-locators.md](references/implementation-locators.
     run-time PVE/PVP game-mode template on every peer with a deterministic,
     collision-checked nonzero Mirror asset ID before host spawn; validate and
     adopt the expected clone on remote peers and unregister on release.
+    If a map companion holds a local player transform during initial
+    grounding, publish its ready/applied state only after the exact current
+    `Terrain` and `TerrainCollider` share one `TerrainData`. Clear the held
+    transform/controller, safety frames, counters, applied flag, destination
+    scene, and local-move flag on scene unload before armory return.
 15. Keep package mission presentation explicit. The closed manifest owns row
     and briefing text, time choices, infiltration records, and the map-level
     preview path. Keep the raw preview outside Unity bundles, verify its
@@ -107,9 +116,11 @@ Read [references/implementation-locators.md](references/implementation-locators.
   crown silhouette through the normal player camera at close, middle, and far
   distances; reject a family that reads as bare trunks even when its mesh,
   submesh, and material counts are technically valid.
-- Ground a combined crown-and-trunk tree from its native non-trigger
-  lower-trunk collider, not from the root pivot or whole-renderer minimum.
-  After final yaw and scale, apply the declared root embed and reject a tree
+- Ground a combined crown-and-trunk tree from the lowest valid point of its
+  visible rendered root system after final position, yaw, scale, and one
+  batched `Physics.SyncTransforms()`. Do not use the bottom of a trunk
+  collider: an invisible capsule overhang below the modeled roots raises the
+  visible tree above a hill. Apply the declared root embed and reject a tree
   below the declared minimum above-ground rendered fraction. The Ukrainian
   Forest contract uses a `0.12 m` embed, `0.75` minimum fraction, and `12 m`
   maximum absolute correction.

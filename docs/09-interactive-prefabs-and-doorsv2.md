@@ -92,6 +92,56 @@ Do not assign a duplicate Mirror scene identity or invent a separate network
 spawn route. A dynamic run-time clone is a different architecture. It needs
 explicit server and client registration proof and stays `EXPERIMENTAL`.
 
+## Run the executable source-graph validator
+
+Use
+[`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs)
+before you place or build the door.
+
+1. Copy the file to `Assets/Editor/ValidateDoorV2Prefab.cs` in the authoring
+   project.
+2. Set `PrefabAssetPath` to the authorized prefab asset path. The default is
+   `Assets/Prefabs/_DoorV2_BASE.prefab`.
+3. Keep `RequireOfficialSourceGuid=true` for the unmodified developer source.
+   Set it to `false` only after you create an authorized variant with a new
+   `.meta` GUID.
+4. Keep `RequireOfficialScalarValues=true` unless the written variant
+   specification changes a pinned scalar.
+5. Run **OPERATOR Map > Validate DoorV2 Prefab**.
+6. Require `SUMMARY errors=0` in
+   `Builds/OperatorDoorValidation/doorv2-prefab-validation.txt`.
+
+The validator uses `SerializedObject.FindProperty` with the exact field names
+in this chapter. It has no compile-time reference to private OPERATOR script
+types. It checks these items:
+
+- inactive source root and root tag `Door`;
+- zero missing MonoBehaviour scripts;
+- exactly one `NetworkIdentity`, `DoorV2`, `DoorHitBox`,
+  `MilkRigidbodySync`, and `NavmeshCut`;
+- exactly two `DoorHandleV2` and `NodeLink2` components;
+- exactly three `ShootableDoorPart` components;
+- every required `DoorV2` reference is non-null, has the expected type, and
+  points into this prefab graph when the field is graph-local;
+- front and back handles are distinct, reciprocal, owned by the same door,
+  and have opposite `IsFrontHandle` values;
+- each handle has local `myPushObject`, `Handle`, and `Center` references;
+- `MyLocalPlayer` and `PlayerInteractionSystem` are null source state;
+- the rigid body and both handles move below `PivotTransform`;
+- openable and walkable links are distinct;
+- unlock, locked, close, thud, and breach arrays are non-empty and contain no
+  null entry;
+- a present `DestroyedDoor` is local and has a non-empty, non-null
+  `DestroyedDoorRB` array;
+- the official GUID and the pinned values `DoorMask=4545`,
+  `PlayerMovementLayerMask=33554436`, `maxRotationY=110`, and `Damping=0.5`
+  when their two policy switches are enabled.
+
+This editor result is a structural gate. It cannot prove that link endpoints
+attach to the live A* graph, that FinalIK interaction works, or that Mirror,
+damage, breach, late join, restart, and unload behave correctly. The live
+matrix below remains mandatory.
+
 ## Required `DoorV2` object graph
 
 Use this graph as a checklist. Exact object names can differ. Exact reference

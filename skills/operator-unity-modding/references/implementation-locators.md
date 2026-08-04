@@ -67,7 +67,7 @@ graph size.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.10`.
+- Package: `community.ukrainian-forest`, version `0.3.11`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
@@ -75,10 +75,10 @@ graph size.
   `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
 - Preview: `media/ukraine_forest_preview.jpg`, 6,385,660 bytes, SHA-256
   `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255`.
-- Dependency bundle: 630,485,740 bytes, SHA-256
-  `5969b8e4fae31417005cd357fddceebe412d65ab832d4ed0bcd7afe41003a943`.
-- Scene bundle: 17,606,568 bytes, SHA-256
-  `78ce80009a454c7daa94a5f400adcfec47d12aa6f8af105f0c707fa74708c3fe`.
+- Dependency bundle: 630,238,479 bytes, SHA-256
+  `8c93a6ecc80fbc6b387a9b14df9ae4550afc5278298499112e30d03b07dbe3cc`.
+- Scene bundle: 17,589,677 bytes, SHA-256
+  `6586f96e932dc8184984c3ff2ec79e38f4b5c5be934fb4049e006af6e7843aee`.
 - PVE operation: `community.ukrainian-forest.pve`.
 - PVE population range: `10` through `15`, inclusive.
 - PVP operation: `community.ukrainian-forest.pvp`.
@@ -93,17 +93,18 @@ graph size.
 - Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
-- Companion candidate version: `0.4.5`.
-- Current companion Release binary: 284,160 bytes, SHA-256
-  `7db0566676601bbfb266275eb70c794b538fa21924b1715841a5ad04cdf07052`.
+- Companion candidate version: `0.4.6`.
+- Current companion Release binary: 285,184 bytes, SHA-256
+  `f57b458036ca5594fa9e0cbeaaa102cd9cc8c5410ec6f485157b850d4b67d523`.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
 - Exact-scene entry: `ProcessStandalonePackageScene`.
 - Navigation owner: `EnsureStandaloneNavigationGraph`.
 - Bounds gate: `IsInsideForestPlayableBounds`.
 - World audit: `LogStandaloneWorldContract`.
 - Authored-tree grounding: `AlignStandaloneAuthoredTreesToTerrain`.
-- Authored-tree root contact: lowest finite, non-trigger collider
-  `bounds.min.y`; root embed `0.12` m; minimum above-ground rendered fraction
+- Authored-tree root contact: lowest finite visible-renderer `bounds.min.y`;
+  keep the native trunk collider but do not use its hidden bottom as the
+  placement datum; root embed `0.12` m; minimum above-ground rendered fraction
   `0.75`; maximum correction `12` m.
 - IL2CPP-safe foliage traversal: index from `0` through
   `foliageRoot.childCount - 1`, then call `foliageRoot.GetChild(index)`.

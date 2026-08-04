@@ -5,7 +5,7 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.10` package manifest, the current
+status. The values came from the version `0.3.11` package manifest, the current
 framework and companion source, and the emitted bundles. A new build can have
 different byte counts and SHA-256 values.
 
@@ -76,6 +76,9 @@ Use this table to find the code that implements each public authoring rule.
 | Validate PVE marker capacity | [`templates/Editor/ValidateStandaloneMapScene.cs`](../templates/Editor/ValidateStandaloneMapScene.cs) | `IsEnemyMarker`, `PackageOperation.minEnemies` |
 | Validate terrain collision | [`templates/Editor/ValidateStandaloneMapScene.cs`](../templates/Editor/ValidateStandaloneMapScene.cs) | `Terrain`, same-object `TerrainCollider`, shared `TerrainData` checks in `Validate` |
 | Validate world-space wall clearance | [`templates/Editor/ValidateStandaloneMapScene.cs`](../templates/Editor/ValidateStandaloneMapScene.cs) | `ContainsWithClearance` |
+| Validate the developer `DoorV2` graph | [`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs) | `Validate`, `ValidateGraph`, `ValidateHandle` |
+| Pin the official door source identity | [`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs) | `PrefabAssetPath`, `OfficialPrefabGuid`, `RequireOfficialSourceGuid` |
+| Reject null, external, shared, or nonreciprocal door references | [`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs) | `RequireObjectReference`, `RequireNamedComponentReference`, `ValidateHandle` |
 | Validate package syntax | [`schemas/operator-map-package.schema.json`](../schemas/operator-map-package.schema.json) | JSON Schema draft 2020-12 root and `$defs` |
 
 Set these values in `BuildStandaloneMapBundles` before a build:
@@ -128,7 +131,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.10` value |
+| Field | Version `0.3.11` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -146,13 +149,13 @@ The exact emitted package files had these manifest records:
 
 | Package-relative path | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `content/operator_ukrainian_forest` | `630485740` | `5969b8e4fae31417005cd357fddceebe412d65ab832d4ed0bcd7afe41003a943` |
-| `content/operator_ukrainian_forest_scene` | `17606568` | `78ce80009a454c7daa94a5f400adcfec47d12aa6f8af105f0c707fa74708c3fe` |
+| `content/operator_ukrainian_forest` | `630238479` | `8c93a6ecc80fbc6b387a9b14df9ae4550afc5278298499112e30d03b07dbe3cc` |
+| `content/operator_ukrainian_forest_scene` | `17589677` | `6586f96e932dc8184984c3ff2ec79e38f4b5c5be934fb4049e006af6e7843aee` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.10` values into a different archive.
+these version `0.3.11` values into a different archive.
 
 ## Ukrainian Forest operation records
 
@@ -322,7 +325,7 @@ The bundle authoring source uses these exact members:
 | --- | --- |
 | `CompleteTreeRootContactEmbedMeters` | `0.12f` |
 | `CompleteTreeMinimumAboveGroundFraction` | `0.75f` |
-| `AlignCompleteTreeRootContactToSurface` | Runs after its caller places a complete tree batch and calls one `Physics.SyncTransforms()` pass. It reads the lowest finite, non-trigger native `Collider.bounds.min.y` with a vertical size greater than `0.25 m`; this value is the trunk/root datum. It separately measures the full rendered height for the 75-percent gate. The caller publishes all corrected collider positions with one final synchronization pass. |
+| `AlignCompleteTreeRootContactToSurface` | Runs after its caller places a complete tree batch and calls one `Physics.SyncTransforms()` pass. It reads the lowest finite valid `Renderer.bounds.min.y` as the visible-root datum and the complete renderer maximum as the full-height gate. It does not use the hidden bottom of a trunk collider. The caller publishes all corrected transforms with one final synchronization pass. |
 | maximum authoring correction | `12 m`; a larger correction fails the build |
 
 The builder calls `AlignCompleteTreeRootContactToSurface` for each
@@ -339,9 +342,9 @@ The current complete tree sources are:
 | field oak 4 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_4.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_4_Mat` |
 | field oak 5 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_5.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_5_Mat` |
 
-Do not use the minimum of the complete renderer as a trunk datum. These
-prefabs combine crown, branch, bark, and trunk geometry. After yaw, a branch
-tip can be the lowest rendered point and can lift the trunk above a slope.
+Do not use the bottom of the native trunk capsule as the visible root datum.
+These collision shapes can extend below the modeled roots and raise the tree
+when their hidden bottom is placed at grade. Keep them for gameplay collision.
 
 The map companion uses `AlignStandaloneAuthoredTreesToTerrain` after the
 reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight`, uses
@@ -415,8 +418,12 @@ own map-specific reconstruction:
 | Member | Responsibility |
 | --- | --- |
 | `ProcessStandalonePackageScene` | Gate processing to the exact Ukrainian Forest package scene. |
+| `ResetStandalonePlayerHandoffState` | Clear the old controller/transform hold, spawn-safety frames, diagnostics, local-move flag, redirects, pre-map support, applied flag, and destination scene at standalone load/unload boundaries. |
+| `HasReadyStandaloneTerrain` | Require the exact terrain root to contain one `Terrain` and one `TerrainCollider` with the same non-null `TerrainData` before the companion publishes the scene to shared spawn hooks. |
+| `GroundLateNetworkPlayerObjectInstance` | Resolve the current standalone root for a late owned player callback. If the exact terrain-ready gate does not pass, return without moving the player. Do not use the legacy Office pre-map fallback in a standalone package scene. |
+| `GroundAirbornePlayerControllers` | During the bounded initial handoff, repair a known local root at the old sky pose or more than `2 m` below the sampled live surface. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
-| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable complete-tree native trunk/root collider data after run-time TerrainData bind; enforce the 0.12 m root embed, 75-percent rendered-height gate, 12 m correction limit, and typed child-index traversal. |
+| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable complete-tree visible rendered-root data after run-time TerrainData bind; keep native trunk collision, enforce the 0.12 m root embed, 75-percent rendered-height gate, 12 m correction limit, and typed child-index traversal. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |

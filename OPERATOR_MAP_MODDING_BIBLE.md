@@ -94,7 +94,7 @@ change an identity to match a display name.
 | Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
 | Companion exact-scene entry | `ProcessStandalonePackageScene` |
 | Companion navigation owner | `EnsureStandaloneNavigationGraph` |
-| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`, trunk/root collider datum, `0.12 m` embed, `0.75` minimum above-ground fraction |
+| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`, visible rendered-root datum, `0.12 m` embed, `0.75` minimum above-ground fraction |
 | Package ID | `community.ukrainian-forest` |
 | Map ID | `community.ukrainian-forest.ukrainian-forest` |
 | Dependency bundle | `content/operator_ukrainian_forest` |
@@ -111,7 +111,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.10` file records, terrain payload addresses, material
+The full version `0.3.11` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -382,16 +382,17 @@ its static structure is complete.
 Use deterministic nonuniform placement. Preserve routes, spawn clearance,
 door clearance, sight lines, and performance limits.
 
-For a combined crown-and-trunk renderer, use the minimum finite bound of the
-native non-trigger lower-trunk colliders as the root-contact datum. Do not use
-the minimum of all renderers. A low branch can become the renderer minimum
-after yaw and can lift the trunk above a slope. For the current Forest
+For a combined crown-and-trunk renderer, use the minimum finite world-space Y
+of the visible rendered root system as the root-contact datum. Do not use the
+bottom of a lower-trunk collider. Some native capsules extend below the
+modeled roots; grounding that invisible overhang raises the visible tree above
+a slope. Keep the collider for gameplay collision. For the current Forest
 contract, use `rootEmbed=0.12 m`, fail when `abs(correction)>12 m`, and require
 at least `0.75` of the complete rendered height above the sampled terrain.
 Apply the check after final position, yaw, and scale. The exact equation is:
 
 ```text
-correction = surfaceY - 0.12 - nativeTrunkColliderBoundsMinY
+correction = surfaceY - 0.12 - visibleRendererBoundsMinY
 aboveGroundFraction = (rendererBoundsMaxY + correction - surfaceY)
                       / rendererBoundsHeight
 ```
@@ -404,7 +405,8 @@ The full pines are `Pine_var10_LOD0.prefab` and
 `Pine_var11_LOD0.prefab`. Their combined renderer slots are `Pine_Needle`,
 `pine_bark`, and `Trunk_pine_var4`. The three current oak prefabs use
 `Bark_Mat`, `Bark_2_Mat`, and their family leaf material in one LOD0
-renderer. These combined renderers are not root datums.
+renderer. Their complete renderer bounds provide the visible root datum and
+the full-height validation extent.
 
 ## 13. Terrain and collision contract
 
@@ -538,6 +540,18 @@ or stop any route after one object/alive proof. Require the shipped
 is `PROVEN-STATIC` until the physical player, camera, movement, repeat-launch,
 and combat gates pass.
 
+A map companion that observes late player-object callbacks MUST own the same
+scene-generation boundary. On scene load, clear any prior local-player
+transform hold and keep the shared ready/applied flag false. Publish the exact
+destination only after the current `Terrain` and `TerrainCollider` share one
+non-null `TerrainData`. During one bounded initial window, a known local root
+at the old sky pose or more than `2 m` below the sampled marker surface can be
+repaired through the shipped move path with velocity clear and Smooth Sync
+notification. On scene unload, clear the held controller/transform, frames,
+counters, pre-map support, applied flag, destination scene, and local-move
+request before the persistent player returns to the armory. Never reuse this
+state in the next additive-scene generation.
+
 Runtime PVE and PVP mode owners MUST have a nonzero Mirror prefab identity on
 every peer. The current framework uses `0x4D4F5001` for PVE and `0x4D4F5002`
 for StandardPVP. Each peer collision-checks `NetworkClient.prefabs` and calls
@@ -658,6 +672,17 @@ dependency resolved. Preserve the full graph and place a prefab instance in
 the map scene or map-owned building prefab. Let normal scene and Mirror
 lifecycle code initialize it.
 
+Before placement, copy
+[`templates/Editor/ValidateDoorV2Prefab.cs`](templates/Editor/ValidateDoorV2Prefab.cs)
+to `Assets/Editor`, set its `PrefabAssetPath`, and run **OPERATOR Map >
+Validate DoorV2 Prefab**. Require `SUMMARY errors=0` in
+`Builds/OperatorDoorValidation/doorv2-prefab-validation.txt`. The code checks
+the exact official GUID, component counts, serialized field names, internal
+reference ownership, reciprocal handles, pivot descendants, distinct A*
+links, sound arrays, destroyed-door rigid bodies, null runtime fields, and
+pinned official scalars. It does not replace the live interaction,
+navigation, damage, Mirror, late-join, restart, and unload tests.
+
 A complete door graph needs:
 
 - hinge-axis `PivotTransform`;
@@ -738,9 +763,10 @@ Before actor creation, require:
 - usable terrain and a matching `TerrainCollider` on the same object when
   declared, with both components bound to the same `TerrainData`;
 - inactive serialized terrain fallback after successful TerrainData bind;
-- complete-tree native trunk/root collider data aligned to the sampled live
-  terrain after final rotation and scale, with declared root embed, maximum
-  correction, and minimum above-ground rendered fraction satisfied;
+- complete-tree lowest finite `Renderer.bounds.min.y` aligned to the sampled
+  live terrain after final rotation and scale, with the native trunk/root
+  collision retained and the declared root embed, maximum correction, and
+  minimum above-ground rendered fraction satisfied;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
 - every required marker tightly grounded and on the live graph;
@@ -767,6 +793,7 @@ stop mode population
 -> restore prior process-global spawn registration when the operation still owns it
 -> clear standalone mode singleton and timer ownership
 -> restore captured NVG color and destroy operation-owned Volume profiles
+-> clear the companion's local-player transform hold, spawn-safety state, applied flag, and destination scene
 -> companion removes its graph, materials, TerrainData, interactives, and callbacks
 -> unload package scene
 -> release scene bundle
@@ -860,7 +887,7 @@ retested.
 | First spawn throws or armory player floats | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
 | First mission works but second launch has no player object | Request 1 did not create the new scene generation's `PlayerSpawnedObject`; verify the 300-frame bounded owned-host generated-server recovery and shipped move path |
 | 02:00 NVG is black outside ECOTI | Day exposure/LUT applied to the night source or white-phosphor state was not selected |
-| Trees on hills float or have buried trunks | A pivot or combined-renderer minimum was used instead of the native lower-trunk collider datum; verify 0.12 m embed and the 0.75 above-ground fraction |
+| Trees on hills float or have buried trunks | A pivot or hidden collider bottom was used instead of the visible rendered-root datum; verify 0.12 m embed and the 0.75 above-ground fraction |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |
 | Pine reads as a bare trunk | Tree-family crown silhouette failed despite static closure |

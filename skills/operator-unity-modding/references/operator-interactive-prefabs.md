@@ -27,12 +27,14 @@ Hashes and relationships are evidence, not a redistribution license.
 1. Import the authorized prefab and its original `.meta` file with every
    dependency resolved.
 2. Stop if Unity reports a missing script. Do not save a damaged prefab.
-3. Place an instance in the map scene or a map-owned building prefab.
-4. Preserve the complete physics, interaction, damage, audio, destroyed,
+3. Copy `templates/Editor/ValidateDoorV2Prefab.cs` to `Assets/Editor`, set
+   `PrefabAssetPath`, and run **OPERATOR Map > Validate DoorV2 Prefab**.
+4. Place an instance in the map scene or a map-owned building prefab.
+5. Preserve the complete physics, interaction, damage, audio, destroyed,
    navigation-cut, and link-source graph.
-5. Put both `NodeLink2` endpoints on the map-owned A* graph.
-6. Ship the door as authored scene content.
-7. Let normal scene and Mirror lifecycle code initialize it.
+6. Put both `NodeLink2` endpoints on the map-owned A* graph.
+7. Ship the door as authored scene content.
+8. Let normal scene and Mirror lifecycle code initialize it.
 
 Do not spawn the normal door from a companion. Do not call private lifecycle
 methods. Do not duplicate a Mirror scene identity.
@@ -64,6 +66,14 @@ handle pose `4333291165372661062`, and center pose
 
 `MyLocalPlayer` and `PlayerInteractionSystem` are correctly null in the
 prefab. They are run-time state.
+
+The validator resolves these exact serialized field names without a
+compile-time dependency on private OPERATOR types. It fails on a missing
+script, wrong component count, null or external graph reference, nonreciprocal
+handle pair, shared navigation link, empty sound array, wrong official source
+GUID, or wrong pinned official scalar. It emits
+`Builds/OperatorDoorValidation/doorv2-prefab-validation.txt`. It cannot prove
+live A* attachment, Mirror ownership, FinalIK, damage, restart, or unload.
 
 ## Current-code field use
 

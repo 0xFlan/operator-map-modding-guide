@@ -220,12 +220,13 @@ Generated prefab names are not proof that a tree is LOD0. Search the installed a
 
 Retain the source collider intent too. A complete tree should use a lower-trunk collision shape when that is what the native object uses, not a cylinder or box covering its crown. Keep placement at source scale, compare height to a human-character reference, and embed the root into the sampled terrain.
 
-Ground a combined crown-and-trunk tree from its native lower-trunk collider.
-After final rotation and scale, calculate the lowest finite world-space Y
-across non-trigger native collider bounds with a valid vertical extent. Do not
-use the minimum renderer bound: a low branch can become that minimum after yaw
-and lift the trunk above a slope. Place the tree batch, synchronize once before
-all collider-bounds reads, correct the batch, and synchronize once after it.
+Ground a combined crown-and-trunk tree from the lowest valid world-space Y of
+its visible renderer set. After final rotation and scale, calculate the finite
+renderer minimum and complete rendered height. Do not use the bottom of a
+native lower-trunk collider: a hidden capsule overhang below the modeled roots
+raises the visible tree above a slope. Keep that collider for gameplay. Place
+the tree batch, synchronize once before all bounds reads, correct the batch,
+and synchronize once after it.
 Sample authoritative terrain at root X/Z and
 move the root by `surfaceY - rootContactY - embed`. Separately calculate the
 complete rendered height and reject a placement below the map's declared

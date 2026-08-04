@@ -13,7 +13,7 @@
 | Flat or grey props | final shader, map bindings, tint precedence, bundle dependencies | material closure |
 | Low-detail trees | mesh topology, LODGroup state, game quality owner | authored asset/LOD policy |
 | Pine trees read as bare trunks | player-camera crown silhouette at close/mid/far range, source prefab family, leaf submeshes/materials | map-owned tree-family selection |
-| Trees float above slopes or have deeply buried trunks | sampled surface Y, native lower-trunk collider minimum, complete renderer height, 0.12 m embed, 0.75 above-ground fraction | tree root-contact placement contract |
+| Trees float above slopes or have deeply buried trunks | sampled surface Y, lowest valid visible renderer Y, hidden collider overhang, complete renderer height, 0.12 m embed, 0.75 above-ground fraction | tree visible-root placement contract |
 | Open or invisible boulder | mesh closure, matching material, multi-angle player view | source mesh/material choice |
 | Road-like terrain | terrain layer maps, normals, color space, mips, runtime material | terrain material |
 | Hard grass/dirt change at a boundary hill | native Terrain extent versus render-only mesh extent, shared world-space weights, material family | terrain/exterior handoff |

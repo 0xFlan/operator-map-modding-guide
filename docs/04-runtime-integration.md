@@ -410,6 +410,7 @@ stop mode population
 -> unregister the operation-owned Mirror game-mode template
 -> clear standalone mode singleton, PvpGameode, and timer ownership
 -> restore captured NVG state and destroy run-time Volume profiles
+-> clear the companion's player transform/controller hold, spawn-safety window, counters, applied flag, and destination-scene reference
 -> companion removes its graph, materials, native data, objects, and callbacks
 -> unload package scene
 -> release scene bundle
@@ -423,6 +424,13 @@ nothing when its generation is stale.
 Normal Restart Operation creates one new scene generation. It MUST NOT stack a
 second graph, callback set, door, actor list, or material set over the old
 generation.
+
+For a companion with late-player hooks, keep `applied=false` until the exact
+standalone `Terrain` and `TerrainCollider` share one non-null `TerrainData`.
+Set it for only that scene generation. Clear it and every held player
+transform in `OnSceneUnloaded` before the persistent player returns to the
+armory. A new generation must not reuse the previous destination scene or
+local-move-request flag.
 
 ## Retired overlay method
 

@@ -125,10 +125,11 @@ Keep the fallback active when reconstruction fails so the failure remains
 visible, but fail readiness and do not spawn actors.
 
 After the final TerrainData is live, align collision-enabled playable trees by
-their native lower-trunk collider datum, not by the root transform or the
-minimum of a combined crown-and-trunk renderer. After final yaw and scale,
-find the minimum finite `bounds.min.y` from non-trigger native colliders with a
-valid vertical extent. Place the complete tree batch, call one
+the lowest valid world-space point of the visible rendered root system, not
+by the root transform or the bottom of a native lower-trunk collider. Keep the
+native collider for gameplay; its hidden capsule can extend below the modeled
+roots and raise the visible tree. After final yaw and scale, find the minimum
+finite `Renderer.bounds.min.y`. Place the complete tree batch, call one
 `Physics.SyncTransforms()` pass before all bounds reads, apply every
 correction, and synchronize once more. Sample terrain at the root X/Z and move the root by
 `surfaceY - rootEmbed - rootContactY`. Separately calculate the full rendered
@@ -288,6 +289,21 @@ the exact list/array identity owned by this operation. Before restoring, remove
 captured entries whose owning scene is no longer loaded. This prevents a
 standalone scene from leaving destroyed transforms in the armory and avoids
 overwriting state that another owner installed later.
+
+An exact-scene companion must also treat any local-player transform hold and
+spawn-safety state as scene-generation ownership. On scene load, clear the
+prior hold and keep the shared ready/applied flag false. Publish the exact
+destination only after `Terrain` and `TerrainCollider` share one non-null
+`TerrainData`. A bounded local-owner repair can rescue the known initial root
+from an old sky pose or from more than `2 m` below the sampled marker. On
+an owned late-player callback, return without moving the player when this
+standalone readiness gate does not pass. Do not use a donor-scene or Office
+pre-map fallback in the standalone scene. The ready callback and bounded
+repair own the move after terrain publication. On
+scene unload, clear the held controller/transform, frames, counters, pre-map
+support, applied flag, destination scene, and local-move-request flag before
+the persistent player returns to the armory. Never retain those fields across
+an additive-scene generation.
 
 On the current exact build, request 1 for an owned `PlayerMaster` must enter
 `PlayerMaster.SpawnPlayer()`. That command path reaches the shipped spawn body

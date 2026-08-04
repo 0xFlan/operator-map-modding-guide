@@ -71,6 +71,46 @@ The general solution is:
 Never use a broad repair to move remote players, bots, or every object above
 an arbitrary Y threshold.
 
+## Publish one exact standalone scene generation
+
+A map companion that shares legacy and standalone spawn hooks MUST publish the
+standalone scene at the same readiness boundary as the generic loader. A
+loaded scene name alone is not sufficient.
+
+The current Forest companion uses this exact sequence:
+
+1. `OnSceneLoaded` calls
+   `ResetStandalonePlayerHandoffState(clearDestinationScene:false)`, records
+   the new scene handle, records `mapDestinationScene`, and keeps
+   `applied=false`.
+2. `ProcessStandalonePackageScene` resolves the exact world root and waits
+   until `HasReadyStandaloneTerrain` proves that one `Terrain` and one
+   `TerrainCollider` share the same non-null `TerrainData`.
+3. It repairs tree/material/navigation state, sets the current scene and
+   `applied=true`, opens one bounded `SpawnSafetyFrameWindow`, and inspects the
+   local player roots once.
+4. `GroundLateNetworkPlayerObjectInstance` resolves the current standalone
+   root when a late `PlayerMaster` or `PlayerNetworking` callback arrives. It
+   uses a Forest marker only when the exact destination scene is loaded and
+   `HasReadyStandaloneTerrain` passes. If this is the standalone scene and
+   that gate does not pass, the method returns without moving the player. It
+   MUST NOT use the legacy Office pre-map fallback for a standalone package.
+5. During the bounded initial window, a known local root is invalid when it
+   is at the old sky pose or more than `2 m` below the sampled marker surface.
+   The repair uses the shipped move path, clears fall velocity, publishes the
+   Smooth Sync teleport, and holds only that exact root briefly.
+6. `OnSceneUnloaded` calls
+   `ResetStandalonePlayerHandoffState(clearDestinationScene:true)` before it
+   clears the scene handle. This removes the controller/transform hold,
+   counters, safety frames, pre-map support, `applied` flag, and destination
+   scene reference.
+
+The unload step is mandatory because the local player can survive an additive
+operation scene. A transform hold that retains the old map position can pin
+that persistent player in the armory hallway. The ready flag must also reset
+per generation; otherwise a repeat launch can choose a prior fallback pose
+and put the camera below the new terrain.
+
 ## AI markers require both ground and navigation
 
 An authored transform is not a usable AI spawn merely because a ray eventually

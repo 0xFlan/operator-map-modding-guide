@@ -102,6 +102,9 @@ remains available for explicit local diagnostics. See the
 - [Package manifest template](templates/operator-map-package.example.json):
   complete PVE/PVP schema shape with explicit placeholder hashes; read the
   [template instructions](templates/README-package-template.md) before use.
+- [DoorV2 prefab validator](templates/Editor/ValidateDoorV2Prefab.cs): exact
+  developer-source GUID, component, serialized-reference, reciprocal-handle,
+  pivot, sound-array, and destroyed-door graph checks.
 - [11 AI navigation and behavior](docs/11-ai-navigation-and-behavior.md):
   playable-only A* graph, marker grounding, routes, cover, combat, and restart.
 - [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,

@@ -204,32 +204,36 @@ boundary visibility, and performance budgets.
 Sample the final collision surface for each root. Use a bounded root embed that
 matches the tree family. Do not place all objects at one constant world Y.
 
-For a combined crown-and-trunk renderer, use the native lower-trunk collider
-as the contact datum. Do not use the minimum renderer bound. The current full
+For a combined crown-and-trunk renderer, use the lowest valid world-space
+renderer bound as the visible-root contact datum. Do not use the bottom of a
+native trunk collider: its hidden capsule can extend below the root mesh and
+raise the visible tree above a slope. The current full
 pine renderer contains `Pine_Needle`, `pine_bark`, and
 `Trunk_pine_var4` submeshes in one object. The current oak LOD0 renderer also
-combines `Bark_Mat`, `Bark_2_Mat`, and one leaf material. A branch or leaf
-vertex can therefore be lower than the trunk after yaw.
+combines `Bark_Mat`, `Bark_2_Mat`, and one leaf material. The complete
+renderer set supplies the visible minimum and the full-height extent.
 
 Use this exact authoring equation:
 
 ```text
-correctionY = sampledSurfaceY - rootEmbedY - nativeTrunkColliderBoundsMinY
+visibleRootY = minimum finite Renderer.bounds.min.y
+correctionY = sampledSurfaceY - rootEmbedY - visibleRootY
 rootEmbedY = 0.12 m
 newRootY = oldRootY + correctionY
 aboveGroundFraction = (rendererBoundsMaxY + correctionY - sampledSurfaceY)
                       / rendererBoundsHeight
 ```
 
-Reject the placement if the contact collider is missing, if its vertical
-extent is `<= 0.25 m`, if `abs(correctionY) > 12 m`, or if
+Reject the placement if the valid rendered extent is `<= 0.25 m`, if
+`abs(correctionY) > 12 m`, or if
 `aboveGroundFraction < 0.75`. Run this check after final yaw and scale. The
 result must put the root system below grade and at least 75 percent of the
-rendered tree above grade. Place the full batch, call
-`Physics.SyncTransforms()` once, read and correct all collider bounds, then
+rendered tree above grade. Keep the native lower-trunk collider for gameplay;
+do not use its bottom as the placement datum. Place the full batch, call
+`Physics.SyncTransforms()` once, read and correct all renderer bounds, then
 synchronize once more. Without the first pass, a newly moved high-hill tree
-can retain the prefab's previous broadphase position and produce a false large
-correction. A per-tree synchronization is needlessly expensive against a
+can retain an earlier world bound and produce a false large correction. A
+per-tree synchronization is needlessly expensive against a
 large `TerrainCollider`.
 
 Keep dense decorative foliage outside critical movement lanes. A decorative
