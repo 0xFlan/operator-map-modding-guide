@@ -295,12 +295,12 @@ spawn-safety state as scene-generation ownership. On scene load, clear the
 prior hold and keep the shared ready/applied flag false. Publish the exact
 destination only after `Terrain` and `TerrainCollider` share one non-null
 `TerrainData`. A bounded local-owner repair can rescue the known initial root
-from an old sky pose or from more than `2 m` below the sampled marker. On
-an owned late-player callback, return without moving the player when this
+from an old sky pose or from more than `2 m` below the sampled marker. For an
+owned late-player callback, return without moving the player when this
 standalone readiness gate does not pass. Do not use a donor-scene or Office
 pre-map fallback in the standalone scene. The ready callback and bounded
-repair own the move after terrain publication. On
-scene unload, clear the held controller/transform, frames, counters, pre-map
+repair own the move after terrain publication. On scene unload, clear the
+held controller/transform, frames, counters, pre-map
 support, applied flag, destination scene, and local-move-request flag before
 the persistent player returns to the armory. Never retain those fields across
 an additive-scene generation.
