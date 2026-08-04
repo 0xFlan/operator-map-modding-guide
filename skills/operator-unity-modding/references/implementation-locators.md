@@ -17,10 +17,14 @@ drive-specific workspace, a private log, or a private test control.
 ## Generic framework
 
 - Assembly: `OperatorModdedOperations.dll`.
+- Current candidate version: `0.3.12`.
 - Current source file: `CerberusNativeTabFix.cs`.
 - Install directory:
   `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
 - Native selector builder: `BuildPackageInfiltrationMapPrefab`.
+- Briefing formatter: `FormatCatalogBriefing`.
+- Preview decoder/cache: `GetOrLoadPreviewSprite`.
+- Preparation/fullscreen preview binder: `ReplaceNativeMapPreview`.
 - Native launch calls: `InfilSelectorDisplayer.SpawnMap` and
   `CerebusOpboard.Start_Operation`.
 - Confirm capture: `BeginCatalogOperationLaunch` and `PendingMapLaunch`.
@@ -35,19 +39,26 @@ drive-specific workspace, a private log, or a private test control.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
 - PVE creation: `TrySpawnStandalonePveEnemies` and
   `RaidManager.ServerSpawnAI(false)`.
-- Lifecycle release: `ReleaseStandaloneGameMode`.
+- Lifecycle release: `ReleaseStandaloneSceneContracts` and
+  `ReleaseStandaloneGameMode`.
 
 The framework MUST NOT contain a map name, map coordinate, shader profile, or
 graph size.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.7`.
+- Package: `community.ukrainian-forest`, version `0.3.8`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
 - Scene:
   `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
+- Preview: `media/ukraine_forest_preview.jpg`, 6,385,660 bytes, SHA-256
+  `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255`.
+- Dependency bundle: 630,235,822 bytes, SHA-256
+  `8a602b01adeebdd97379e69811e87f6f5035c65382778543e85ceb752027fe40`.
+- Scene bundle: 17,605,451 bytes, SHA-256
+  `54e186d7748f1a0f3ff997dcc8a5632f87fcdbef43b47272b1a5ffe5cc08f36f`.
 - PVE operation: `community.ukrainian-forest.pve`.
 - PVE population range: `10` through `15`, inclusive.
 - PVP operation: `community.ukrainian-forest.pvp`.
@@ -61,6 +72,7 @@ graph size.
   through `90.2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
+- Companion candidate version: `0.4.3`.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
 - Exact-scene entry: `ProcessStandalonePackageScene`.
 - Navigation owner: `EnsureStandaloneNavigationGraph`.
