@@ -143,8 +143,9 @@ The companion MAY own only these exact-scene tasks:
 - runtime `TerrainData` reconstruction;
 - map-owned A* service and graph construction;
 - mission-marker containment, grounding, and graph validation;
-- runtime initialization of map-specific surfaces, audio, or interactive
-  objects such as a fully wired `DoorV2`;
+- runtime initialization only for map-specific surfaces, audio, or
+  interactives that have a proved run-time contract. A normal `DoorV2` is
+  authored prefab content and is not created by the companion;
 - teardown of objects and state that the companion owns.
 
 The companion MUST NOT own catalog discovery, mission UI, selection, generic
@@ -189,10 +190,33 @@ If `TerrainData` does not survive the bundle boundary:
 4. Create IL2CPP-compatible arrays for heights and alphamaps.
 5. Set size, resolutions, layers, heights, and alphamaps.
 6. Bind the same live `TerrainData` to `Terrain` and `TerrainCollider`.
-7. Call `Physics.SyncTransforms`.
-8. Prove collision and surface height before marker or actor readiness.
+7. Disable the exact serialized render fallback only after both live
+   components bind the reconstructed data.
+8. Align complete-tree visible renderer bases to `Terrain.SampleHeight`.
+9. Call `Physics.SyncTransforms`.
+10. Prove collision and surface height before marker or actor readiness.
 
 Do not let an actor spawn because a visible fallback mesh exists.
+
+Do not use the source prefab pivot as the tree-base contract. Apply final yaw
+and scale first. Use the lowest finite child renderer bound, a small declared
+embed, and a bounded maximum correction. Author this correction into the
+bundle and repeat it after run-time TerrainData bind when compatibility with
+older content is required.
+
+## Night presentation ownership
+
+Use the exact shipped night Volume and NVG-color source for a night operation.
+Do not combine a day LUT with improvised negative exposure.
+
+For the current worked source, `sharedassets7.assets` profile path `435`
+(`PVP map NIight VOLUME`) uses ACES without an external LUT. Its Exposure path
+`440` uses Automatic Histogram, compensation `1.16`, limits
+`5.065281867980957..9.348570823669434`, and adaptation speeds `3/3`.
+`GameManager.SetNVGColor(0)` selects the current-build white-phosphor value.
+
+Capture the prior NVG value before the operation. Restore it and destroy every
+operation-owned `VolumeProfile` during unload.
 
 ## Navigation ownership
 
@@ -252,16 +276,25 @@ The framework MUST wait for all of these conditions:
 Only then can the framework create or move players. Only the server can create
 PVE actors. PVP MUST create zero PVE actors.
 
-On the current exact build, `PlayerMaster.SpawnPlayer()` and
-`SpawnPlayerServer()` both enter the generated Mirror command sender. The
-generated server implementation is
-`PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. It selects a shipped
-spawn point, instantiates the shipped player prefab, calls owner-aware
-`NetworkServer.Spawn`, assigns the spawned-player object, and sends the retail
-spawn RPC. A host adapter MAY enter this exact generated server method after
-the server readiness barrier. A non-server owned client MUST keep the command
-path. Treat this route as `PROVEN-STATIC` until physical player, camera,
-movement, and combat tests pass.
+Before player creation, capture `GameManager.SpawnPointsInScene`,
+`GameManager.Pspawns`, and the next-spawn index. Install only the operation's
+current-scene values. The exact-build native `nextSpawnPosition` body at RVA
+`0x00EF2CA0` reads the current index and then increments it. Set the first
+index to `0`. An index of `-1` throws before a spawn is selected.
+
+On the current exact build, owned-player creation MUST call
+`PlayerMaster.SpawnPlayer()`. This route performs ownership checks, enters the
+Mirror command, and then calls `ClientSpawnBS`. The generated server
+implementation is `PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`.
+It selects a shipped spawn point, instantiates the shipped player prefab,
+calls owner-aware `NetworkServer.Spawn`, assigns the spawned-player object,
+and sends the retail spawn RPC. Call this generated body directly only for an
+unowned server player.
+
+Write the request frame and attempt count before native entry. Limit retries.
+Stop after the player-object or alive state proves success. An exception MUST
+NOT create one native call on every frame. Treat this route as
+`PROVEN-STATIC` until physical player, camera, movement, and combat tests pass.
 
 For PVE, the package declares `minEnemies` and `maxEnemies`. The framework
 selects one inclusive deterministic count from the valid sorted markers. It
@@ -291,8 +324,9 @@ Use reverse ownership order:
 ```text
 stop mode population
 -> invalidate the scene generation
--> clear current-scene spawn registration
+-> restore prior process-global spawn registration only when this operation still owns it
 -> clear standalone mode singleton and timer ownership
+-> restore captured NVG state and destroy run-time Volume profiles
 -> companion removes its graph, materials, native data, objects, and callbacks
 -> unload package scene
 -> release scene bundle

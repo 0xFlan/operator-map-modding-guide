@@ -515,12 +515,17 @@ boundaries. A visibility result does not prove projectile passage.
 
 ## 20. `DoorV2` contract
 
-An AssetRipper door shell is `PROVEN-STATIC` evidence only. The inspected
-exports can contain null `DoorV2` and `DoorHandleV2` fields. A child named
-`Door Pivot` does not bind `PivotTransform`.
+The OPERATOR developers confirmed that normal doors are already part of the
+map or building prefab. Do not create the normal door graph at run time. The
+official `_DoorV2_BASE.prefab` supplied on 2026-08-03 proves this contract.
+It is 260206 bytes, has SHA-256
+`BAB5287B2DE809143BBDE71B90F8D0BE454DD724B4DEC110FB4AF1FC0CF06FF6`,
+and uses meta GUID `803422c907641034e99a99778ef7d30b`.
 
-Prefer a complete compatible live native template. Clone the complete root
-while it is inactive.
+Import an authorized complete source prefab and its `.meta` file with every
+dependency resolved. Preserve the full graph and place a prefab instance in
+the map scene or map-owned building prefab. Let normal scene and Mirror
+lifecycle code initialize it.
 
 A complete door graph needs:
 
@@ -538,9 +543,27 @@ A complete door graph needs:
 - distinct verified walkable and openable `NodeLink2` relationships;
 - valid Mirror ownership and registration.
 
-Assign every required reference before activation. Let Unity and Mirror call
-their normal lifecycle methods. Do not call private lifecycle methods to
-repair an incomplete graph.
+The official file already binds every relationship above. It also serializes
+reciprocal handles, FinalIK pose objects, audio arrays, a destroyed-door root,
+30 destroyed-door rigid bodies, and distinct sibling link-source objects.
+`MyLocalPlayer` and `PlayerInteractionSystem` are correctly null because they
+are run-time state.
+
+Preserve current-code compatibility fields even when they are not read.
+`DoorModelParent`, `DoorMask`, `navCutOpenSize`, and `navCutCloseSize` occur
+only in commented-out code. `RivalDoorHandle` has no current reads,
+`GrabbedHandle` is write-only, and `raycastTransform` is an unused run-time
+allocation. Do not remove these public serialized fields. Latch and hinge
+colliders are live because `SlapChargeExplosive` reads them. `NavMeshCut`,
+`canBlowup`, and the dead-door block are also live.
+
+Some AssetRipper exports lose the custom serialized field values. Reject such
+an export as a functional source. A child named `Door Pivot` does not bind a
+null `PivotTransform`.
+
+Run-time cloning or component reconstruction is `EXPERIMENTAL`, not the
+normal map method. Do not call private lifecycle methods to repair an
+incomplete graph.
 
 Require front and back interaction, IK, latch, lock, collision, damage,
 breach, destruction, AI open, AI breach, host, client, late join, restart,
@@ -560,6 +583,13 @@ Do not add a second directional fill light.
 Apply only source-confirmed Volume overrides. Do not enable an inactive
 component because its serialized child fields contain values.
 
+The current 02:00 worked source is `sharedassets7.assets` profile path `435`,
+name `PVP map NIight VOLUME`. It uses ACES without the day external LUT.
+Exposure path `440` uses Automatic Histogram, compensation `1.16`, limits
+`5.065281867980957..9.348570823669434`, and speeds `3/3`.
+`GameManager.SetNVGColor(0)` selects white phosphor on this exact build.
+Capture and restore the old color across the operation lifecycle.
+
 Test materials, terrain, foliage, optics, lasers, exposure, bloom, and shadows
 through the normal player camera. An editor view or offscreen camera is not
 release evidence.
@@ -576,6 +606,9 @@ Before actor creation, require:
 - zero required proxy or error-shader renderers;
 - usable terrain and a matching `TerrainCollider` on the same object when
   declared, with both components bound to the same `TerrainData`;
+- inactive serialized terrain fallback after successful TerrainData bind;
+- complete-tree visible bases aligned to the sampled live terrain after final
+  rotation and scale;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
 - every required marker tightly grounded and on the live graph;
@@ -599,8 +632,9 @@ Use reverse ownership order.
 ```text
 stop mode population
 -> invalidate the scene generation
--> clear current-scene spawn registration
+-> restore prior process-global spawn registration when the operation still owns it
 -> clear standalone mode singleton and timer ownership
+-> restore captured NVG color and destroy operation-owned Volume profiles
 -> companion removes its graph, materials, TerrainData, interactives, and callbacks
 -> unload package scene
 -> release scene bundle
@@ -691,6 +725,9 @@ retested.
 | Exact scene is brown or flat | Portable material reconstruction, not scene selection |
 | Actor falls from the sky | Terrain collision, marker foot position, graph grounding, and readiness order |
 | Player camera is under terrain and movement does not work | `PlayerMaster.PlayerSpawnedObject`, host server spawn execution, and the shipped move-to-spawn path |
+| First spawn throws, armory player floats, or second launch is stuck | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
+| 02:00 NVG is black outside ECOTI | Day exposure/LUT applied to the night source or white-phosphor state was not selected |
+| Trees on hills have buried trunks | Tree pivot was used instead of the lowest visible renderer bound after final scale and yaw |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |
 | Pine reads as a bare trunk | Tree-family crown silhouette failed despite static closure |

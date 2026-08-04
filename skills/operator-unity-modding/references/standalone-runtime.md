@@ -47,10 +47,12 @@ companion.
 
 ## Restart
 
-Invalidate the old scene generation. Stop population. Clear current-scene
-spawns and mode state. Remove companion graphs, objects, materials, native
-data, and callbacks. Unload the scene. Release bundles in reverse order. Build
-one fresh generation.
+Invalidate the old scene generation. Stop population. Restore captured
+process-global spawn state only while the operation still owns it. Restore the
+captured NVG color and destroy run-time Volume profiles. Clear mode state.
+Remove companion graphs, objects, materials, native data, and callbacks.
+Unload the scene. Release bundles in reverse order. Build one fresh
+generation.
 
 Record normal Restart Operation, death/respawn, and KIA/end-screen Restart as
 separate claims.
@@ -82,17 +84,23 @@ records the expected timings and launches once.
 
 ## Host player spawn
 
-On the current exact build, `PlayerMaster.SpawnPlayer()` and
-`SpawnPlayerServer()` both enter the Mirror command sender. The generated
+On the current exact build, capture `GameManager.SpawnPointsInScene`,
+`GameManager.Pspawns`, and the next index. Install operation-owned current
+scene objects and set the first index to `0`. Native
+`GameManager.nextSpawnPosition` at RVA `0x00EF2CA0` reads the current index
+before incrementing it. `-1` is invalid.
+
+Call `PlayerMaster.SpawnPlayer()` for the owned player. It performs ownership
+checks, enters the Mirror command, and calls `ClientSpawnBS`. The generated
 server method is `PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. It
 selects a shipped spawn point, instantiates the shipped player prefab, calls
-owner-aware `NetworkServer.Spawn`, assigns the spawned-player object, and sends
-the retail spawn RPC.
+owner-aware `NetworkServer.Spawn`, assigns the spawned-player object, and
+sends the retail spawn RPC. Enter that generated body directly only for an
+unowned server player.
 
-After the server readiness barrier, a host adapter can enter that exact
-generated server method when `NetworkServer.active`. Pass the `PlayerMaster`
-network identity. Keep the normal command path for a non-server owned client.
-Do not create an independent player prefab and do not call lifecycle methods.
+Record request frame and count before native entry. Limit retries. Stop after
+the spawned object or alive state proves completion. Do not create an
+independent player prefab and do not call lifecycle methods.
 
 Require a non-null `PlayerSpawnedObject`, the shipped
 `GameManager.MovePlayerToSpawn` path, and player-camera proof above the package
@@ -125,3 +133,16 @@ owner-aware network spawn first, then `BotSpawnDetails`.
 
 Treat this correction as `PROVEN-STATIC` until reciprocal firearm damage works
 in a physical PVE run. A grenade result is not sufficient.
+
+## Exact 02:00 and terrain presentation
+
+For the current worked source, use `sharedassets7.assets` profile path `435`,
+`PVP map NIight VOLUME`. Its Exposure path `440` uses Automatic Histogram,
+compensation `1.16`, limits `5.065281867980957..9.348570823669434`, and speeds
+`3/3`. Tonemapping path `432` uses ACES without the day external LUT.
+`GameManager.SetNVGColor(0)` selects white phosphor on this build.
+
+After one reconstructed `TerrainData` owns `Terrain` and `TerrainCollider`,
+disable the exact serialized mesh fallback before spawn validation. Align a
+complete tree from its lowest finite renderer bound after final yaw and scale,
+not from its source pivot. Use a declared small embed and correction limit.

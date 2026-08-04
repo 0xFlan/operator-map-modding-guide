@@ -1,23 +1,60 @@
 # 9. Interactive prefabs and `DoorV2`
 
-Status of the structural data in this document: `PROVEN-STATIC` for the
-inspected current build.
+Status of the structural data in this document: `DEVELOPER-SOURCE` for the
+official `_DoorV2_BASE.prefab` supplied on 2026-08-03, and `PROVEN-STATIC` for
+the current-build code audit.
 
-Status of a complete native-template clone: `SUPPORTED` only after the map
-passes the test matrix in this document.
+Status of a door that is an authored instance of that complete prefab:
+`SUPPORTED` only after the map passes the test matrix in this document.
 
-Status of a door that a companion reconstructs from individual components:
-`EXPERIMENTAL` until the same test matrix passes.
+Status of a door that a companion creates or reconstructs at run time:
+`EXPERIMENTAL`. This is not the normal game method.
 
 Re-check all types and fields after an OPERATOR update.
 
-## The AssetRipper prefab is not a functional door
+## Primary finding: the door is authored content
+
+The OPERATOR developers confirmed that doors are part of the prefab or scene.
+The game does not create the normal door graph at run time. The official
+source file confirms this statement.
+
+Evidence record for the supplied source:
+
+| Item | Value |
+| --- | --- |
+| File | `_DoorV2_BASE.prefab` |
+| Size | `260206` bytes |
+| SHA-256 | `BAB5287B2DE809143BBDE71B90F8D0BE454DD724B4DEC110FB4AF1FC0CF06FF6` |
+| Meta file size | `154` bytes |
+| Meta SHA-256 | `A0A8276DBBEE98B532AA2E8E4392C016C618D6A707899E67F705B100E9B4A2F4` |
+| Prefab GUID | `803422c907641034e99a99778ef7d30b` |
+| Root name and tag | `_DoorV2_BASE`, tag `Door` |
+| `DoorV2` script GUID | `fe92077393168114cbf3320d346950d4` |
+
+Do not publish the developer file or its dependencies unless you have
+permission. The hashes and serialized relationships are evidence. They are
+not a redistribution license.
+
+The root has three authored children:
+
+- `Door Pivot and rigidbody`;
+- `Openable NavMesh Link Source`;
+- `Walkable NavMeshLink Source`.
+
+The root also has the Mirror identity, `DoorV2`, `MilkRigidbodySync`, and its
+base transform-synchronization behavior. The pivot subtree contains both
+handles, the panel rigid body, hit objects, interaction-pose objects, audio,
+and the destroyed-door graph. The two navigation-link source objects are
+siblings of the pivot. This is one serialized graph. Do not split it into a
+visual panel and a run-time component repair pass.
+
+## AssetRipper limitation
 
 AssetRipper can export the visible hierarchy, meshes, colliders, interaction
 poses, and MonoBehaviour type references. It can fail to reconstruct the
 serialized fields of an IL2CPP script.
 
-The inspected `DoorV2` prefab exports have this failure:
+Some earlier AssetRipper exports had this failure:
 
 - The `DoorV2` MonoBehaviour block contains the script reference.
 - The block contains no custom serialized field values.
@@ -28,35 +65,32 @@ The inspected `DoorV2` prefab exports have this failure:
 - Several variants omit `MilkRigidbodySync`, door hit-box behavior, navigation
   links, navigation cuts, destroyed-door parts, or audio data.
 
-Thus, the object can look like a door but still have null references. Unity
-does not restore these values from child names. A late assignment cannot
-reverse all work that `Awake`, `Start`, or Mirror network-start methods did
-with invalid data.
+This AssetRipper limitation does not describe the official developer prefab.
+The official prefab contains the complete non-null serialized graph. If an
+export loses these fields, reject the export. Do not treat its missing values
+as the native authoring method.
 
-## Use a native runtime template when possible
+## Use the complete prefab in the map-authoring project
 
-The preferred method is a clone of one verified, complete, live `DoorV2`
-object from the same installed build.
+1. Import the complete authorized prefab and its `.meta` file into the Unity
+   authoring project. Preserve the GUID.
+2. Import or resolve every script and asset dependency before you open or
+   save the prefab. A missing script can cause destructive reserialization.
+3. Create a prefab instance in the map scene or in a map-owned building
+   prefab. Do not copy only the panel.
+4. Keep the complete pivot, handles, hit parts, interaction poses, destroyed
+   parts, audio, physics synchronization, cut, and both link sources.
+5. Position the complete root. Change a child only when the source contract
+   for that child is known.
+6. Bake or scan the map-owned A* graph with both link endpoints on valid graph
+   surfaces.
+7. Build the scene bundle with this authored prefab instance present.
+8. Let normal scene load initialize the graph. Do not spawn the normal door
+   from a BepInEx companion.
 
-1. Find a source door that has the required interaction and network behavior.
-2. Record its complete child hierarchy and all component references.
-3. Disable the source clone before a map-specific change.
-4. Clone the complete root. Do not clone only the visible panel.
-5. Verify that each cloned reference points to an object in the cloned graph.
-6. Replace only the approved visual mesh, materials, dimensions, and local
-   transforms.
-7. Keep the native component types and their paired relationships.
-8. Give every dynamic network object a valid, unique Mirror identity through
-   a verified server-owned spawn path.
-9. Activate the clone only after the object graph is complete.
-
-Do not duplicate a scene `NetworkIdentity.sceneId`. Do not assume that a
-runtime clone is registered on a remote client. A local host test does not
-prove peer spawn, authority transfer, late join, or restart.
-
-If no safe native source exists in the standalone session, use an exact-scene
-companion to reconstruct the object. Keep this path `EXPERIMENTAL` until the
-full matrix passes.
+Do not assign a duplicate Mirror scene identity or invent a separate network
+spawn route. A dynamic run-time clone is a different architecture. It needs
+explicit server and client registration proof and stays `EXPERIMENTAL`.
 
 ## Required `DoorV2` object graph
 
@@ -92,25 +126,25 @@ put the pivot at the geometric center of the panel.
 
 ## `DoorV2` reference fields
 
-The installed current-build interop exposes these object-reference fields:
+The official prefab serializes these `DoorV2` relationships:
 
-| Field | Type | Required relationship |
-| --- | --- | --- |
-| `PivotTransform` | `Transform` | Hinge-axis transform that rotates the complete moving door graph |
-| `DoorModelParent` | `GameObject` | Native-template model parent for the moving door |
-| `rb` | `Rigidbody` | Physical door-panel rigid body |
-| `DoorPhysicsSync` | `MilkRigidbodySync` | OPERATOR authority and rigid-body synchronization component |
-| `DoorPhysicsMaterial` | `PhysicsMaterial` | Physics material copied from a compatible native door |
-| `DoorHitBox` | `BoxCollider` | Main physical/hit collider expected by the door |
-| `latchCollider` | `BoxCollider` | Latch or lock collider |
-| `HingeTopCollider` | `BoxCollider` | Top hinge collider |
-| `HingeBottomCollider` | `BoxCollider` | Bottom hinge collider |
-| `HandleFront` | `DoorHandleV2` | Front interaction component |
-| `HandleBack` | `DoorHandleV2` | Back interaction component |
-| `NavMeshCut` | `Pathfinding.NavmeshCut` | Dynamic navigation obstacle for the closed door |
-| `DoorWalkableNavLink` | `Pathfinding.NodeLink2` | Link for the verified walk-through state |
-| `DoorOpenableNavLink` | `Pathfinding.NodeLink2` | Link for the verified open/breach state |
-| `audioSource` | `AudioSource` | Door-local audio source |
+| Field | Type | Official prefab file ID | Relationship |
+| --- | --- | --- | --- |
+| `PivotTransform` | `Transform` | `5655903686974966660` | `Door Pivot and rigidbody` |
+| `HandleFront` | `DoorHandleV2` | `832021001818567380` | `Handle01`; `IsFrontHandle=1` |
+| `HandleBack` | `DoorHandleV2` | `4888901979659399756` | `Handle02`; `IsFrontHandle=0` |
+| `DoorModelParent` | `GameObject` | `4558437591915724262` | Preserved authored model-parent relationship |
+| `rb` | `Rigidbody` | `8147755104391239385` | Physical door-panel rigid body |
+| `DoorPhysicsSync` | `MilkRigidbodySync` | `3606556160028973740` | Root authority and rigid-body synchronization |
+| `DoorPhysicsMaterial` | `PhysicsMaterial` | asset GUID `cac3bd50a9182c84fb18cd880ba8f477` | Shared door physics material |
+| `DoorHitBox` | `BoxCollider` | `5080948964878468503` | Main panel collider |
+| `latchCollider` | `BoxCollider` | `204089381160518279` | Latch collider |
+| `HingeTopCollider` | `BoxCollider` | `1421661395952267286` | Top hinge collider |
+| `HingeBottomCollider` | `BoxCollider` | `1695107359955193892` | Bottom hinge collider |
+| `NavMeshCut` | `Pathfinding.NavmeshCut` | `8569563404815454737` | Dynamic navigation cut |
+| `DoorWalkableNavLink` | `Pathfinding.NodeLink2` | `6111292927718465430` | `Walkable NavMeshLink Source` |
+| `DoorOpenableNavLink` | `Pathfinding.NodeLink2` | `3900576627820490214` | `Openable NavMesh Link Source` |
+| `audioSource` | `AudioSource` | `3977039335228634899` | Door-local audio source |
 | `doorBreach` | `AudioClip[]` | Compatible breach sounds |
 | `doorClose` | `AudioClip[]` | Compatible close sounds |
 | `doorLocked` | `AudioClip[]` | Compatible locked sounds |
@@ -121,9 +155,15 @@ The installed current-build interop exposes these object-reference fields:
 | `DestroyedDoor` | `GameObject` | Optional destroyed-door graph |
 | `DestroyedDoorRB` | `Rigidbody[]` | Rigid bodies in the destroyed-door graph |
 
-Do not assign one navigation link to both navigation fields unless a
-current-build native reference door uses that relationship. Do not leave an
-empty array where runtime code expects an indexed sound or rigid body.
+The official prefab also serializes `DoorMask=4545`,
+`PlayerMovementLayerMask=33554436`, `maxRotationY=110`, `Damping=0.5`, latch
+and hinge health `400`, `canLatch=1`, `IsLatched=1`, two breach clips, complete
+unlock/lock/close/thud arrays, one destroyed-door root, and 30 destroyed-door
+rigid bodies. Preserve these values until a specific authored door variant
+proves a different value.
+
+Do not assign one navigation link to both navigation fields. Do not leave an
+empty array where current code indexes a sound or rigid body.
 
 These authored controls also exist:
 
@@ -142,8 +182,37 @@ These authored controls also exist:
 | `navCutCloseSize` and `navCutOpenSize` | Navigation-cut sizes by door state |
 | `DoorMask` and `PlayerMovementLayerMask` | Installed layer masks |
 
-Copy these values from one compatible native template. Do not guess values
-from the visible mesh.
+Copy variant-specific values from an authorized complete source prefab. Do
+not guess values from the visible mesh.
+
+## Fields that current code does not consume
+
+The current-build developer code audit identifies serialized compatibility
+data that is not read by the active code path:
+
+- `DoorModelParent` is referenced only by commented-out
+  `TryAutoFindCollider` code.
+- `DoorMask` is referenced only by a commented raycast. Its official value is
+  `4545`, which is not a meaningful `LayerMask` by itself.
+- `navCutOpenSize` and `navCutCloseSize` are referenced only by the
+  commented-out cut-resize block in `HandleAIBlockers`.
+- `DoorHandleV2.RivalDoorHandle` has no current reads. The official handles
+  still serialize the reciprocal relationship.
+- `DoorHandleV2.allowedDistanceToPlayerDamper` has no current reads.
+- `DoorHandleV2.GrabbedHandle` is write-only. `GrabbedCenter` is read and is
+  not dead.
+- `DoorHandleV2.raycastTransform` is allocated in `Start` as an empty
+  `GameObject`, but current code does not use it.
+
+Preserve these serialized fields. Removing a public serialized field changes
+the prefab data contract across approximately 40 existing door prefabs and
+cannot recover the data automatically later.
+
+Do not classify `latchCollider`, `HingeTopCollider`, or
+`HingeBottomCollider` as dead. `SlapChargeExplosive` reads them to select the
+nearest breach point. `NavMeshCut`, `canBlowup`, and the dead-door block are
+also live. `NavMeshCut` is disabled in `DoorDie`, and `DoorHandleV2` consumes
+the dead-door state.
 
 These fields are runtime state. Do not use them as authoring inputs:
 
@@ -169,20 +238,20 @@ Create one handle component for each side.
 | `IsFrontHandle` | `true` on exactly one side |
 | `Handle` | The side-specific FinalIK `InteractionObject` for handle use |
 | `Center` | The side-specific FinalIK `InteractionObject` for center push/pull |
-| `raycastTransform` | Native-template ray origin and direction transform |
 | `myPushObject` | Native-template push target transform |
-| `allowedHandleDistanceToPlayer` | Distance copied from a compatible native template |
-| `allowedCenterDistanceToPlayer` | Distance copied from a compatible native template |
-| `allowedDistanceToPlayerPull` | Pull distance copied from a compatible native template |
-| `allowedDistanceToPlayerPush` | Push distance copied from a compatible native template |
-| `allowedDistanceToPlayerDamper` | Damping distance copied from a compatible native template |
 
-Set the rival relationship in both directions. Keep each FinalIK interaction
-pose hierarchy. Do not remove its hand and finger pose children as decorative
-objects.
+The official `Handle01` uses `myPushObject=4371644465376006511`,
+`Handle=5588754310984811820`, and `Center=3606588516118885588`. Official
+`Handle02` uses the same push object, `Handle=4333291165372661062`, and
+`Center=6390603237945870828`.
 
-`MyLocalPlayer`, `PlayerInteractionSystem`, distance caches, grab flags, and
-best-handle selection are runtime state. Do not bind them to an editor object.
+Preserve the reciprocal rival relationship even though current code does not
+read it. Keep each FinalIK interaction-pose hierarchy. Do not remove its hand
+and finger pose children as decorative objects.
+
+`MyLocalPlayer` and `PlayerInteractionSystem` are correctly null in the
+official prefab. The distance caches and grab flags start at zero. These are
+runtime state. Do not bind them to an editor object.
 The native handle exposes `TryStartInteraction`, `StartHandleInteraction`,
 `StartCenterInteraction`, `StopInteraction`, and force-calculation methods.
 Do not call these methods to compensate for an incomplete graph.
@@ -220,9 +289,10 @@ Native bot traversal uses door walk, open, and breach modes. The native
 `BotOffmeshLinkHandler` controls the traversal sequence and door cooldowns.
 Do not add a second custom AI door state machine to the map.
 
-## Safe reconstruction sequence
+## Experimental run-time reconstruction sequence
 
-Use this sequence only in an exact-scene companion:
+The normal door is already part of the authored map prefab. Use this sequence
+only for research when no authorized complete source graph is available:
 
 1. Verify the exact package ID, map ID, scene path, build, and dependency
    versions.

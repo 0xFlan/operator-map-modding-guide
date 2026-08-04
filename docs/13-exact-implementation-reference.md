@@ -5,7 +5,7 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.7` package manifest, the current
+status. The values came from the version `0.3.8` package manifest, the current
 framework and companion source, and the emitted bundles. A new build can have
 different byte counts and SHA-256 values.
 
@@ -128,7 +128,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.7` value |
+| Field | Version `0.3.8` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -146,13 +146,13 @@ The exact emitted package files had these manifest records:
 
 | Package-relative path | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `content/operator_ukrainian_forest` | `630286065` | `05436ac4b474a54877a0d3bdaafe029e6c35edc2dbd30898e6e094f2a2138b32` |
-| `content/operator_ukrainian_forest_scene` | `17606767` | `6bdd50f61cbce1ca28f79f6c198db45d7fd752d96d2f5468c7b1dc5f5c1e94d1` |
+| `content/operator_ukrainian_forest` | `630235822` | `8a602b01adeebdd97379e69811e87f6f5035c65382778543e85ceb752027fe40` |
+| `content/operator_ukrainian_forest_scene` | `17605451` | `54e186d7748f1a0f3ff997dcc8a5632f87fcdbef43b47272b1a5ffe5cc08f36f` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.7` values into a different archive.
+these version `0.3.8` values into a different archive.
 
 ## Ukrainian Forest operation records
 
@@ -313,6 +313,47 @@ native foliage surface when it is available in the installed build. Use
 state, normal-map import type, mask-map channel packing, render queue, and
 material slot order.
 
+## Exact Ukrainian Forest tree-grounding contract
+
+The bundle authoring source uses these exact members:
+
+| Member or constant | Current value or action |
+| --- | --- |
+| `CompleteTreeVisibleBaseEmbedMeters` | `0.12f` |
+| `AlignCompleteTreeVisibleBaseToSurface` | Reads the lowest finite child `Renderer.bounds.min.y` after final yaw and scale, then moves the complete root. |
+| maximum authoring correction | `12 m`; a larger correction fails the build |
+
+The builder calls `AlignCompleteTreeVisibleBaseToSurface` for each
+`NATIVE_TREE_*` root with `HeightAt(x,z)` and for each
+`NATIVE_PERIMETER_TREE_*` root with `HeightAtExterior(x,z)`.
+
+The map companion uses `AlignStandaloneAuthoredTreesToTerrain` after the
+reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight`, uses
+the same `0.12 m` embed and `12 m` limit, calls `Physics.SyncTransforms`, and
+logs aligned, outside, rejected, and largest-correction values. The pivot
+position is not the visible trunk-base contract.
+
+## Exact 02:00 presentation source
+
+The installed source is `sharedassets7.assets`, `VolumeProfile` path ID `435`,
+name `PVP map NIight VOLUME`. The exact applied component records are:
+
+| Component | Path ID | Exact applied values |
+| --- | ---: | --- |
+| `Exposure` | `440` | Automatic Histogram; metering `4`; fixed `8.32`; compensation `1.16`; min `5.065281867980957`; max `9.348570823669434`; speeds `3/3` |
+| `Tonemapping` | `432` | ACES; full ACES; no external LUT |
+| `Bloom` | `431` | quality `1`; threshold `0.9`; intensity `0.3`; scatter `0.2` |
+| `ColorAdjustments` | `433` | post exposure not overridden; contrast `17.3`; saturation `22` |
+| `IndirectLightingController` | `443` | diffuse `1`; reflection `1`; probe `1` |
+
+`GameManager.SetNVGColor`, exact-build RVA `0x00EEE5A0`, maps input `0` to
+`WhitePhosper` and input `1` to `GreenPhosper`. The framework captures the
+prior value, calls `SetNVGColor(0)` for 02:00, and restores the prior value on
+unload.
+
+Do not apply the day `AgX - Powerful` external LUT or the day exposure limits
+`11.660274..12.358905` to this night source.
+
 ## Framework and companion source locators
 
 The generic framework assembly is `OperatorModdedOperations.dll`. Its current
@@ -330,13 +371,16 @@ standalone flow:
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
-| `ConfigureStandalonePlayerSpawnContract` | Convert only verified current-scene marker transforms to shipped `SpawnPoint` components and register the current global spawn list. |
-| `RequestStandalonePlayerSpawn` | On a host, enter the current-build generated Mirror server spawn body; keep the command path for a non-server owned client. |
+| `ConfigureStandalonePlayerSpawnContract` | Capture prior process-global spawn state, convert only verified current-scene markers to `SpawnPoint`, install the operation-owned list/array, and set the first native index to `0`. |
+| `RestoreStandalonePlayerSpawnContract` | Restore the prior spawn list, fallback array, and index only when the current globals still equal this operation's owned objects; reject prior objects from unloaded scenes. |
+| `RequestStandalonePlayerSpawn` | Call native `PlayerMaster.SpawnPlayer()` for the owned player so its command and `ClientSpawnBS` route runs; use the generated server body only for an unowned server player. |
+| `MaintainStandalonePlayers` | Record frame and attempt count before native entry, limit each player to three attempts, and stop after a player object or alive state proves success. |
 | `SelectPlayerMarker` | Select a current-scene marker for one `PlayerMaster`; reject PVP players without native team ID `1` or `2`. |
 | `PvpMarkerMatchesTeam` | Bind Team 1 prefixes to native ID `1` and Team 2 prefixes to native ID `2`. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
 | `TrySpawnStandalonePveEnemies` | Filter registered firearm-capable prefabs and call `RaidManager.ServerSpawnAI(false)` after world readiness. |
 | `ReleaseStandaloneGameMode` | Release the mode owner during lifecycle transitions. |
+| `ReleaseStandaloneRenderContract` | Restore the captured NVG color and destroy operation-owned run-time Volume profiles. |
 
 The Ukrainian Forest companion assembly is `OperatorUkrainianForest.dll`. Its
 current source file is `OperatorUkrainianForestPlugin.cs`. These exact members
@@ -346,6 +390,7 @@ own map-specific reconstruction:
 | --- | --- |
 | `ProcessStandalonePackageScene` | Gate processing to the exact Ukrainian Forest package scene. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
+| `AlignStandaloneAuthoredTreesToTerrain` | Align direct and perimeter complete-tree visible bases after run-time TerrainData bind. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |
@@ -361,14 +406,14 @@ The current installed native build has these exact static relationships:
 
 | Native item | Exact locator | Proven behavior |
 | --- | --- | --- |
-| `GameManager.nextSpawnPosition(bool,int,int)` | RVA `0x00EF2CA0`; direct team comparison near RVA `0x00EF2F15` | Compares the input team ID directly with `SpawnPoint.Team` at native field offset `0x24`. |
+| `GameManager.nextSpawnPosition(bool,int,int)` | RVA `0x00EF2CA0`; direct team comparison near RVA `0x00EF2F15` | Reads the current `Pnext` index before incrementing it; compares the input team ID directly with `SpawnPoint.Team` at native field offset `0x24`. The first index must be `0`, not `-1`. |
 | `TeamIdentifier.TeamID` | managed field offset `0x70` | Supplies the player's numeric team identity. |
 | `PlayerMaster.MyTeamIdentifier` | managed field offset `0x88` | Supplies the player's `TeamIdentifier`. |
 | `PvpGameode.StartNewRound()` | RVA `0x00F1C0E0`; Team 1 writes near `0x00F1C336`; Team 2 writes near `0x00F1C3F6` | Writes `CanSpawnPlayer=true`, then writes Team 1 as `1` and Team 2 as `2`. |
 
-`CerberusNativeTabFix.cs:2955` applies the `1/2` assignment.
-`CerberusNativeTabFix.cs:3949-4008` reads `TeamID`, invalidates a cached marker
-after a team mismatch, and filters markers by team.
+`ConfigureStandalonePlayerSpawnContract` applies the `1/2` assignment.
+`SelectPlayerMarker` reads `TeamID`, invalidates a cached marker after a team
+mismatch, and filters markers by team.
 
 These addresses and offsets are exact-build `PROVEN-STATIC` evidence. They
 are not portable API promises. Reinspect them after an OPERATOR update.
@@ -408,13 +453,16 @@ The loader MUST use this order:
     close the modal and call `CerebusOpboard.Start_Operation` in one frame.
 16. Load that exact scene.
 17. Run the exact-scene companion.
-18. Reconstruct `TerrainData`, terrain materials, native tree materials, and
-    the playable-only A* graph.
+18. Reconstruct `TerrainData`, disable
+    `NATIVE_Ground_HillyTerrain_RenderFallback` after successful render and
+    collision bind, reconstruct terrain/tree materials, align complete-tree
+    visible bases, and build the playable-only A* graph.
 19. Prove the map marker, selected spawn set, terrain collision, combat
     bounds, and valid marker capacity.
 20. Create the generic mode owner only after the world-ready contract passes.
-21. Spawn the player and PVE actors through the shipped owner-aware server
-    path.
+21. Capture and install the current-scene native player-spawn globals with
+    first index `0`.
+22. Spawn the player and PVE actors through the shipped owner-aware path.
 
 Do not spawn actors before steps 17 through 19 finish. A brown flat terrain
 with falling enemies is evidence that actor creation ran before the complete

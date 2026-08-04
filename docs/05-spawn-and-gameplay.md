@@ -15,6 +15,31 @@ Trace the full path:
 Patch or configure only the narrowest responsible seams, and make every
 intervention target-scene-specific and idempotent.
 
+## Own and restore native spawn globals
+
+`GameManager.SpawnPointsInScene`, `GameManager.Pspawns`, and the next-spawn
+index are process-global state. A standalone scene MUST NOT leave its scene
+objects in those fields after unload.
+
+Use this contract:
+
+1. capture all prior values before replacement;
+2. install only current-scene `SpawnPoint` objects;
+3. set the first index to `0` on the current exact build;
+4. record the operation-owned list and array identities;
+5. restore a field only when it still equals the operation-owned identity;
+6. reject a prior list or array when one member belongs to an unloaded scene;
+7. clear all captured and owned references after restoration.
+
+Restore before the package scene destroys its objects. Apply the same release
+path on plug-in unload, scene replacement, normal operation unload, and
+restart.
+
+For player creation, call native `PlayerMaster.SpawnPlayer()` for the owned
+player so `ClientSpawnBS` runs. Use the generated server body only for an
+unowned server player. Record an attempt before native entry, bound retries,
+and stop after one player object or alive state proves success.
+
 ## Large-bundle race
 
 If the source map contains high or off-map spawn locations, the local player

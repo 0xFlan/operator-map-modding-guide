@@ -127,7 +127,10 @@ framework.
 
 - Treat an AssetRipper interactive prefab as an evidence shell until all
   IL2CPP fields are proved.
-- Prefer a complete compatible native runtime template for `DoorV2`.
+- Treat normal `DoorV2` objects as authored map or building prefab content.
+  Import an authorized complete source prefab with its original `.meta` and
+  dependencies. Preserve the whole graph. Do not spawn the normal door from a
+  companion. Keep run-time cloning and component reconstruction experimental.
 - If reconstruction is necessary, build the inactive graph before activation.
 - Wire the hinge pivot, rigid body, `MilkRigidbodySync`, colliders, paired
   handles, FinalIK objects, damage parts, navigation cut, and both A* links.
