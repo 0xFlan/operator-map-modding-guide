@@ -269,7 +269,29 @@ when they still point to the operation component.
 This identity check prevents an old operation from overwriting a newer retail
 owner during return-to-armory or restart.
 
-## 10. Verify PVP before release
+## 10. Register the runtime game-mode owner on every peer
+
+An ordinary run-time `NetworkIdentity` with `assetId=0` can appear to work on
+the host and still fail on a remote client. Mirror needs a matching registered
+prefab identity before it processes the host spawn message.
+
+The current framework creates one inactive template per operation mode and
+uses these deterministic IDs:
+
+| Mode | Mirror asset ID |
+| --- | ---: |
+| PVE | `0x4D4F5001` |
+| StandardPVP | `0x4D4F5002` |
+
+Each peer checks `NetworkClient.prefabs` for a collision and then calls
+`NetworkClient.RegisterPrefab(template, assetId)`. The host activates and
+spawns the operation instance with `NetworkServer.Spawn(instance, assetId,
+connection)`. A remote callback checks the clone's asset ID and component
+type before it adopts the clone as `GameMode.singleton` or
+`PvpGameode.instance`. Release calls `NetworkClient.UnregisterPrefab` for the
+operation-owned template. Do not assign one ID to two different prefabs.
+
+## 11. Verify PVP before release
 
 Record all of these results:
 
@@ -286,7 +308,9 @@ Record all of these results:
 11. The game ends after the retail win condition.
 12. Restart creates one fresh mode owner.
 13. Return to the armory clears the mode owner and restores player control.
-14. Repeat with a remote client. Both peers must use identical framework,
+14. The client log proves registration of asset ID `0x4D4F5002`, receipt of a
+    matching clone, and adoption of `StandalonePvpGameMode`.
+15. Repeat with a remote client. Both peers must use identical framework,
     package, scene-bundle, dependency-bundle, and companion hashes.
 
 Host-only success does not prove remote-client AssetBundle or Mirror spawn

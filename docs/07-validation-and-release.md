@@ -21,7 +21,10 @@
   authored clearance before grounding/navigation tests;
 - terrain/exterior height and material-weight functions are continuous across
   their shared seam;
-- layout checks cover route, spawn, slope, root embedding, and prop footprint.
+- layout checks cover route, spawn, slope, root embedding, and prop footprint;
+- every complete tree has a valid non-trigger lower-trunk collider datum, a
+  `0.12 m` root embed, an absolute correction no greater than `12 m`, and at
+  least `0.75` of its full rendered height above the sampled surface;
 - each PVP spawn set has separate non-empty Team 1 and Team 2 marker groups;
   current-build team IDs are exactly `1` and `2`;
 - each interactive prefab has a complete field/reference closure or is marked
@@ -43,6 +46,9 @@
 - ground and spawn handoff logs identify concrete coordinates;
 - PVP logs identify `StandalonePvpGameMode`, the Team 1/Team 2 list counts,
   and `nativePvpLifecycle=true`; a position-only fallback fails this gate;
+- each peer logs registration of deterministic mode asset ID `0x4D4F5001` or
+  `0x4D4F5002`; the remote peer logs validation and adoption of the matching
+  spawned clone;
 - one map-scoped A* service/graph is scanned for the exact scene;
 - graph dimensions and centre match the gameplay physics/bullet volume rather
   than a larger visual apron;
@@ -50,6 +56,8 @@
   on graph, with rejected names/distances logged;
 - runtime material auditing reports zero active proxy/error-shader renderers;
 - restart replaces rather than duplicates map-owned graph/services/callbacks;
+- a second additive-scene load has no IL2CPP object-to-`Transform` cast and
+  uses typed `GetChild(index)` traversal for map-owned children;
 - each native interactive object reports complete pivot, physics, interaction,
   damage, network, and navigation relationships;
 - no private diagnostic mode remains enabled.
@@ -65,12 +73,19 @@
   declared default;
 - the first Confirm launches once without closing/reopening the laptop;
 - player starts on the intended ground;
+- after return to the armory, a second PVE launch creates a new
+  `PlayerSpawnedObject`, uses the shipped movement coroutine, and restores
+  first-person movement; when recovery is necessary, the log contains only
+  the bounded `owned-host-generated-server-recovery` route after the
+  request-1 `SpawnPlayer` route;
 - team and free-for-all respawns work;
 - player does not snap/fall to source-map space;
 - foliage has no opaque atlas cards;
 - each selected tree family has a complete crown silhouette at close, middle,
   and far player-camera distances; mesh/material/submesh counts alone do not
   satisfy this gate;
+- on flat ground and multiple slopes, only the root zone is below terrain and
+  at least three quarters of each tree is visibly above terrain;
 - rocks/boulders are complete from multiple angles;
 - cover is grounded across slopes;
 - boundaries are both blocked and visually credible;

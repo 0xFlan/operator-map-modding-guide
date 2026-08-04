@@ -124,13 +124,19 @@ that exact fallback object immediately after the live `Terrain` and
 Keep the fallback active when reconstruction fails so the failure remains
 visible, but fail readiness and do not spawn actors.
 
-After the final TerrainData is live, align authored trees by their visible
-base, not by the root transform alone. Compute the lowest world-space bound of
-the tree's child renderers, sample the live terrain at the root X/Z, and move
-the root so that the visible base is slightly below the surface. Use a small,
-map-audited embed value and reject an excessive correction. Run the same
-algorithm in the authoring builder and as a bounded exact-scene runtime repair;
-then call `Physics.SyncTransforms()`.
+After the final TerrainData is live, align collision-enabled playable trees by
+their native lower-trunk collider datum, not by the root transform or the
+minimum of a combined crown-and-trunk renderer. After final yaw and scale,
+find the minimum finite `bounds.min.y` from non-trigger native colliders with a
+valid vertical extent. Place the complete tree batch, call one
+`Physics.SyncTransforms()` pass before all bounds reads, apply every
+correction, and synchronize once more. Sample terrain at the root X/Z and move the root by
+`surfaceY - rootEmbed - rootContactY`. Separately calculate the full rendered
+height. Reject the placement when its above-ground rendered fraction is below
+the map contract. Ukrainian Forest uses a `0.12 m` embed, `0.75` fraction, and
+`12 m` maximum correction. Run the same algorithm in the authoring builder
+and bounded exact-scene runtime repair, use typed `GetChild(index)` traversal
+in repeat-load IL2CPP paths, and call `Physics.SyncTransforms()`.
 
 ## Runtime A* graph construction
 
@@ -283,11 +289,12 @@ captured entries whose owning scene is no longer loaded. This prevents a
 standalone scene from leaving destroyed transforms in the armory and avoids
 overwriting state that another owner installed later.
 
-On the current exact build, an owned `PlayerMaster` must enter
+On the current exact build, request 1 for an owned `PlayerMaster` must enter
 `PlayerMaster.SpawnPlayer()`. That command path reaches the shipped spawn body
 and then `ClientSpawnBS`, which completes owner-side locomotion, camera, and
 input initialization. Calling the generated server body directly for an owned
-host can create a visible player while skipping that owner-side completion.
+host on request 1 can create a visible player while skipping that owner-side
+completion.
 
 The generated server body is
 `PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. Native inspection
@@ -295,13 +302,18 @@ shows that it selects a shipped `SpawnPoint`, instantiates the shipped player
 prefab, calls owner-aware `NetworkServer.Spawn`, assigns the spawned-player
 SyncVar and object, and sends the retail spawn RPC.
 
-Use the generated server body only for a server-side `PlayerMaster` that has no
-local ownership. Pass its network identity. Do not construct an independent
-player prefab and do not call Unity or Mirror lifecycle methods manually.
+Use the generated server body on request 1 only for a server-side
+`PlayerMaster` that has no local ownership. If an owned host still has no new
+`PlayerSpawnedObject` 300 frames after request 1 in a repeat additive-scene
+generation, enter the same generated body as one bounded recovery. The first
+request has already run `ClientSpawnBS`. Pass the `PlayerMaster` network
+identity. Do not construct an independent player prefab and do not call Unity
+or Mirror lifecycle methods manually.
 
 Record a spawn attempt before invoking native code, because native code can
 complete synchronously and re-enter the adapter. Keep a per-player completed
-set and a small attempt ceiling, such as three attempts per generation. Clear
+set and a small attempt ceiling. The current framework uses two total attempts
+for an owned host and three for other routes. Clear
 both only when the operation generation changes. This prevents an owned
 player's successful spawn from being followed by unbounded duplicate requests.
 
@@ -314,6 +326,12 @@ to load.
 This exact-build host route is `PROVEN-STATIC`. It becomes `SUPPORTED` only
 after the physical host run produces the player object, movement, correct
 camera, and reciprocal combat. Test remote clients and late join separately.
+
+Register a deterministic nonzero Mirror game-mode prefab asset ID on every
+peer before the host spawns the run-time owner. Collision-check
+`NetworkClient.prefabs`, register the inactive template, spawn with the
+asset-ID overload, validate the clone ID and mode on a remote peer, and
+unregister during release. Asset ID `0` is host-only evidence.
 
 ## PVP team-spawn identity
 

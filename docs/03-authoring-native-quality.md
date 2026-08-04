@@ -134,6 +134,32 @@ embedding rather than a constant world Y:
 - incomplete or one-sided rock meshes MUST be rejected from a multi-angle
   player-height review.
 
+Use a native trunk or root collider as the tree contact datum when the prefab
+has a combined crown-and-trunk renderer. Do not use the minimum bound of all
+renderers. A low branch can become the minimum after yaw and can lift the
+trunk above a hill. Apply this exact check after the final position, rotation,
+and scale:
+
+```csharp
+Physics.SyncTransforms(); // once after placing the complete tree batch
+float rootContactY = tree.GetComponentsInChildren<Collider>(true)
+    .Where(c => c != null && !c.isTrigger && c.bounds.size.y > 0.25f)
+    .Min(c => c.bounds.min.y);
+float correction = surfaceY - 0.12f - rootContactY;
+tree.transform.position += Vector3.up * correction;
+```
+
+Also calculate the full rendered vertical extent. Fail the build when
+`(renderedMaximumY + correction - surfaceY) / renderedHeight < 0.75f` or when
+`abs(correction) > 12f`. This rule puts only the root zone below the terrain
+and keeps at least three quarters of the rendered tree above it. If a tree
+does not have a valid native trunk collider, repair or reject the prefab. Do
+not guess from the root pivot.
+
+Place the full tree batch first. Synchronize transforms once, apply the
+root-contact equation to every tree, and synchronize once more. Do not call
+`Physics.SyncTransforms()` once per tree against a large `TerrainCollider`.
+
 For rotated rigid cover, sample the final collision height at the complete
 mesh/collider center and all footprint corners after applying the cover's yaw.
 If the full footprint cannot sit naturally on the authored grade, relocate or

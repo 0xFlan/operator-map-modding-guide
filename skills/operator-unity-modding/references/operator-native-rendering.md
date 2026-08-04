@@ -220,15 +220,20 @@ Generated prefab names are not proof that a tree is LOD0. Search the installed a
 
 Retain the source collider intent too. A complete tree should use a lower-trunk collision shape when that is what the native object uses, not a cylinder or box covering its crown. Keep placement at source scale, compare height to a human-character reference, and embed the root into the sampled terrain.
 
-Ground a tree from its visible base. After final rotation and scale, calculate
-the lowest world-space Y value across all child renderer bounds. Sample the
-authoritative terrain at the root X/Z and move the root by
-`surfaceY - visibleBaseY - embed`. Use a small audited embed, such as `0.12 m`
-for the Ukrainian Forest complete-tree family, and reject a correction larger
-than the map's corruption threshold, such as `12 m`. A root-Y assignment alone
-is invalid because exported prefab pivots and mesh bases are not guaranteed to
-coincide. Repeat the bounded repair after runtime TerrainData reconstruction
-and synchronize physics transforms.
+Ground a combined crown-and-trunk tree from its native lower-trunk collider.
+After final rotation and scale, calculate the lowest finite world-space Y
+across non-trigger native collider bounds with a valid vertical extent. Do not
+use the minimum renderer bound: a low branch can become that minimum after yaw
+and lift the trunk above a slope. Place the tree batch, synchronize once before
+all collider-bounds reads, correct the batch, and synchronize once after it.
+Sample authoritative terrain at root X/Z and
+move the root by `surfaceY - rootContactY - embed`. Separately calculate the
+complete rendered height and reject a placement below the map's declared
+above-ground fraction. Ukrainian Forest uses `embed=0.12 m`, minimum fraction
+`0.75`, and maximum absolute correction `12 m`. Repeat the bounded repair for
+collision-enabled playable trees after runtime TerrainData reconstruction,
+use typed index traversal in IL2CPP repeat-load paths, and synchronize physics
+transforms.
 
 When a native shader uses a texture property that a portable Standard proxy cannot serialize, carry that texture through a documented, otherwise-unused proxy slot only for the audited material identity. At runtime resolve the proxy back to its raw native name, move the texture from the cargo slot to the correct installed BotD/HDRP property, and verify the raw/proxy GUID equality plus the exact runtime restoration call. Never leave a transport slot functioning as its Standard meaning (for example, do not leave a thickness map as emission).
 

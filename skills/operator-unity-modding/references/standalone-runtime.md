@@ -90,22 +90,31 @@ scene objects and set the first index to `0`. Native
 `GameManager.nextSpawnPosition` at RVA `0x00EF2CA0` reads the current index
 before incrementing it. `-1` is invalid.
 
-Call `PlayerMaster.SpawnPlayer()` for the owned player. It performs ownership
+Call `PlayerMaster.SpawnPlayer()` on request 1 for the owned player. It performs ownership
 checks, enters the Mirror command, and calls `ClientSpawnBS`. The generated
 server method is `PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. It
 selects a shipped spawn point, instantiates the shipped player prefab, calls
 owner-aware `NetworkServer.Spawn`, assigns the spawned-player object, and
-sends the retail spawn RPC. Enter that generated body directly only for an
-unowned server player.
+sends the retail spawn RPC. Enter that generated body directly on request 1
+only for an unowned server player. If an owned repeat-generation host still
+has no new `PlayerSpawnedObject` after 300 frames, enter the same body as one
+bounded recovery. Request 1 already ran `ClientSpawnBS`.
 
-Record request frame and count before native entry. Limit retries. Stop after
-the spawned object or alive state proves completion. Do not create an
+Record request frame and count before native entry. Limit an owned host to two
+total attempts and other routes to three. Stop after the spawned object or
+alive state proves completion. Do not create an
 independent player prefab and do not call lifecycle methods.
 
 Require a non-null `PlayerSpawnedObject`, the shipped
 `GameManager.MovePlayerToSpawn` path, and player-camera proof above the package
 terrain. Treat this route as `PROVEN-STATIC` until movement, camera, and
 reciprocal combat pass in a physical run. Test remote clients separately.
+
+For a run-time mode owner, register one inactive PVE or PVP template on every
+peer with a deterministic nonzero Mirror asset ID. Check the client prefab
+registry for a collision before registration. Spawn with the asset-ID overload
+on the host. A remote peer must validate the received ID and mode before it
+adopts the clone. Unregister the template during operation release.
 
 ## PVP team spawn
 

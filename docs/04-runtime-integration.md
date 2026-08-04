@@ -350,8 +350,28 @@ Mirror command, and then calls `ClientSpawnBS`. The generated server
 implementation is `PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`.
 It selects a shipped spawn point, instantiates the shipped player prefab,
 calls owner-aware `NetworkServer.Spawn`, assigns the spawned-player object,
-and sends the retail spawn RPC. Call this generated body directly only for an
-unowned server player.
+and sends the retail spawn RPC.
+
+On the first request for each player and additive-scene generation, call
+`SpawnPlayer()`. If an owned host still has no new `PlayerSpawnedObject` after
+300 frames, call the exact generated server implementation as one bounded
+repeat-generation recovery. This route repairs stale Mirror command-sender
+state after the old map destroyed the previous player object. It does not
+replace `ClientSpawnBS`; the first request already ran that client path. Call
+the generated body directly on request 1 only for an unowned server player.
+Limit an owned-host sequence to two requests: one native kickoff and one
+generated-body recovery. Other routes retain a three-request ceiling. Record
+the request before native entry.
+
+The run-time PVE and PVP game-mode owners also need remote-peer Mirror
+identity. Create one inactive template on each peer. Assign deterministic,
+collision-checked asset IDs before host spawn. The current framework uses
+`0x4D4F5001` for PVE and `0x4D4F5002` for PVP. Register with
+`NetworkClient.RegisterPrefab(template, assetId)`, then spawn on the host with
+`NetworkServer.Spawn(instance, assetId, connection)`. A remote peer MUST adopt
+only a clone with the expected asset ID and operation mode. Unregister and
+destroy the operation-owned template during release. A host-only object with
+asset ID `0` is not a valid multiplayer contract.
 
 Write the request frame and attempt count before native entry. Limit retries.
 Stop after the player-object or alive state proves success. An exception MUST
@@ -387,6 +407,7 @@ Use reverse ownership order:
 stop mode population
 -> invalidate the scene generation
 -> restore prior process-global spawn registration only when this operation still owns it
+-> unregister the operation-owned Mirror game-mode template
 -> clear standalone mode singleton, PvpGameode, and timer ownership
 -> restore captured NVG state and destroy run-time Volume profiles
 -> companion removes its graph, materials, native data, objects, and callbacks

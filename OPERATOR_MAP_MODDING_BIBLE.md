@@ -26,9 +26,11 @@ BepInEx, Il2CppInterop, A*, Core, or framework update.
 The method does not yet prove general multiplayer content agreement, late
 join, or all possible maps. Treat these claims as separate gates.
 
-The current first-Confirm owner-retention and owner-aware firearm-population
-corrections are `PROVEN-STATIC`. Do not label those corrections `SUPPORTED`
-until one physical first Confirm and reciprocal firearm damage pass.
+The current first-Confirm owner-retention, owner-aware firearm population,
+repeat-launch player recovery, deterministic network game-mode identity, and
+tree root-contact corrections are `PROVEN-STATIC`. Do not label those
+corrections `SUPPORTED` until the physical first-launch, second-launch,
+reciprocal-firearm, slope-tree, and two-peer gates pass.
 
 The old retail-scene prefab overlay is `RETIRED` for standalone mission
 parity. Keep it only for an explicit diagnostic test. See
@@ -84,12 +86,15 @@ change an identity to match a display name.
 | Native launch calls | `InfilSelectorDisplayer.SpawnMap`, `CerebusOpboard.Start_Operation` |
 | Confirm owner retention | `BeginCatalogOperationLaunch`, `RestoreCapturedLaunchLaptop`, `SetNativeConfirmationLoadingState` |
 | Scene contract gate | `ValidateStandaloneSceneContract` |
+| Repeat-launch player recovery | `RequestStandalonePlayerSpawn`, `InvokeGeneratedServerPlayerSpawnBody`, `SpawnAndPositionStandalonePlayers` |
+| Deterministic game-mode identity | PVE `0x4D4F5001`, PVP `0x4D4F5002`, `NetworkClient.RegisterPrefab`, `TryAdoptNetworkSpawnedGameMode` |
 | PVE count selector | `ChooseStandalonePveEnemyCount` |
 | PVE creator | `TrySpawnStandalonePveEnemies`, `RaidManager.ServerSpawnAI(false)` |
 | Ukrainian Forest companion assembly | `OperatorUkrainianForest.dll` |
 | Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
 | Companion exact-scene entry | `ProcessStandalonePackageScene` |
 | Companion navigation owner | `EnsureStandaloneNavigationGraph` |
+| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`, trunk/root collider datum, `0.12 m` embed, `0.75` minimum above-ground fraction |
 | Package ID | `community.ukrainian-forest` |
 | Map ID | `community.ukrainian-forest.ukrainian-forest` |
 | Dependency bundle | `content/operator_ukrainian_forest` |
@@ -106,7 +111,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.9` file records, terrain payload addresses, material
+The full version `0.3.10` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -377,6 +382,30 @@ its static structure is complete.
 Use deterministic nonuniform placement. Preserve routes, spawn clearance,
 door clearance, sight lines, and performance limits.
 
+For a combined crown-and-trunk renderer, use the minimum finite bound of the
+native non-trigger lower-trunk colliders as the root-contact datum. Do not use
+the minimum of all renderers. A low branch can become the renderer minimum
+after yaw and can lift the trunk above a slope. For the current Forest
+contract, use `rootEmbed=0.12 m`, fail when `abs(correction)>12 m`, and require
+at least `0.75` of the complete rendered height above the sampled terrain.
+Apply the check after final position, yaw, and scale. The exact equation is:
+
+```text
+correction = surfaceY - 0.12 - nativeTrunkColliderBoundsMinY
+aboveGroundFraction = (rendererBoundsMaxY + correction - surfaceY)
+                      / rendererBoundsHeight
+```
+
+Place the complete tree batch, synchronize physics once, apply every
+correction, and synchronize once more. Do not synchronize separately for each
+tree against a large terrain broadphase.
+
+The full pines are `Pine_var10_LOD0.prefab` and
+`Pine_var11_LOD0.prefab`. Their combined renderer slots are `Pine_Needle`,
+`pine_bark`, and `Trunk_pine_var4`. The three current oak prefabs use
+`Bark_Mat`, `Bark_2_Mat`, and their family leaf material in one LOD0
+renderer. These combined renderers are not root datums.
+
 ## 13. Terrain and collision contract
 
 Record the terrain origin, size, heightmap resolution, alphamap resolution,
@@ -497,11 +526,25 @@ readiness barrier, and the current-scene spawn list.
 On the current exact build, `PlayerMaster.SpawnPlayer()` and
 `SpawnPlayerServer()` both enter the Mirror command sender. The generated
 server implementation is
-`PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. A host adapter can
-enter that exact method after server readiness. Keep the command path for a
-non-server owned client. Require a non-null spawned-player object and the
-shipped `GameManager.MovePlayerToSpawn` path. This route is `PROVEN-STATIC`
-until the physical player, camera, movement, and combat gates pass.
+`PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. Request 1 for an
+owned player and scene generation MUST call `SpawnPlayer()` so
+`ClientSpawnBS` runs. If an owned host still has no new
+`PlayerSpawnedObject` after 300 frames, the host can enter the exact generated
+body as one bounded repeat-generation recovery. Use that body on request 1
+only for an unowned server player. Record each request before native entry and
+stop an owned host after two requests, stop other routes after three requests,
+or stop any route after one object/alive proof. Require the shipped
+`GameManager.MovePlayerToSpawn` path after the owned object exists. This route
+is `PROVEN-STATIC` until the physical player, camera, movement, repeat-launch,
+and combat gates pass.
+
+Runtime PVE and PVP mode owners MUST have a nonzero Mirror prefab identity on
+every peer. The current framework uses `0x4D4F5001` for PVE and `0x4D4F5002`
+for StandardPVP. Each peer collision-checks `NetworkClient.prefabs` and calls
+`NetworkClient.RegisterPrefab` before host spawn. The host calls the asset-ID
+`NetworkServer.Spawn` overload. A remote peer validates the received asset ID
+and component type before it adopts the clone. Release unregisters the
+operation template. Asset ID `0` is not remote-client proof.
 
 Team PVP uses one-based native IDs on this exact build.
 `PvpGameode.StartNewRound()` writes `SpawnPoint.Team=1` for Team 1 and
@@ -695,8 +738,9 @@ Before actor creation, require:
 - usable terrain and a matching `TerrainCollider` on the same object when
   declared, with both components bound to the same `TerrainData`;
 - inactive serialized terrain fallback after successful TerrainData bind;
-- complete-tree visible bases aligned to the sampled live terrain after final
-  rotation and scale;
+- complete-tree native trunk/root collider data aligned to the sampled live
+  terrain after final rotation and scale, with declared root embed, maximum
+  correction, and minimum above-ground rendered fraction satisfied;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
 - every required marker tightly grounded and on the live graph;
@@ -813,16 +857,17 @@ retested.
 | Exact scene is brown or flat | Portable material reconstruction, not scene selection |
 | Actor falls from the sky | Terrain collision, marker foot position, graph grounding, and readiness order |
 | Player camera is under terrain and movement does not work | `PlayerMaster.PlayerSpawnedObject`, host server spawn execution, and the shipped move-to-spawn path |
-| First spawn throws, armory player floats, or second launch is stuck | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
+| First spawn throws or armory player floats | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
+| First mission works but second launch has no player object | Request 1 did not create the new scene generation's `PlayerSpawnedObject`; verify the 300-frame bounded owned-host generated-server recovery and shipped move path |
 | 02:00 NVG is black outside ECOTI | Day exposure/LUT applied to the night source or white-phosphor state was not selected |
-| Trees on hills have buried trunks | Tree pivot was used instead of the lowest visible renderer bound after final scale and yaw |
+| Trees on hills float or have buried trunks | A pivot or combined-renderer minimum was used instead of the native lower-trunk collider datum; verify 0.12 m embed and the 0.75 above-ground fraction |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |
 | Pine reads as a bare trunk | Tree-family crown silhouette failed despite static closure |
 | Door panel swings but interaction fails | `DoorV2` reference graph is incomplete |
 | KIA throws before Mission Failed UI | PVE mode owner, singleton, or `RaidTimer` is missing |
 | Restart duplicates state | Scene-generation invalidation or reverse teardown is incomplete |
-| Host works but client fails | Content agreement, authority, registration, or late-join path is not proved |
+| Host works but client fails | Content agreement, nonzero deterministic Mirror mode asset ID, peer prefab registration, clone adoption, authority, or late-join path is not proved |
 
 Use [Troubleshooting](docs/08-troubleshooting.md) for the complete
 symptom-to-layer table.

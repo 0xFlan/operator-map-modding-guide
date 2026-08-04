@@ -36,9 +36,20 @@ path on plug-in unload, scene replacement, normal operation unload, and
 restart.
 
 For player creation, call native `PlayerMaster.SpawnPlayer()` for the owned
-player so `ClientSpawnBS` runs. Use the generated server body only for an
-unowned server player. Record an attempt before native entry, bound retries,
-and stop after one player object or alive state proves success.
+player on request 1 so `ClientSpawnBS` runs. Record the attempt before native
+entry. If a repeat additive-scene host still has no new
+`PlayerSpawnedObject` after 300 frames, invoke the exact generated
+`UserCode_CMDSpawnPlayer__NetworkIdentity` body for that owned host as a
+bounded recovery. Use that body on request 1 only for an unowned server
+player. Stop after three total requests or after one player object or alive
+state proves success. An owned host stops after two total requests so the
+generated-body recovery can run only once. Store request counters on the active scene-generation
+owner. Do not reuse them after unload.
+
+When the owned `PlayerNetworking` object exists, use the shipped
+`GameManager.MovePlayerToSpawn(position, rotation)` coroutine. Moving only the
+network root can leave the first-person camera or controller at the old
+armory position.
 
 ## Large-bundle race
 

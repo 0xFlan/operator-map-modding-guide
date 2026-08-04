@@ -5,7 +5,7 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.9` package manifest, the current
+status. The values came from the version `0.3.10` package manifest, the current
 framework and companion source, and the emitted bundles. A new build can have
 different byte counts and SHA-256 values.
 
@@ -128,7 +128,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.9` value |
+| Field | Version `0.3.10` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -146,13 +146,13 @@ The exact emitted package files had these manifest records:
 
 | Package-relative path | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `content/operator_ukrainian_forest` | `630235822` | `8a602b01adeebdd97379e69811e87f6f5035c65382778543e85ceb752027fe40` |
-| `content/operator_ukrainian_forest_scene` | `17605451` | `54e186d7748f1a0f3ff997dcc8a5632f87fcdbef43b47272b1a5ffe5cc08f36f` |
+| `content/operator_ukrainian_forest` | `630485740` | `5969b8e4fae31417005cd357fddceebe412d65ab832d4ed0bcd7afe41003a943` |
+| `content/operator_ukrainian_forest_scene` | `17606568` | `78ce80009a454c7daa94a5f400adcfec47d12aa6f8af105f0c707fa74708c3fe` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.9` values into a different archive.
+these version `0.3.10` values into a different archive.
 
 ## Ukrainian Forest operation records
 
@@ -320,19 +320,40 @@ The bundle authoring source uses these exact members:
 
 | Member or constant | Current value or action |
 | --- | --- |
-| `CompleteTreeVisibleBaseEmbedMeters` | `0.12f` |
-| `AlignCompleteTreeVisibleBaseToSurface` | Reads the lowest finite child `Renderer.bounds.min.y` after final yaw and scale, then moves the complete root. |
+| `CompleteTreeRootContactEmbedMeters` | `0.12f` |
+| `CompleteTreeMinimumAboveGroundFraction` | `0.75f` |
+| `AlignCompleteTreeRootContactToSurface` | Runs after its caller places a complete tree batch and calls one `Physics.SyncTransforms()` pass. It reads the lowest finite, non-trigger native `Collider.bounds.min.y` with a vertical size greater than `0.25 m`; this value is the trunk/root datum. It separately measures the full rendered height for the 75-percent gate. The caller publishes all corrected collider positions with one final synchronization pass. |
 | maximum authoring correction | `12 m`; a larger correction fails the build |
 
-The builder calls `AlignCompleteTreeVisibleBaseToSurface` for each
+The builder calls `AlignCompleteTreeRootContactToSurface` for each
 `NATIVE_TREE_*` root with `HeightAt(x,z)` and for each
 `NATIVE_PERIMETER_TREE_*` root with `HeightAtExterior(x,z)`.
 
+The current complete tree sources are:
+
+| Family | Exact prefab asset | Root-contact evidence |
+| --- | --- | --- |
+| pine 10 | `Assets/OperatorNativeAssets/UkrainianPineCandidate/Prefabs/Pine_var10_LOD0.prefab` | root `CapsuleCollider`; combined renderer slots are `Pine_Needle`, `pine_bark`, and `Trunk_pine_var4` |
+| pine 11 | `Assets/OperatorNativeAssets/UkrainianPineCandidate/Prefabs/Pine_var11_LOD0.prefab` | native lower-trunk collider; same three combined-renderer material slots |
+| forest oak | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Forest.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Forest_Mat` |
+| field oak 4 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_4.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_4_Mat` |
+| field oak 5 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_5.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_5_Mat` |
+
+Do not use the minimum of the complete renderer as a trunk datum. These
+prefabs combine crown, branch, bark, and trunk geometry. After yaw, a branch
+tip can be the lowest rendered point and can lift the trunk above a slope.
+
 The map companion uses `AlignStandaloneAuthoredTreesToTerrain` after the
 reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight`, uses
-the same `0.12 m` embed and `12 m` limit, calls `Physics.SyncTransforms`, and
-logs aligned, outside, rejected, and largest-correction values. The pivot
-position is not the visible trunk-base contract.
+the same `0.12 m` root embed, `0.75` above-ground fraction, and `12 m` limit,
+calls `Physics.SyncTransforms`, and logs aligned, rejected, minimum-fraction,
+and largest-correction values. Runtime repair processes only the 96
+collision-enabled `NATIVE_TREE_*` roots. The deterministic Unity build owns
+the 180 render-only `NATIVE_PERIMETER_TREE_*` roots because their colliders are
+disabled after authoring. Runtime child traversal uses
+`foliageRoot.GetChild(childIndex)`. Do not use `foreach (Transform child in
+parent)` in an IL2CPP repeat-launch path; a later additive-scene generation
+can expose an `Il2CppSystem.Object` enumerator item and throw an invalid cast.
 
 ## Exact 02:00 presentation source
 
@@ -372,12 +393,14 @@ standalone flow:
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
+| `EnsureStandaloneBootstrapPrefabRegistered` | Register the inactive runtime PVE or PVP game-mode template on every peer with deterministic Mirror asset ID `0x4D4F5001` or `0x4D4F5002`; fail on an existing different prefab with the same ID. |
+| `TryAdoptNetworkSpawnedGameMode` | On a remote peer, validate the spawned asset ID and mode, then adopt the Mirror-created clone as the active operation game-mode owner. |
 | `ConfigureStandalonePlayerSpawnContract` | Capture prior process-global spawn state, convert only verified current-scene markers to `SpawnPoint`, install the operation-owned list/array, and set the first native index to `0`. |
 | `ConfigureStandalonePvpController` | Create separate one-based Team 1 and Team 2 lists, seed exact retail scalar defaults, and assign the shipped `PvpGameode` owner. |
 | `ConfigureStandalonePvpPresentation` | Supply the native PVP audio sources, 16 clip arrays, timer and score text, `TeleType`, result roots, animators, fade strings, and win/lose/tie text. |
 | `RestoreStandalonePlayerSpawnContract` | Restore the prior spawn list, fallback array, and index only when the current globals still equal this operation's owned objects; reject prior objects from unloaded scenes. |
-| `RequestStandalonePlayerSpawn` | Call native `PlayerMaster.SpawnPlayer()` for the owned player so its command and `ClientSpawnBS` route runs; use the generated server body only for an unowned server player. |
-| `MaintainStandalonePlayers` | Record frame and attempt count before native entry, limit each player to three attempts, and stop after a player object or alive state proves success. |
+| `RequestStandalonePlayerSpawn` | On attempt 1, call native `PlayerMaster.SpawnPlayer()` for the owned player so its command and `ClientSpawnBS` route runs. If a repeat additive-scene host still has no new `PlayerSpawnedObject` 300 frames later, call the exact generated `UserCode_CMDSpawnPlayer__NetworkIdentity` server body as the bounded `owned-host-generated-server-recovery` route. Use the same server body directly for an unowned host-side player. |
+| `SpawnAndPositionStandalonePlayers` | Record frame and attempt count before native entry, limit an owned host to two attempts and all other routes to three, stop after a player object or alive state proves success, then use shipped `GameManager.MovePlayerToSpawn` for the owned object. |
 | `SelectPlayerMarker` | Select a current-scene marker for one `PlayerMaster`; reject PVP players without native team ID `1` or `2`. |
 | `PvpMarkerMatchesTeam` | Bind Team 1 prefixes to native ID `1` and Team 2 prefixes to native ID `2`. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
@@ -393,7 +416,7 @@ own map-specific reconstruction:
 | --- | --- |
 | `ProcessStandalonePackageScene` | Gate processing to the exact Ukrainian Forest package scene. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
-| `AlignStandaloneAuthoredTreesToTerrain` | Align direct and perimeter complete-tree visible bases after run-time TerrainData bind. |
+| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable complete-tree native trunk/root collider data after run-time TerrainData bind; enforce the 0.12 m root embed, 75-percent rendered-height gate, 12 m correction limit, and typed child-index traversal. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |

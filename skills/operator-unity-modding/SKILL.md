@@ -67,9 +67,14 @@ Read [references/implementation-locators.md](references/implementation-locators.
     Volume ownership on unload and restart. Initialize the standalone spawn
     index to zero on the current pinned build. Route an owned player through
     `PlayerMaster.SpawnPlayer()` so the shipped `ClientSpawnBS` owner setup
-    runs; use the generated server body only for an unowned server player.
-    Record attempts before native calls, cap them per player/generation, and
-    retain a completed-player set.
+    runs on request 1. If a repeat-generation owned host still has no new
+    `PlayerSpawnedObject` after 300 frames, use the exact generated server body
+    as a bounded recovery; use it on request 1 only for an unowned server
+    player. Record attempts before native calls, cap them per
+    player/generation, and retain a completed-player set. Register each
+    run-time PVE/PVP game-mode template on every peer with a deterministic,
+    collision-checked nonzero Mirror asset ID before host spawn; validate and
+    adopt the expected clone on remote peers and unregister on release.
 15. Keep package mission presentation explicit. The closed manifest owns row
     and briefing text, time choices, infiltration records, and the map-level
     preview path. Keep the raw preview outside Unity bundles, verify its
@@ -102,6 +107,12 @@ Read [references/implementation-locators.md](references/implementation-locators.
   crown silhouette through the normal player camera at close, middle, and far
   distances; reject a family that reads as bare trunks even when its mesh,
   submesh, and material counts are technically valid.
+- Ground a combined crown-and-trunk tree from its native non-trigger
+  lower-trunk collider, not from the root pivot or whole-renderer minimum.
+  After final yaw and scale, apply the declared root embed and reject a tree
+  below the declared minimum above-ground rendered fraction. The Ukrainian
+  Forest contract uses a `0.12 m` embed, `0.75` minimum fraction, and `12 m`
+  maximum absolute correction.
 - A one-sided/open mesh is not a boulder. Require a complete closed (or bottom-only-open) native LOD0 mesh, matching material, collider, and multi-angle QA.
 - For slope-bound cover, measure the full collider/mesh footprint. Reposition or remove a sandbag wall when its sampled terrain span exceeds the allowed contact tolerance; do not hide a floating wall with a vertical offset.
 - Avoid perfect rows. Use a deterministic but nonuniform layout with varied lateral position, longitudinal spacing, rotation, and compatible ground embedding; preserve deliberate lanes and spawn clearances.
