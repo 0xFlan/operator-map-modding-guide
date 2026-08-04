@@ -27,6 +27,11 @@
 | Enemies appear and fall vertically | resident scanned graph, every enemy/HVT marker height, tight ground delta, on-graph result | map-owned navigation/marker grounding |
 | Enemies spawn beyond the barrier | gameplay-wall bounds versus visual terrain apron, marker coordinates/clearance, graph centre/dimensions | map-owned markers and companion navigation bounds |
 | Too many or too few PVE enemies | package `minEnemies`/`maxEnemies`, valid marker count, host selection log | package population contract and generic adapter |
+| PVP players start on the wrong side | numeric `MyTeamIdentifier.TeamID`, one-based `SpawnPoint.Team`, separate Team 1/Team 2 lists, marker prefixes | package scene markers and framework `PvpGameode` wiring |
+| PVP players spawn once but no round starts | mode owner type, `PvpGameode.OnStartClient`, all-players-loaded log, native respawn coroutine, freeze state | framework native PVP lifecycle |
+| PVP score or result causes a null exception | two audio sources, 16 non-empty clip arrays, `TeleType`, score/clock text, six result roots, animators, fade strings, status text | framework `ConfigureStandalonePvpPresentation` |
+| PVP player snaps back after a native respawn | `nativePvpLifecycle` state and any continuing generic position loop | framework must stop the position-only fallback |
+| Host PVP works but remote client does not load or spawn | identical peer hashes, bundle availability on the client, Mirror spawn message and prefab/scene identity | multiplayer package distribution and framework network lifecycle |
 | Restart duplicates graphs or callbacks | scene-unload teardown log, graph/service ownership, callback generation | map companion lifecycle |
 | Alive restart works but KIA restart fails | native death state, failure/end-screen owner, first exception | generic standalone end-screen lifecycle |
 | Door looks correct but does not move | `PivotTransform`, rigid body, `MilkRigidbodySync`, component activation order | `DoorV2` graph and lifecycle |

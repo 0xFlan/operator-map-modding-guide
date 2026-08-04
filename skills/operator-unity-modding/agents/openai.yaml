@@ -1,4 +1,4 @@
 interface:
-  display_name: "OPERATOR Unity Modding"
-  short_description: "Build and verify native-quality OPERATOR maps"
-  default_prompt: "Use $operator-unity-modding to build, repair, research, or verify a standalone OPERATOR Unity map and its exact-scene runtime integration."
+  display_name: "Operator Unity Modding"
+  short_description: "Build and verify reliable additive OPERATOR mods"
+  default_prompt: "Use $operator-unity-modding to build, research, or verify a native-quality additive OPERATOR mod or crash-resistant local API integration."

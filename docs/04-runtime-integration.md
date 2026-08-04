@@ -17,7 +17,7 @@ Keep four owners separate.
 | Owner | Owns | MUST NOT own |
 | --- | --- | --- |
 | Core and catalog | Package validation, immutable identity, deterministic catalog | Map-specific Unity or game code |
-| OPERATOR: Modded Operations framework | Private native-style UI, exact bundle and scene load, readiness, native-compatible mode owner, generic player/PVE/PVP lifecycle, shipped failure UI handoff, restart | Map names, shader profiles, terrain dimensions, graph sizes, marker coordinates |
+| OPERATOR: Modded Operations framework | Private native-style UI, exact bundle and scene load, readiness, `InfiltrationManager`-compatible PVE bridge, shipped `PvpGameode` lifecycle, player creation, shipped failure UI handoff, restart | Map names, shader profiles, terrain dimensions, graph sizes, marker coordinates |
 | Data-only package and scene | Manifest, operations, bundles, preview, lighting payload, world, collision, walls, portable assets, markers | Executable code or generic mission UI |
 | Optional map companion | Exact-package and exact-scene reconstruction, strict world validation, teardown of map-owned runtime state | Catalog, generic UI, failure UI, other maps |
 
@@ -45,8 +45,8 @@ process starts
 -> framework creates the native-compatible mode owner
 -> shipped all-players-loaded readiness completes
 -> framework installs current-scene player markers
--> framework creates or moves players
--> framework creates mode-correct PVE actors from valid sorted markers
+-> PVE: framework creates or moves players and creates mode-correct actors
+-> PVP: shipped PvpGameode respawn and round methods create or move players
 -> operation runs
 ```
 
@@ -188,8 +188,8 @@ The companion MAY own only these exact-scene tasks:
 - teardown of objects and state that the companion owns.
 
 The companion MUST NOT own catalog discovery, mission UI, selection, generic
-scene loading, player readiness, generic PVE/PVP population, failure UI, or
-generic mode ownership.
+scene loading, player readiness, PVE actor creation, the `PvpGameode` round
+graph, failure UI, or generic mode ownership.
 
 ## Native material reconstruction
 
@@ -300,6 +300,28 @@ The generic framework MUST do these tasks:
 Do not put this bridge in the package or map companion. Do not clone the
 Mission Failed UI. Do not load a donor mission to provide failure state.
 
+For standalone PVP, a bare `GameMode` is also insufficient. The retail owner
+is `PvpGameode`. The current framework MUST do these tasks:
+
+1. Create `StandalonePvpGameMode : PvpGameode` with one `NetworkIdentity`.
+2. Convert scene markers to `SpawnPoint` components with one-based team IDs.
+3. Assign non-empty `Team1SpawnPoints` and `Team2SpawnPoints` lists.
+4. Seed `MaxRounds=13`, `RoundsToWin=7`, and `RoundTime=120`.
+5. Supply every audio, clip-array, `TeleType`, score, clock, outcome,
+   animator, fade-string, and status-text reference that the native hooks read.
+6. Call the shipped `PvpGameode.OnStartClient` body for initialization.
+7. Call the shipped `PvpGameode.Server_AllPlayersLoaded` body after readiness.
+8. Let the shipped `RespawnPlayers`, `StartNewRound`, `PlayerDied`,
+   `EndRound`, score SyncVars, and freeze timer own the match.
+9. Stop the generic position-only player loop after native PVP is active.
+10. Clear `PvpGameode.instance` on unload when it still points to the
+    operation-owned component.
+
+The Forest reference has ten Team 1 markers on the PVE-player side and ten
+Team 2 markers on the PVE-enemy side. See
+[Native mode ownership, PVE, and StandardPVP](03c-native-mode-ownership-and-pvp.md)
+for the exact current-build fields and native method evidence.
+
 ## Readiness and actor creation
 
 The framework MUST wait for all of these conditions:
@@ -312,8 +334,9 @@ The framework MUST wait for all of these conditions:
 - loading screen closed;
 - current-scene player spawn list installed.
 
-Only then can the framework create or move players. Only the server can create
-PVE actors. PVP MUST create zero PVE actors.
+Only then can the PVE bridge create or move players. Native PVP uses the same
+barrier, but `PvpGameode` owns its respawn and placement coroutine. Only the
+server can create PVE actors. PVP MUST create zero PVE actors.
 
 Before player creation, capture `GameManager.SpawnPointsInScene`,
 `GameManager.Pspawns`, and the next-spawn index. Install only the operation's
@@ -364,7 +387,7 @@ Use reverse ownership order:
 stop mode population
 -> invalidate the scene generation
 -> restore prior process-global spawn registration only when this operation still owns it
--> clear standalone mode singleton and timer ownership
+-> clear standalone mode singleton, PvpGameode, and timer ownership
 -> restore captured NVG state and destroy run-time Volume profiles
 -> companion removes its graph, materials, native data, objects, and callbacks
 -> unload package scene

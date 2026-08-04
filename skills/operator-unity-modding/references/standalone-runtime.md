@@ -22,8 +22,8 @@ freeze verified catalog
 -> create native-compatible mode owner
 -> complete shipped readiness
 -> install current-scene spawns
--> create players
--> create mode-correct server PVE actors
+-> PVE: create players and mode-correct server actors
+-> PVP: let shipped PvpGameode own respawn and round placement
 ```
 
 ## Companion world contract
@@ -118,10 +118,25 @@ Assign `SpawnPoint.Team=1` to Team 1 markers and `SpawnPoint.Team=2` to Team 2
 markers. Read `TeamID`. Do not use `0/1` or `ToString()`. Invalidate a cached
 marker after a team change when it does not match the current team.
 
-This contract is `PROVEN-STATIC`. A generic standalone mode with the correct
-markers is not proof of the complete retail `PvpGameode` round graph. Require
-a host and client on different teams. Prove first spawn, death/respawn on each
-team, correct side and facing, zero PVE AI, and Restart Operation.
+Create `StandalonePvpGameMode : PvpGameode`. Assign separate non-empty native
+Team 1 and Team 2 spawn lists. Use the exact current-build scalar seeds
+`MaxRounds=13`, `RoundsToWin=7`, and `RoundTime=120`. Call the shipped
+`PvpGameode.OnStartClient` and `Server_AllPlayersLoaded` bodies. Keep the
+shipped respawn, freeze, death, score, round, and end-operation bodies.
+
+Supply every reference that the native PVP hooks read: two audio sources, 16
+non-empty clip arrays with retail lengths, `TeleType`, timer and score text,
+six outcome roots, two animators, exact `FadeOut` and `FadeIn` strings, and
+win/lose/tie text. A non-null silent clip is valid when retail audio cannot be
+distributed.
+
+Stop generic repeated movement after native PVP is active. Clear
+`PvpGameode.instance` during teardown when the operation still owns it.
+
+This contract is `PROVEN-STATIC`. Require a host and remote client on
+different teams. Prove first spawn, freeze release, death, score, round
+respawn on each team, correct side and facing, zero PVE AI, Restart Operation,
+and return-to-armory.
 
 ## Native AI population
 

@@ -22,6 +22,8 @@
 - terrain/exterior height and material-weight functions are continuous across
   their shared seam;
 - layout checks cover route, spawn, slope, root embedding, and prop footprint.
+- each PVP spawn set has separate non-empty Team 1 and Team 2 marker groups;
+  current-build team IDs are exactly `1` and `2`;
 - each interactive prefab has a complete field/reference closure or is marked
   non-interactive;
 
@@ -39,6 +41,8 @@
 - LOD audit proves direct content uses the intended source detail;
 - target-scene sun/Volume ownership is reported;
 - ground and spawn handoff logs identify concrete coordinates;
+- PVP logs identify `StandalonePvpGameMode`, the Team 1/Team 2 list counts,
+  and `nativePvpLifecycle=true`; a position-only fallback fails this gate;
 - one map-scoped A* service/graph is scanned for the exact scene;
 - graph dimensions and centre match the gameplay physics/bullet volume rather
   than a larger visual apron;
@@ -78,6 +82,10 @@
 - PVE actor count is inside the package-declared inclusive range and all actors
   remain inside the gameplay wall where player/AI bullets can interact;
 - PVP creates no PVE actors before or after restart;
+- PVP freeze time releases; host and remote client start on their authored
+  sides; bullet deaths update the native score; the next round respawns both
+  teams through the shipped `PvpGameode`; match end, restart, and
+  return-to-armory each clear the prior owner;
 - Back, Cancel, tab switching, selector, and exact-scene ownership remain
   isolated from official mission rows;
 - native KIA/end-screen restart is recorded separately from normal alive

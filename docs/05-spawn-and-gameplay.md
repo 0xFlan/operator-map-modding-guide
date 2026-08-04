@@ -101,10 +101,49 @@ Do not assume that native team IDs are zero-based. In the current exact build,
 spawn points to `Team=2`. `GameManager.nextSpawnPosition` compares that value
 directly with `PlayerMaster.MyTeamIdentifier.TeamID`.
 
-Use `TeamID`. Do not use `ToString()`. Remove a cached marker assignment when
-the player's current team does not match that marker. Treat this mapping as
-`PROVEN-STATIC` until a host and client prove first spawn and respawn on
-opposite teams.
+Use `TeamID`. Do not use `ToString()`. Create two independent native lists:
+
+```csharp
+pvp.Team1SpawnPoints = team1;
+pvp.Team2SpawnPoints = team2;
+```
+
+Do not append both teams to one list and depend on a later filter. Remove a
+cached marker assignment when the player's current team does not match that
+marker.
+
+The mode owner MUST derive from `PvpGameode`. It MUST call the shipped
+`Server_AllPlayersLoaded` body. That body resolves the native Team 1 and Team
+2 player caches and starts the shipped respawn coroutine. After the framework
+records `nativePvpLifecycle=true`, it MUST stop any generic repeated move.
+Otherwise, a framework correction can fight the retail round respawn.
+
+For Ukrainian Forest, these prefixes and counts are the exact contract:
+
+| Prefix | Count | Side |
+| --- | ---: | --- |
+| `Team1_Spawn_*` plus `Team1_Backup_Spawn_*` | `10` | same side as PVE players |
+| `Team2_Spawn_*` plus `Team2_Backup_Spawn_*` | `10` | same side as PVE enemy pockets |
+
+Treat this mapping as `PROVEN-STATIC` until a host and remote client prove
+first spawn, freeze-time release, death, round scoring, and respawn on
+opposite teams. See
+[Native mode ownership, PVE, and StandardPVP](03c-native-mode-ownership-and-pvp.md).
+
+## Separate the 2D infiltration marker from 3D spawns
+
+`operations[].infiltrations[].mapPositionX/Y` places a selectable marker on
+the mission preview. It never changes a scene `Transform`. Use scene marker
+objects for 3D player and AI locations.
+
+For one operation, verify all three layers independently:
+
+1. The manifest infiltration label and normalized anchors are correct.
+2. The selected `SPAWN_SET_...` scene identity exists.
+3. The current-scene player markers raycast to package-owned walkable
+   collision and have the expected one-based PVP team IDs.
+
+A correct briefing marker does not prove a safe player spawn.
 
 ## Mandatory tests
 

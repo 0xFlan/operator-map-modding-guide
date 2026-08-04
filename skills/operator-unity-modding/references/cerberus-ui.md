@@ -11,9 +11,10 @@ Bind clean package data before a private board becomes active. Do not pass it
 through a retail setup path that requires a retail mission graph. Keep package
 selection private and immutable from row click through restart.
 
-The framework owns UI, selection, exact scene loading, readiness,
-native-compatible mode state, generic population, failure UI handoff, and
-restart. The map companion MUST NOT own these tasks.
+The framework owns UI, selection, exact scene loading, readiness, the PVE
+bridge, the `PvpGameode` adapter, player creation, failure UI handoff, and
+restart. The shipped PVP body owns round population and scoring. The map
+companion MUST NOT own these tasks.
 
 ## Package data to native UI mapping
 

@@ -5,7 +5,7 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.8` package manifest, the current
+status. The values came from the version `0.3.9` package manifest, the current
 framework and companion source, and the emitted bundles. A new build can have
 different byte counts and SHA-256 values.
 
@@ -128,7 +128,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.8` value |
+| Field | Version `0.3.9` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -152,7 +152,7 @@ The exact emitted package files had these manifest records:
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.8` values into a different archive.
+these version `0.3.9` values into a different archive.
 
 ## Ukrainian Forest operation records
 
@@ -168,7 +168,7 @@ set markers.
 | `maxPlayers` | `16` | `8` |
 | `minEnemies` | not permitted | `10` |
 | `maxEnemies` | not permitted | `15` |
-| infiltration `id` | `south-forest-edge` | `south-forest-edge` |
+| infiltration `id` | `north-forest-edge` | `north-forest-edge` |
 | `defaultTimeCode` | `1100` | `1100` |
 
 The framework member `ChooseStandalonePveEnemyCount` selects a value from the
@@ -179,8 +179,9 @@ marker. Ukrainian Forest provides `PVE_EnemySpawn_00` through
 
 ## Ukrainian Forest scene objects
 
-The exact map root is `UkrainianForestMap`. The exact terrain object is
-`NATIVE_Ground_HillyTerrain`.
+The source prefab root is `UkrainianForestMap`. The standalone scene renames
+its instantiated root to `MOD_UkrainianForest_Runtime`. The exact terrain
+child is `NATIVE_Ground_HillyTerrain`.
 
 The scene contains these identity objects:
 
@@ -372,6 +373,8 @@ standalone flow:
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
 | `ConfigureStandalonePlayerSpawnContract` | Capture prior process-global spawn state, convert only verified current-scene markers to `SpawnPoint`, install the operation-owned list/array, and set the first native index to `0`. |
+| `ConfigureStandalonePvpController` | Create separate one-based Team 1 and Team 2 lists, seed exact retail scalar defaults, and assign the shipped `PvpGameode` owner. |
+| `ConfigureStandalonePvpPresentation` | Supply the native PVP audio sources, 16 clip arrays, timer and score text, `TeleType`, result roots, animators, fade strings, and win/lose/tie text. |
 | `RestoreStandalonePlayerSpawnContract` | Restore the prior spawn list, fallback array, and index only when the current globals still equal this operation's owned objects; reject prior objects from unloaded scenes. |
 | `RequestStandalonePlayerSpawn` | Call native `PlayerMaster.SpawnPlayer()` for the owned player so its command and `ClientSpawnBS` route runs; use the generated server body only for an unowned server player. |
 | `MaintainStandalonePlayers` | Record frame and attempt count before native entry, limit each player to three attempts, and stop after a player object or alive state proves success. |
@@ -418,12 +421,20 @@ mismatch, and filters markers by team.
 These addresses and offsets are exact-build `PROVEN-STATIC` evidence. They
 are not portable API promises. Reinspect them after an OPERATOR update.
 
-The current standalone bootstrap still creates the generic
-`StandaloneGameMode`. A complete retail `PvpGameode` also owns serialized
-Team 1 and Team 2 lists, round state, UI, audio, and respawn sequencing. The
-correct team-side marker mapping does not, by itself, prove full retail PVP
-round ownership. Require a two-peer first-spawn and respawn test before a
-support claim.
+The current standalone bootstrap creates
+`StandalonePvpGameMode : PvpGameode`. It assigns two non-empty native spawn
+lists, uses `MaxRounds=13`, `RoundsToWin=7`, and `RoundTime=120` as the
+serialized seeds, and calls the shipped `OnStartClient` and
+`Server_AllPlayersLoaded` bodies. The shipped PVP body remains the owner of
+respawn, freeze time, deaths, score SyncVars, rounds, and the match end.
+
+The current runtime also creates every presentation reference that the native
+score and music methods read. It uses one non-null silent clip with the exact
+retail array lengths because base-game audio is not redistributed.
+
+This is still `PROVEN-STATIC` until a two-peer first-spawn, freeze, death,
+score, round-respawn, restart, and return-to-armory test passes. See
+[Native mode ownership, PVE, and StandardPVP](03c-native-mode-ownership-and-pvp.md).
 
 ## Exact load order
 

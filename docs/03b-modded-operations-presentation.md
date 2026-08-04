@@ -130,7 +130,7 @@ map definitions only when they must use different images.
 1. Close OPERATOR.
 2. Replace the file at the path in `maps[].previewImage`.
 3. Measure the new file length.
-4. calculate its lowercase SHA-256.
+4. Calculate its lowercase SHA-256.
 5. Replace the matching `files[]` values.
 6. Increase the package `version`.
 7. Run the strict package validator.
@@ -143,6 +143,42 @@ map definitions only when they must use different images.
 Do not tell users to edit only the image after installation. That makes the
 package fail its integrity check by design.
 
+There is no unrestricted per-user image override in schema version 1. The
+supported choices are:
+
+- a map author ships a new package version with a different verified image;
+- an author ships a separately identified map record when two operations must
+  have different images;
+- a user installs one of those author-built variants before OPERATOR starts.
+
+A normal end user does not browse to an arbitrary photo from the mission UI.
+This is intentional. The preview participates in package content identity and
+multiplayer agreement. A future cosmetic-override feature would need a new,
+explicitly non-authoritative path that cannot affect the package content ID.
+Do not simulate that feature by bypassing `files[]` verification.
+
+### Preview-author checklist
+
+Use this exact sequence for a new map:
+
+1. Export the final image as JPEG or PNG.
+2. Put it below the package root, normally in `media/`.
+3. Set `maps[].previewImage` to that package-relative disk path.
+4. Add the same path once to top-level `files[]`.
+5. Calculate the byte count and SHA-256 from the staged copy, not from an
+   earlier source copy.
+6. Keep `files[]` in ordinal path order.
+7. Increase the package `version`.
+8. Run closed-directory verification.
+9. Confirm the framework log reports the preview loaded for the immutable
+   `mapId`.
+10. Inspect the preparation image, fullscreen image, and infiltration
+    background in a new process.
+
+The image does not go in `sceneBundle`, `dependencyBundles[]`,
+`maps[].scenePath`, or `runtimeTerrain`. Those values use different address
+domains.
+
 ## 4. Map manifest fields to the mission UI
 
 The current framework uses these mappings:
@@ -150,6 +186,7 @@ The current framework uses these mappings:
 | Manifest data | Current framework member | User-visible result |
 | --- | --- | --- |
 | `operations[].displayOrder` | frozen catalog sort | row order for operations in one map |
+| `maps[].displayName` | frozen map catalog and diagnostics | map identity used when the framework reports or groups map-owned operations |
 | `operations[].displayName` | `RewriteNativeOperationRow`, `FormatCatalogBriefing`, `TARGETPACKAGE_DETAILS.DISPLAY_NAME` | mission row name, briefing title, target package name, confirmation text |
 | `operations[].mode` | `RewriteNativeOperationRow`, `CerebusOpboard.GameModeOverride` | PVE/PVP row label and generic mode selection |
 | `operations[].areaOfOperation` | `RewriteNativeOperationRow`, `FormatCatalogBriefing`, `TARGETPACKAGE_DATA.OPERATION_AREA_OF_OPERATION` | row area, briefing area, native board area |
@@ -321,6 +358,91 @@ Keep these files outside Unity bundles:
 Do not add a loose model or texture that neither the manifest nor a bundle
 references. The package directory is closed. Every regular file except the
 manifest must occur exactly once in `files[]`.
+
+### Complete Forest file-to-consumer example
+
+This table is the current Forest package closure. It shows why each item is in
+its location.
+
+| Package path or bundle address | Container | Direct consumer | Required result |
+| --- | --- | --- | --- |
+| `operator-map-package.json` | package root | Operator Mod API closed loader | freezes IDs, UI text, operation mode, limits, bundle paths, scene address, preview path, infiltration anchors, time codes, terrain record, and file hashes |
+| `media/ukraine_forest_preview.jpg` | loose verified file | `GetOrLoadPreviewSprite` | one decoded sprite for preparation, fullscreen, and infiltration-selector views |
+| `lighting/AgX_Powerful_RGBAHalf_32.bytes` | loose verified file | `LoadPackageTonemapLut` | exact `32 x 32 x 32` RGBA-half external tonemap LUT |
+| `content/operator_ukrainian_forest` | dependency bundle | framework and Forest companion | portable native assets, terrain payloads, tree/foliage closure, materials, textures, and lighting records |
+| `assets/maps/ukrainianforest/terrain/runtimepayload/ukrainianforest_expandedheight_rg16.png` | dependency-bundle address | framework `TryPrepareRuntimeTerrain` | `1025 x 1025` big-endian RG16 height samples for `TerrainData.SetHeights` |
+| `assets/maps/ukrainianforest/terrain/runtimepayload/ukrainianforest_expandedsurfaceweights_rgb.png` | dependency-bundle address | framework `TryPrepareRuntimeTerrain` | `1024 x 1024` RGB terrain-layer weights for grass, dirt, and rock |
+| `assets/operatornativeassets/texture2d/floor_grass_basecolor.png` | dependency-bundle address | `runtimeTerrain.layers[0].diffuse` | native grass albedo for the reconstructed TerrainLayer |
+| `assets/operatornativeassets/texture2d/floor_grass_normal.png` | dependency-bundle address | grass and dirt TerrainLayer records | tangent-space normal data |
+| `assets/operatornativeassets/texture2d/grassgreen_qheqg2_maskmap.png` | dependency-bundle address | grass TerrainLayer record | packed terrain mask channels |
+| `assets/operatornativeassets/texture2d/dirt_0.png` | dependency-bundle address | dirt TerrainLayer record | dirt albedo |
+| `assets/operatornativeassets/texture2d/floor_rock_gray_basecolor.png` | dependency-bundle address | rock TerrainLayer record | rock albedo |
+| `assets/operatornativeassets/texture2d/floor_rock_gray_normal.png` | dependency-bundle address | rock TerrainLayer record | rock normal |
+| `assets/operatornativeassets/texture2d/aset_rock_granite_m_rgasy_maskmap.png` | dependency-bundle address | dirt and rock TerrainLayer records | packed mask data |
+| `content/operator_ukrainian_forest_scene` | scene bundle | shipped scene loader after bundle registration | exposes exactly one declared scene |
+| `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity` | scene-bundle address | `TARGETPACKAGE_DETAILS.OPERATION_SCENE` and scene validation | owns terrain root, colliders, playable walls, foliage instances, PVE/PVP markers, light, and metadata |
+
+Do not copy the preview image into the dependency bundle and also keep it as a
+loose file. That creates two possible authorities. Do not put mission row text
+in a Unity `TextAsset`. The manifest is the only mission-presentation data
+authority.
+
+### Required scene objects for the same example
+
+The Forest scene must expose these exact object or prefix contracts:
+
+```text
+MOD_UkrainianForest_Runtime
+NATIVE_Ground_HillyTerrain
+MODDED_MAP_METADATA
+MAP_ID_community.ukrainian-forest.ukrainian-forest
+SPAWN_SET_forest-pve
+SPAWN_SET_forest-pvp
+SCENE_CONTRACT_STANDALONE_V1
+PVE_ENEMY_RANGE_10_15
+PVE_EnemySpawn_*
+PVE_HVTSpawn_*
+Team1_Spawn_*
+Team1_Backup_Spawn_*
+Team2_Spawn_*
+Team2_Backup_Spawn_*
+MOD_UkrainianForest_OutdoorEnvironment
+RENDER_PROFILE_NATIVE_OUTDOOR_V1
+Nice Sun
+```
+
+The manifest does not serialize these Unity object references. It supplies
+the identity keys. The framework finds and validates the scene-owned objects
+after the exact scene loads.
+
+### Empty-folder-to-briefing data recipe
+
+The following table is the minimum complete path from a new package folder to
+a launchable Modded Operations row. Complete each row before moving to the
+next. “Bundle address” means the lowercase address emitted by Unity. “Disk
+path” means a path relative to the package root.
+
+| Step | Authoring input | Final container and field | Runtime proof |
+| ---: | --- | --- | --- |
+| 1 | stable author/package name | directory name and `packageId` | Core accepts one package namespace |
+| 2 | final Unity scene | scene bundle disk file in `files[]`; `maps[].sceneBundle`; exact `maps[].scenePath` | scene bundle has the declared scene and the framework loads that exact address |
+| 3 | shared meshes, textures, materials, terrain payloads, and authored prefab closure | zero-scene dependency bundle disk files in `files[]`; ordered `maps[].dependencyBundles[]` | all dependencies load before the scene and every address-loaded asset exists |
+| 4 | map identity | `maps[].mapId` plus inactive scene object `MAP_ID_<mapId>` | post-load metadata validation matches both values |
+| 5 | operation spawn identity | `operations[].spawnSet` plus inactive scene object `SPAWN_SET_<spawnSet>` | selected operation finds its exact scene marker |
+| 6 | map title | `maps[].displayName` | catalog diagnostics and grouping show the map identity |
+| 7 | mission title, order, mode, area, SITREP, player limits, and optional PVE enemy range | one complete `maps[].operations[]` record | row and preparation text match; mode owner uses the declared mode |
+| 8 | final tactical photo | raw disk file, `maps[].previewImage`, and one `files[]` row | the same verified sprite appears on all three mission presentation surfaces |
+| 9 | selectable 2D entries | `operations[].infiltrations[]` | native marker clones show the exact label, order, normalized position, and limit |
+| 10 | 3D player/AI positions | scene transforms with supported marker names | current-scene `SpawnPoint` and `RaidManager` inputs are grounded and navigable |
+| 11 | time choices | `timeCodes[]`, `defaultTimeCode`, and matching scene/companion render behavior | selector shows each code and the loaded world applies the selected presentation |
+| 12 | optional reconstructed terrain | `runtimeTerrain` plus exact payload/texture addresses inside its declared dependency bundle | one live `TerrainData` drives rendering and collision |
+| 13 | optional raw external LUT | verified loose file, `externalTonemapLut`, and one `files[]` row | correct `Texture3D` type, size, and tone-map owner |
+| 14 | final package closure | sorted `files[]` byte counts and lowercase SHA-256 values | no undeclared file, missing file, hash mismatch, scene mismatch, or path escape |
+
+Do not use a manifest value as a substitute for authored scene content. For
+example, `spawnSet` selects a contract; it does not create spawn transforms.
+Do not use a scene object as a substitute for catalog data. For example, a
+Unity text object does not create a mission row or briefing SITREP.
 
 ## 8. Use a complete operation record
 

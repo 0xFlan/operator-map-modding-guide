@@ -24,17 +24,19 @@ you make a release package.
 7. Wire the exact mission row, briefing, preview, infiltration marker, time,
    bundle, and scene data with
    [docs/03b-modded-operations-presentation.md](docs/03b-modded-operations-presentation.md).
-8. Build the [standalone package](docs/10-standalone-packages.md).
-9. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
-10. Implement and test first spawn, respawn, collision, and bounds using
+8. Wire PVE or the shipped `PvpGameode` owner with
+   [docs/03c-native-mode-ownership-and-pvp.md](docs/03c-native-mode-ownership-and-pvp.md).
+9. Build the [standalone package](docs/10-standalone-packages.md).
+10. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
+11. Implement and test first spawn, respawn, collision, and bounds using
    [docs/05-spawn-and-gameplay.md](docs/05-spawn-and-gameplay.md).
-11. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
-12. Wire native interactive objects with the
+12. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
+13. Wire native interactive objects with the
     [`DoorV2` reference method](docs/09-interactive-prefabs-and-doorsv2.md).
-13. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
+14. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
    [docs/06-hdrp-and-fidelity.md](docs/06-hdrp-and-fidelity.md).
-14. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
-15. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
+15. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
+16. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
     to locate current code, bundles, assets, object names, and verification
     commands.
 
@@ -78,6 +80,9 @@ remains available for explicit local diagnostics. See the
 - [03b Modded Operations presentation](docs/03b-modded-operations-presentation.md):
   exact mission row, briefing, preview-image, infiltration-marker, time-code,
   bundle-content, hashing, and in-game presentation workflow.
+- [03c Native mode ownership](docs/03c-native-mode-ownership-and-pvp.md):
+  exact PVE/PVP owner boundary, one-based team markers, shipped
+  `PvpGameode` defaults and references, lifecycle, teardown, and test gates.
 - [04 Runtime integration](docs/04-runtime-integration.md): standalone
   ownership, exact load order, readiness, mode owner, restart, and teardown.
 - [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,

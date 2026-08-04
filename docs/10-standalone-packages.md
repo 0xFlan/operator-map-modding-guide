@@ -112,7 +112,7 @@ for the exact decoder, dimensions example, UI targets, and validation matrix.
 | `operationId` | namespaced ID | Immutable operation identity |
 | `displayName` | string | Mission-row name |
 | `displayOrder` | integer | 0 to 1023; unique in one map |
-| `mode` | `pve` or `pvp` | Selects the generic runtime contract |
+| `mode` | `pve` or `pvp` | Selects the PVE bridge or shipped `PvpGameode` contract |
 | `areaOfOperation` | string | Operation-board area text |
 | `sitrep` | string | 1 to 4000 characters |
 | `minPlayers` | integer | 1 to 64 |
@@ -124,8 +124,11 @@ for the exact decoder, dimensions example, UI targets, and validation matrix.
 | `timeCodes` | unique array | One or more `HHMM` 24-hour values |
 | `defaultTimeCode` | string | Must occur in `timeCodes` |
 
-PVP MUST omit `minEnemies` and `maxEnemies`. The generic framework MUST create
-zero PVE actors for PVP.
+PVP MUST omit `minEnemies` and `maxEnemies`. The framework MUST create zero
+PVE actors for PVP. It MUST create a `PvpGameode`-derived owner, wire separate
+Team 1 and Team 2 spawn lists, and leave rounds, scores, deaths, and respawn to
+the shipped native methods. See
+[Native mode ownership, PVE, and StandardPVP](03c-native-mode-ownership-and-pvp.md).
 
 For a 10-to-15 actor PVE operation, use:
 
@@ -184,7 +187,7 @@ store these UI values.
 | --- | --- |
 | `displayOrder` | stable operation row order inside the map |
 | `displayName` | row title, briefing title, target-package display name, Confirm text |
-| `mode` | PVE/PVP row label and generic game-mode selection |
+| `mode` | PVE/PVP row label and selection of the PVE bridge or shipped `PvpGameode` owner |
 | `areaOfOperation` | row area and `AREA OF OPERATION //` briefing line |
 | `sitrep` | briefing body |
 | `minPlayers`, `maxPlayers` | operation player contract |
@@ -308,6 +311,12 @@ again after a team change. It MUST remove the cached assignment when the
 marker does not belong to the current `TeamID`. This numeric rule is
 `PROVEN-STATIC` for the fingerprinted build. Reinspect the native PVP methods
 after a game update.
+
+The scene marker objects do not need an editor-authored `PvpGameode`
+component. The map scene owns the coordinates. The generic framework creates
+the network mode owner and assigns the two lists after it validates the exact
+map and spawn set. Do not add a dummy `PVP` or `Mirror_TeamDeathmatch`
+component; neither type owns the retail round state.
 
 ## Optional runtime terrain fields
 

@@ -106,7 +106,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.8` file records, terrain payload addresses, material
+The full version `0.3.9` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -117,7 +117,7 @@ Keep these owners separate.
 | Owner | MUST own | MUST NOT own |
 | --- | --- | --- |
 | Core and catalog | Package verification, immutable identity, deterministic catalog | Map-specific Unity or game logic |
-| OPERATOR: Modded Operations | Private native-style mission UI, exact bundle and scene load, readiness, native-compatible mode ownership, generic player and PVE/PVP lifecycle, shipped failure-UI handoff, restart | Map names, shader profiles, terrain dimensions, graph dimensions, marker coordinates, tree repair |
+| OPERATOR: Modded Operations | Private native-style mission UI, exact bundle and scene load, readiness, `InfiltrationManager`-compatible PVE bridge, shipped `PvpGameode` lifecycle, player creation, shipped failure-UI handoff, restart | Map names, shader profiles, terrain dimensions, graph dimensions, marker coordinates, tree repair |
 | Data-only map package and scene | Manifest, operations, bundles, preview, portable assets, world, collision, walls, lighting, markers, PVE population range | Executable code, generic mission UI, global game state |
 | Optional exact-scene companion | Native material and `TerrainData` reconstruction, map-owned A* graph, marker validation, map-specific interactive initialization, strict world validation, teardown | Catalog, generic mission UI, other maps, shipped failure UI |
 
@@ -223,6 +223,9 @@ in the scene. `(0,0)` is the lower-left and `(1,1)` is the upper-right.
 
 The complete author procedure is in
 [Modded Operations mission presentation and bundle data](docs/03b-modded-operations-presentation.md).
+Use [Native mode ownership, PVE, and StandardPVP](docs/03c-native-mode-ownership-and-pvp.md)
+for the exact map/framework/retail ownership boundary and the current-build
+`PvpGameode` field contract.
 
 The `files` array MUST contain each regular package file except the manifest.
 Core MUST bind the exact manifest bytes separately into package content
@@ -456,6 +459,17 @@ page through a global object-name search.
 Use the shipped infiltration selector with package-owned data. Do not call a
 retail setup method that requires a retail mission graph.
 
+The manifest field `maps[].previewImage` is the sole schema-version-1
+authority for the map photo. It names a verified package-relative JPEG or PNG
+outside the AssetBundles. The same decoded sprite appears on the preparation
+page, fullscreen map, and infiltration selector. The file MUST also occur
+exactly once in sorted `files[]` with its final byte count and lowercase
+SHA-256. A normal end user chooses among author-built package versions; the
+mission UI does not browse to an arbitrary local image. Replacing only the
+installed image correctly fails package integrity. See
+[`docs/03b-modded-operations-presentation.md`](docs/03b-modded-operations-presentation.md)
+for the exact file-to-consumer recipe.
+
 At Confirm, capture the exact player-owned `MissionLaptop` and its exact
 `PlayerNetworking` before asynchronous package I/O. Keep the private modal
 visible and non-interactable while content loads. If the same laptop releases
@@ -497,11 +511,36 @@ as `1` and `2`. It MUST NOT convert them to `0` and `1` or use
 `TeamIdentifier.ToString()`. It MUST invalidate a cached marker after a team
 change when that marker does not match the current `TeamID`.
 
-This rule is `PROVEN-STATIC` for the fingerprinted build. A generic
-`StandaloneGameMode` with correct markers does not prove the complete retail
-`PvpGameode` round graph. Require a host and client on different teams, first
-spawn, death/respawn on both teams, correct opposite-side isolation, and
-Restart Operation before support wording.
+This rule is `PROVEN-STATIC` for the fingerprinted build. The standalone PVP
+owner MUST derive from `PvpGameode`. It MUST call the shipped
+`PvpGameode.OnStartClient` and `PvpGameode.Server_AllPlayersLoaded` bodies.
+It MUST NOT replace `StartNewRound`, `PlayerDied`, `EndRound`,
+`RespawnPlayers`, score SyncVars, team-death checks, or freeze-time state.
+
+The map scene MUST own separate Team 1 and Team 2 coordinates. The generic
+framework MUST convert those markers to `SpawnPoint` objects and assign two
+non-empty `Il2CppSystem.Collections.Generic.List<SpawnPoint>` instances to
+`PvpGameode.Team1SpawnPoints` and `Team2SpawnPoints`.
+
+The current retail scalar seeds are `MaxRounds=13`, `RoundsToWin=7`, and
+`RoundTime=120`. The retail server replaces `MaxRounds` and `RoundTime` with
+the PVP lobby settings at the all-players-loaded barrier.
+
+The native score and result methods read more than spawn lists. The framework
+MUST supply two audio sources, all 16 non-empty clip arrays, `TeleType`, clock
+and score text, six result objects, two animators, `FadeOut` and `FadeIn`, and
+the win/lose/tie status text. Generic silent clips are permitted when retail
+audio cannot be distributed. They MUST preserve the shipped array lengths.
+
+After `nativePvpLifecycle=true`, the framework MUST stop its generic
+position-only loop. The shipped respawn coroutine owns player placement. On
+unload, clear `PvpGameode.instance` only when it still points to the
+operation-owned component.
+
+Require a host and client on different teams, first spawn, freeze release,
+death/respawn on both teams, score and round progression, correct
+opposite-side isolation, Restart Operation, and return-to-armory before
+support wording.
 
 For standalone PVE, a bare `GameMode` is insufficient. The generic framework
 MUST provide:
