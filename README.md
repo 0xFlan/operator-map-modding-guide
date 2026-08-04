@@ -21,17 +21,20 @@ you make a release package.
    bundle using [docs/03a-assetripper-to-bundle.md](docs/03a-assetripper-to-bundle.md).
 6. Author terrain, full prefabs, foliage, cover, and LOD using
    [docs/03-authoring-native-quality.md](docs/03-authoring-native-quality.md).
-7. Build the [standalone package](docs/10-standalone-packages.md).
-8. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
-9. Implement and test first spawn, respawn, collision, and bounds using
+7. Wire the exact mission row, briefing, preview, infiltration marker, time,
+   bundle, and scene data with
+   [docs/03b-modded-operations-presentation.md](docs/03b-modded-operations-presentation.md).
+8. Build the [standalone package](docs/10-standalone-packages.md).
+9. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
+10. Implement and test first spawn, respawn, collision, and bounds using
    [docs/05-spawn-and-gameplay.md](docs/05-spawn-and-gameplay.md).
-10. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
-11. Wire native interactive objects with the
+11. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
+12. Wire native interactive objects with the
     [`DoorV2` reference method](docs/09-interactive-prefabs-and-doorsv2.md).
-12. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
+13. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
    [docs/06-hdrp-and-fidelity.md](docs/06-hdrp-and-fidelity.md).
-13. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
-14. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
+14. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
+15. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
     to locate current code, bundles, assets, object names, and verification
     commands.
 
@@ -72,6 +75,9 @@ remains available for explicit local diagnostics. See the
   terrain, materials, foliage, grounding, props, and LOD.
 - [03a AssetRipper to bundle](docs/03a-assetripper-to-bundle.md): reference
   export, asset closure, map prefab, and `StandaloneWindows64` bundle build.
+- [03b Modded Operations presentation](docs/03b-modded-operations-presentation.md):
+  exact mission row, briefing, preview-image, infiltration-marker, time-code,
+  bundle-content, hashing, and in-game presentation workflow.
 - [04 Runtime integration](docs/04-runtime-integration.md): standalone
   ownership, exact load order, readiness, mode owner, restart, and teardown.
 - [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,
@@ -88,6 +94,9 @@ remains available for explicit local diagnostics. See the
   file closure, identity, markers, terrain payloads, and load validation.
 - [Package JSON Schema](schemas/operator-map-package.schema.json): closed
   machine-readable pre-v1 manifest contract.
+- [Package manifest template](templates/operator-map-package.example.json):
+  complete PVE/PVP schema shape with explicit placeholder hashes; read the
+  [template instructions](templates/README-package-template.md) before use.
 - [11 AI navigation and behavior](docs/11-ai-navigation-and-behavior.md):
   playable-only A* graph, marker grounding, routes, cover, combat, and restart.
 - [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,

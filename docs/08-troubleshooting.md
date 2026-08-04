@@ -2,6 +2,13 @@
 
 | Symptom | First evidence to collect | Typical responsible layer |
 |---|---|---|
+| MODDED OPS row is missing | Core package admission result, package/directory ID equality, closed manifest/schema error | package catalog |
+| Row text or briefing is wrong | selected immutable operation ID, `displayName`, `areaOfOperation`, `sitrep`, disabled localization state | package manifest and private UI binding |
+| Preparation or fullscreen image is blank | resolved `previewImage` disk path, file hash, `ImageConversion.LoadImage` result, decoded dimensions | package preview and framework decoder |
+| Old retail map image remains | private board child replacement and package preview ownership log | framework UI isolation |
+| Infiltration marker is in the wrong place | final preview crop, normalized `mapPositionX/Y`, cloned marker anchors | package infiltration record |
+| Selector has wrong label/count/limit | infiltration array order and the post-`SpawnMap` `MapInfilMarker` audit | package-to-native selector bridge |
+| Confirm works only after reopening the laptop | captured player-owned `MissionLaptop`, in-flight bundle request, final-frame `CerebusOpboard.Start_Operation` log | framework Confirm ownership |
 | Opaque foliage rectangles | live shader, alpha test, queue, tags, culling, keywords, maps | material rehydration |
 | Flat or grey props | final shader, map bindings, tint precedence, bundle dependencies | material closure |
 | Low-detail trees | mesh topology, LODGroup state, game quality owner | authored asset/LOD policy |

@@ -95,6 +95,45 @@ board. It MUST NOT pass clean package data through a retail setup method that
 requires a retail mission graph. It MUST bind Execute, Confirm, Cancel, Back,
 selector, and fullscreen controls to private package state.
 
+The current framework implements the presentation boundary with these source
+members in `CerberusNativeTabFix.cs`:
+
+| Member | Responsibility |
+| --- | --- |
+| `SelectCatalogOperation` | Freeze the selected operation, reset to its default time, update the briefing/board, and start one selected-map prefetch |
+| `FormatCatalogBriefing` | Format display name, area of operation, and SITREP without a retail mission record |
+| `UpdateCatalogOperationBoard` | Bind preview, target-package time records, private board fields, confirmation text, and selector controls |
+| `GetOrLoadPreviewSprite` | Read and decode the verified raw package preview and cache it by map ID |
+| `ReplaceNativeMapPreview` | Replace the preparation and fullscreen map children with the package sprite |
+| `BuildPackageInfiltrationMapPrefab` | Create the private preview background and package-owned native infiltration markers |
+| `PrimeNativeInfiltrationSelector` | Call the shipped `InfilSelectorDisplayer.SpawnMap` only after private ownership validation |
+| `InvokeNativeBoardStart` | Restore the captured player-owned laptop, close Confirm, and call `CerebusOpboard.Start_Operation` in one final frame |
+
+The UI binding sequence is:
+
+```text
+catalog operation record
+-> cloned private row
+-> SelectCatalogOperation
+-> briefing text and preview sprite
+-> private TARGETPACKAGE_DATA and TARGETPACKAGE_DETAILS[]
+-> package infiltration-map prefab
+-> preparation and fullscreen board
+-> shipped InfilSelectorDisplayer with package markers
+-> Confirm modal
+-> captured player-owned MissionLaptop
+-> CerebusOpboard.Start_Operation
+```
+
+The package raw preview stays outside the AssetBundles. The same map-level
+sprite appears in the preparation page, fullscreen page, and infiltration
+selector. `mapPositionX/Y` only place a 2D selector marker; scene transforms
+under the selected `SPAWN_SET_...` contract place players in 3D.
+
+See
+[Modded Operations mission presentation and bundle data](03b-modded-operations-presentation.md)
+for exact field mappings and the authoring procedure.
+
 The selection MUST stay stable from row click through restart. Do not use a
 mutable row index or an official operation identity as package identity.
 

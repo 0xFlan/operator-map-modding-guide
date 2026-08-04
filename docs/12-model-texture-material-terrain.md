@@ -97,6 +97,37 @@ Record:
 The proxy shader only transports data through the external project. It is not
 the final shader contract.
 
+## Dependency-bundle representation
+
+Put the complete portable asset closure in a dependency bundle that loads
+before the scene bundle. A correct source file is not sufficient when it is
+not a Unity dependency or an explicitly address-loaded asset in that bundle.
+
+For each model family, record this closure:
+
+```text
+complete prefab or mesh asset path
+-> submesh/material slot order
+-> raw material identity record
+-> portable proxy material
+-> base/alpha, normal, mask, and every special texture
+-> collider/pivot/LOD dependencies
+-> dependency bundle name
+-> emitted GetAllAssetNames() addresses for run-time loads
+```
+
+The scene can reference a prefab from the dependency bundle. Build the
+dependency and scene definitions in one Unity bundle-build operation so Unity
+does not embed a second private copy of the same dependency in the scene
+bundle. Explicitly include a payload that companion code loads by address even
+when no scene renderer references it.
+
+Keep the raw mission preview out of this closure. It is a verified package
+file decoded by the generic framework, not a Unity material texture. Keep a
+raw external `rgba-half` LUT outside the bundle when the manifest declares it
+through `externalTonemapLut`; a serialized `Texture3D` used by map code is a
+different asset and belongs in the dependency bundle.
+
 ## Exact-scene material rehydration
 
 Use this sequence:

@@ -48,11 +48,22 @@ one. Treat its latest explicit superseding section as controlling.
 10. Deploy only while OPERATOR is closed.
 11. Test through the physical mission UI.
 12. Update the evidence log and reusable reference after a reproducible result.
+13. For mission presentation work, trace every visible value to the closed
+    manifest and every render/runtime input to one bundle or verified loose
+    package file. Keep the raw preview outside Unity bundles. Verify the same
+    map-level sprite on the preparation page, fullscreen map, and
+    infiltration selector. Treat normalized infiltration anchors and 3D scene
+    spawn markers as different contracts.
 
 ## Standalone ownership rules
 
 - The package owns immutable IDs, operations, file hashes, bundles, preview,
   player range, PVE range, and exact scene path.
+- The manifest owns row order, row/briefing display text, SITREP,
+  infiltration labels and 2D positions, time codes, and the raw preview path.
+- The dependency bundle owns reusable/address-loaded Unity asset closure. The
+  scene bundle owns the exact `.unity` scene. The raw preview and optional raw
+  external LUT stay outside both bundles.
 - The scene owns world geometry, collision, walls, lighting, portable assets,
   and marker coordinates.
 - The generic framework owns private native-style UI, exact bundle and scene

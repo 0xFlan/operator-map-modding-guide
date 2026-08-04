@@ -8,6 +8,11 @@ Map Framework**.
 
 The machine-readable contract is
 [`schemas/operator-map-package.schema.json`](../schemas/operator-map-package.schema.json).
+Start from the annotated
+[`templates/operator-map-package.example.json`](../templates/operator-map-package.example.json)
+only after you read its
+[`template instructions`](../templates/README-package-template.md). The zero
+lengths and hashes in that example are placeholders, not release values.
 
 ## Directory layout
 
@@ -73,6 +78,33 @@ A map ID and operation ID MUST stay below the owning package namespace.
 A dependency bundle MUST contain no scene. The scene bundle MUST expose the
 exact declared scene path. Do not discover the first scene in the bundle.
 
+## How the map record becomes a mission presentation
+
+`previewImage` is a package-relative raw image path. It is not a Unity asset
+address and is not inside `sceneBundle` or a dependency bundle. The framework
+reads the verified file bytes, decodes them with
+`ImageConversion.LoadImage`, creates one map-owned sprite, and uses that
+sprite for:
+
+- the preparation-page map under `OperationBoardUI.MapParent`;
+- the fullscreen map under `OperationBoardUI.FullscreenMapParent`;
+- the background of the package-owned infiltration map passed to
+  `InfilSelectorDisplayer.SpawnMap`.
+
+One map definition has one preview. Every operation in that map shares it.
+The current schema has no per-operation preview field. `preview.png` in the
+directory example is only an example name. The current Ukrainian Forest uses
+`media/ukraine_forest_preview.jpg`.
+
+To replace an image, close OPERATOR, replace the final file, update its exact
+`files[]` byte count and SHA-256, increase the package version, validate the
+closed directory, rebuild the release archive, and start a new process. Core
+freezes the catalog once per process.
+
+See
+[Modded Operations mission presentation and bundle data](03b-modded-operations-presentation.md)
+for the exact decoder, dimensions example, UI targets, and validation matrix.
+
 ## Operation fields
 
 | Field | Type | Requirement |
@@ -120,6 +152,63 @@ positions. The generic framework owns count selection and actor creation.
 The framework creates private package-owned board data. It can clone a shipped
 marker visual. It MUST replace every mission-bearing value with package data.
 It MUST NOT write the official mission selection.
+
+The two map-position values configure a 2D UI anchor. They do not configure a
+3D spawn. The framework assigns both `RectTransform.anchorMin` and
+`anchorMax` to `(mapPositionX,mapPositionY)` and sets `anchoredPosition` to
+zero. In Unity UI coordinates, `(0,0)` is the lower-left and `(1,1)` is the
+upper-right. Array order becomes native `MapInfilMarker.MarkerIndex`.
+
+For each package record, the framework clones the shipped marker visual and
+sets these fields from package data:
+
+| Runtime field | Package source |
+| --- | --- |
+| object name `PACKAGE_INFIL_<id>` | `id` |
+| `MarkerIndex` | infiltration array index |
+| `InfilName` | `displayName` |
+| `MaxPlayers` | `maxPlayers` |
+| `IsGroundInfil` | fixed `true` for this schema contract |
+| `IsHeliInfil` and `IsExfil` | fixed `false` |
+
+The framework refuses the selector when the shipped clone does not contain
+the same number of markers or when its marker index, name, player limit, or
+type flags differ from the package.
+
+## Operation field consumption
+
+The manifest is the source for mission text and choices. The scene does not
+store these UI values.
+
+| Package field | Mission use |
+| --- | --- |
+| `displayOrder` | stable operation row order inside the map |
+| `displayName` | row title, briefing title, target-package display name, Confirm text |
+| `mode` | PVE/PVP row label and generic game-mode selection |
+| `areaOfOperation` | row area and `AREA OF OPERATION //` briefing line |
+| `sitrep` | briefing body |
+| `minPlayers`, `maxPlayers` | operation player contract |
+| `minEnemies`, `maxEnemies` | inclusive PVE server population range after world readiness |
+| `spawnSet` | exact `SPAWN_SET_<spawnSet>` scene metadata and marker contract |
+| `infiltrations` | 2D native selector marker list |
+| `timeCodes` | native infiltration-time choices and target records |
+| `defaultTimeCode` | initially selected time |
+
+The current framework formats the briefing as:
+
+```text
+<displayName>
+
+AREA OF OPERATION // <areaOfOperation>
+
+<sitrep>
+```
+
+For each time code, it creates one native `TARGETPACKAGE_DETAILS` with
+`OPERATION_SCENE=maps[].scenePath`,
+`DISPLAY_NAME=operations[].displayName`, and
+`INFILTRATION_TIME=<time code>`. Unknown manifest properties do not add new
+UI features; the closed schema rejects them.
 
 ## File closure
 
@@ -246,6 +335,21 @@ verified three-layer weight transport uses three normalized 8-bit channels.
 The companion reconstructs IL2CPP-compatible arrays and binds the same live
 `TerrainData` to render and collision components.
 
+The `heightPayload`, `surfaceWeightsPayload`, and every terrain-layer texture
+value are Unity asset addresses inside `runtimeTerrain.dependencyBundle`.
+They are not package file paths. Build the assets into that dependency bundle,
+call `GetAllAssetNames()`, and copy the emitted addresses exactly. The top-level
+`files[]` record declares the dependency bundle file itself; it does not list
+each Unity asset inside that bundle.
+
+Use this distinction:
+
+| Value | Address domain |
+| --- | --- |
+| `sceneBundle`, `dependencyBundles[]`, `previewImage`, `externalTonemapLut.path`, `files[].path` | package-relative disk path |
+| `scenePath` | exact Unity scene address returned by `GetAllScenePaths()` |
+| `runtimeTerrain.heightPayload`, `surfaceWeightsPayload`, and layer texture paths | exact Unity asset address returned by `GetAllAssetNames()` |
+
 ## Optional external tone-map LUT
 
 An external LUT definition contains:
@@ -302,3 +406,27 @@ cannot load.
 
 Do not edit a package after hash generation. Do not deploy while OPERATOR is
 running.
+
+## Complete presentation and content check
+
+Before you call the package complete, trace every user-visible value to one
+source and every runtime asset to one bundle:
+
+| Result | Required source |
+| --- | --- |
+| MODDED OPS row exists | accepted operation record in the frozen catalog |
+| row title/mode/area are correct | `displayName`, `mode`, `areaOfOperation` |
+| briefing title/body are correct | `displayName`, `areaOfOperation`, `sitrep` |
+| board and fullscreen image are correct | verified raw file at `previewImage` |
+| selector background is correct | the same decoded map preview sprite |
+| selector marker label and position are correct | infiltration `displayName` and normalized X/Y |
+| time choices are correct | `timeCodes` and `defaultTimeCode` |
+| Confirm targets the intended scene | verified `sceneBundle` plus exact `scenePath` |
+| scene renders | dependency bundle contains the portable asset closure and the companion rehydrates native-only state |
+| terrain collides | live `TerrainData` is bound to both render and collider or authored collision is valid |
+| players and AI use correct places | selected `spawnSet` metadata plus current-scene 3D markers |
+
+Do not use a preview-image position as a player spawn position. Do not put
+mission text in a Unity object and expect the catalog to discover it. Do not
+put the raw preview only inside an AssetBundle and expect `previewImage` to
+decode it.

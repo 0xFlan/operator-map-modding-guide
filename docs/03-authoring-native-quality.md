@@ -157,3 +157,25 @@ If official vegetation uses terrain detail or a BatchRendererGroup route, a
 direct GameObject fallback can match visible density but not automatically
 match interaction, culling, or performance. State that limitation until a
 normal player-camera test proves the native path.
+
+## Convert authoring outputs into package data
+
+Do not stop at a correct Unity scene. Classify each result for the standalone
+package:
+
+| Authoring result | Final location |
+| --- | --- |
+| complete map `.unity` scene and authored object graph | scene bundle |
+| complete models/prefabs and portable material/texture closure | dependency bundle |
+| address-loaded height/weight/lighting payloads | dependency bundle with exact emitted asset addresses |
+| map ID and spawn-set identity | inactive named metadata objects in the scene plus matching manifest fields |
+| 3D player/enemy/HVT/team points and facing | scene marker transforms |
+| mission name, area, SITREP, mode, player/AI limits | manifest operation record |
+| infiltration labels and 2D preview positions | manifest infiltration records |
+| raw briefing/infiltration image | package `media/` file outside bundles plus `previewImage` |
+| exact scene address and bundle load order | manifest map record |
+
+Build and validate this data with
+[AssetRipper to standalone scene bundles](03a-assetripper-to-bundle.md),
+[Modded Operations mission presentation and bundle data](03b-modded-operations-presentation.md),
+and [Standalone package format and loading](10-standalone-packages.md).

@@ -78,6 +78,9 @@ change an identity to match a display name.
 | Generic framework assembly | `OperatorModdedOperations.dll` |
 | Generic framework source file | `CerberusNativeTabFix.cs` |
 | Native selector builder | `BuildPackageInfiltrationMapPrefab` |
+| Preview decoder/cache | `GetOrLoadPreviewSprite` |
+| Preparation/fullscreen preview binder | `ReplaceNativeMapPreview` |
+| Briefing formatter | `FormatCatalogBriefing` |
 | Native launch calls | `InfilSelectorDisplayer.SpawnMap`, `CerebusOpboard.Start_Operation` |
 | Confirm owner retention | `BeginCatalogOperationLaunch`, `RestoreCapturedLaunchLaptop`, `SetNativeConfirmationLoadingState` |
 | Scene contract gate | `ValidateStandaloneSceneContract` |
@@ -92,6 +95,7 @@ change an identity to match a display name.
 | Dependency bundle | `content/operator_ukrainian_forest` |
 | Scene bundle | `content/operator_ukrainian_forest_scene` |
 | Scene path | `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity` |
+| Preview file | `media/ukraine_forest_preview.jpg` |
 | PVE operation and range | `community.ukrainian-forest.pve`, `10` through `15` enemies |
 | PVP operation and AI count | `community.ukrainian-forest.pvp`, zero AI |
 | Terrain object | `NATIVE_Ground_HillyTerrain` |
@@ -102,7 +106,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.7` file records, terrain payload addresses, material
+The full version `0.3.8` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -190,6 +194,36 @@ The manifest MUST declare:
 - complete regular-file closure;
 - final file lengths and SHA-256 values.
 
+The manifest supplies the mission presentation. Do not store mission-laptop
+text in a Unity scene object and expect the framework to discover it. Use this
+mapping:
+
+| Presentation result | Manifest source |
+| --- | --- |
+| row order | `operations[].displayOrder` |
+| row and briefing title | `operations[].displayName` |
+| row mode and runtime mode contract | `operations[].mode` |
+| row/briefing area | `operations[].areaOfOperation` |
+| briefing body | `operations[].sitrep` |
+| preparation, fullscreen, and infiltration-selector image | `maps[].previewImage` |
+| infiltration marker labels and 2D positions | `operations[].infiltrations[]` |
+| infiltration-time choices | `operations[].timeCodes` and `defaultTimeCode` |
+| exact scene target | `maps[].sceneBundle` and `maps[].scenePath` |
+| 3D player and AI contract | `spawnSet` plus scene metadata/marker objects |
+
+The preview is a verified raw package file outside the Unity bundles. The
+framework reads it with `File.ReadAllBytes`, decodes it with
+`ImageConversion.LoadImage`, and creates one map-owned sprite. All operations
+under one map share that image. Schema version 1 does not have a
+per-operation preview.
+
+Each infiltration `mapPositionX/Y` pair is a normalized Unity UI anchor. It
+places a 2D native selector marker on the preview; it does not place a player
+in the scene. `(0,0)` is the lower-left and `(1,1)` is the upper-right.
+
+The complete author procedure is in
+[Modded Operations mission presentation and bundle data](docs/03b-modded-operations-presentation.md).
+
 The `files` array MUST contain each regular package file except the manifest.
 Core MUST bind the exact manifest bytes separately into package content
 identity.
@@ -238,6 +272,21 @@ The scene MUST own:
 - player, enemy, HVT, and other mission markers;
 - map and spawn-set metadata;
 - portable model, texture, and material records.
+
+Use the dependency bundle for reusable or address-loaded Unity assets:
+
+- complete meshes and prefabs;
+- portable materials and their base/alpha, normal, mask, height, thickness,
+  detail, and special-map closure;
+- runtime terrain height/surface-weight payload textures;
+- lighting records and serialized map LUTs;
+- audio, VFX, and complete authorized interactive dependencies.
+
+Use the scene bundle for the exact `.unity` scene and its authored object
+graph. Keep the raw mission preview, optional raw external half-float LUT, and
+manifest outside the bundles. Every runtime-loaded Unity asset address MUST
+match `AssetBundle.GetAllAssetNames()`. Every scene address MUST match
+`AssetBundle.GetAllScenePaths()`.
 
 A prefab-only bundle is not a standalone mission.
 

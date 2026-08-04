@@ -82,6 +82,35 @@ dependency bundle 00
 The manifest lists dependencies in exact load order. A dependency bundle MUST
 contain no scene. The scene bundle MUST expose the exact declared scene path.
 
+Classify every final input before you build:
+
+| Input | Destination | Reason |
+| --- | --- | --- |
+| Real `.unity` map scene | Scene bundle | `maps[].scenePath` must match its exact emitted scene address |
+| Meshes and complete prefabs referenced by the scene | Dependency bundle | Load before the scene and preserve one shared asset instance |
+| Portable proxy materials and their complete texture closure | Dependency bundle | The exact-scene companion resolves the raw native identity and rehydrates installed shaders |
+| Runtime height and surface-weight payload textures | Dependency bundle | The companion loads them by exact `GetAllAssetNames()` address before it creates native `TerrainData` |
+| Map lighting records or serialized LUT assets | Dependency bundle | They are Unity assets consumed by the exact-scene presentation path |
+| Raw briefing/infiltration preview JPEG or PNG | Package `media/` directory, outside bundles | The framework reads it with `File.ReadAllBytes` and `ImageConversion.LoadImage` |
+| Raw external `rgba-half` LUT bytes | Package `lighting/` directory, outside bundles | Core validates its exact dimensions and the runtime builds a `Texture3D` |
+| IDs, row text, SITREP, player/AI ranges, infiltrations, time codes | `operator-map-package.json` | These values feed the generic mission UI and mode contract; they are not Unity scene data |
+
+Build all bundle definitions in one `BuildPipeline.BuildAssetBundles` call.
+Explicitly list the reusable assets in the dependency definition and list only
+the real `.unity` scene in the scene definition. Then inspect the emitted
+addresses. Do not assume that an editor path, an AssetRipper export path, and
+an emitted bundle address are identical.
+
+For every payload that companion code loads by name, record:
+
+```text
+source Unity asset path
+-> bundle name
+-> exact lowercased GetAllAssetNames() address
+-> consuming manifest field or code constant
+-> expected type, dimensions, encoding, and SHA-256
+```
+
 Use `BuildPipeline.BuildAssetBundles` with `BuildAssetBundleOptions.StrictMode`
 and `BuildTarget.StandaloneWindows64`.
 
@@ -130,14 +159,26 @@ fresh installed native material and then pass the active-renderer audit.
 
 ## 6. Build the package
 
-1. Copy final bundles and preview into one package staging root.
-2. Write the manifest with exact IDs, operations, spawn sets, and scene path.
-3. Compute file lengths and SHA-256 after all copies finish.
-4. Sort the file table by ordinal relative path.
-5. Run the strict package loader.
-6. Install only while OPERATOR is closed.
+1. Copy final dependency bundles to `content/` in one package staging root.
+2. Copy the scene bundle to `content/`.
+3. Copy the final raw mission preview to `media/`. Do not place it inside the
+   Unity bundle.
+4. Copy an optional raw external LUT to `lighting/`.
+5. Write the manifest with exact package/map/operation IDs, display and SITREP
+   text, operation modes, player and PVE population ranges, spawn sets,
+   infiltration records, time codes, preview path, bundle paths, and exact
+   scene address.
+6. Confirm that each `mapPositionX/Y` marker position matches the final
+   preview crop. These normalized values configure the 2D selector; they do
+   not replace the scene's 3D spawn markers.
+7. Compute file lengths and lowercase SHA-256 after all copies finish.
+8. Sort the file table by ordinal relative path.
+9. Run the strict package loader and directory-closure check.
+10. Install only while OPERATOR is closed.
 
 See [Standalone package format and loading](10-standalone-packages.md).
+For the complete field-to-UI and bundle-content procedure, see
+[Modded Operations mission presentation and bundle data](03b-modded-operations-presentation.md).
 
 ## 7. First runtime proof
 

@@ -5,6 +5,11 @@
 ### Static structure
 
 - package schema, directory closure, lengths, and SHA-256 pass;
+- `previewImage` resolves to one declared raw JPEG or PNG and its final byte
+  count/hash match `files[]`;
+- every operation has complete row/briefing text, one or more infiltrations,
+  valid normalized marker anchors, declared time codes, and a default time
+  that occurs in the declared list;
 - dependency bundles open and contain no scene;
 - scene bundle opens and contains only the exact declared scene path;
 - expected meshes/materials/textures are present;
@@ -23,6 +28,12 @@
 ### Runtime logs
 
 - exact dependency and scene load order succeeds;
+- the preview decoder reports the selected immutable map ID and does not use a
+  retail fallback image;
+- the private board contains the expected package target records, selected
+  time, scene address, map prefab, and player/mode values;
+- the shipped infiltration selector clones exactly the declared number of
+  package markers and retains each declared label, index, limit, and type;
 - companion activation matches the exact package, map, operation, and scene;
 - material repair reports installed shader families and critical state;
 - LOD audit proves direct content uses the intended source detail;
@@ -41,6 +52,14 @@
 
 ### Player-camera and gameplay
 
+- one click selects the intended MODDED OPS row and updates the exact briefing;
+- the preparation page, fullscreen map, and infiltration selector show the
+  declared map preview with usable crop/aspect;
+- every 2D infiltration marker is visibly on the intended preview location and
+  remains distinct from the scene's 3D player-spawn contract;
+- the time selector contains only the declared values and starts on the
+  declared default;
+- the first Confirm launches once without closing/reopening the laptop;
 - player starts on the intended ground;
 - team and free-for-all respawns work;
 - player does not snap/fall to source-map space;
