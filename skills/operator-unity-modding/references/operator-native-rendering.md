@@ -220,21 +220,29 @@ Generated prefab names are not proof that a tree is LOD0. Search the installed a
 
 Retain the source collider intent too. A complete tree should use a lower-trunk collision shape when that is what the native object uses, not a cylinder or box covering its crown. Keep placement at source scale, compare height to a human-character reference, and embed the root into the sampled terrain.
 
-Ground a combined crown-and-trunk tree from the lowest valid world-space Y of
-its visible renderer set. After final rotation and scale, calculate the finite
-renderer minimum and complete rendered height. Do not use the bottom of a
-native lower-trunk collider: a hidden capsule overhang below the modeled roots
-raises the visible tree above a slope. Keep that collider for gameplay. Place
-the tree batch, synchronize once before all bounds reads, correct the batch,
-and synchronize once after it.
-Sample authoritative terrain at root X/Z and
-move the root by `surfaceY - rootContactY - embed`. Separately calculate the
-complete rendered height and reject a placement below the map's declared
-above-ground fraction. Ukrainian Forest uses `embed=0.12 m`, minimum fraction
-`0.75`, and maximum absolute correction `12 m`. Repeat the bounded repair for
-collision-enabled playable trees after runtime TerrainData reconstruction,
-use typed index traversal in IL2CPP repeat-load paths, and synchronize physics
-transforms.
+Ground a combined crown-and-trunk tree from its highest-detail bark/trunk
+submesh vertices. Do not use the whole-renderer minimum. A low branch or leaf
+card can select a false root datum. Do not use the bottom of a native
+lower-trunk collider: a hidden capsule can also raise the visible tree above a
+slope. Keep that collider for gameplay.
+
+After final rotation and scale, select the LOD0 renderer. Match the bark/trunk
+material slots. Use `Mesh.GetIndices(slot)` and the referenced vertices to
+calculate finite world-space `trunkMinY` and `trunkMaxY`. Ukrainian Forest
+uses:
+
+```text
+trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
+correctionY = surfaceY - trunkDatumY
+```
+
+Create renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at that
+datum. Move the tree, require marker-to-terrain error no greater than
+`0.001 m`, require `0.75` of the trunk and at least `0.75` of the complete
+rendered tree above grade, and reject an absolute correction above `12 m`.
+Place and synchronize the complete batch. At run time, use the packaged child
+after TerrainData reconstruction instead of mesh readback. Use typed index
+traversal in IL2CPP repeat-load paths and synchronize physics transforms.
 
 When a native shader uses a texture property that a portable Standard proxy cannot serialize, carry that texture through a documented, otherwise-unused proxy slot only for the audited material identity. At runtime resolve the proxy back to its raw native name, move the texture from the cargo slot to the correct installed BotD/HDRP property, and verify the raw/proxy GUID equality plus the exact runtime restoration call. Never leave a transport slot functioning as its Standard meaning (for example, do not leave a thickness map as emission).
 

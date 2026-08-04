@@ -116,14 +116,19 @@ Read [references/implementation-locators.md](references/implementation-locators.
   crown silhouette through the normal player camera at close, middle, and far
   distances; reject a family that reads as bare trunks even when its mesh,
   submesh, and material counts are technically valid.
-- Ground a combined crown-and-trunk tree from the lowest valid point of its
-  visible rendered root system after final position, yaw, scale, and one
-  batched `Physics.SyncTransforms()`. Do not use the bottom of a trunk
-  collider: an invisible capsule overhang below the modeled roots raises the
-  visible tree above a hill. Apply the declared root embed and reject a tree
-  below the declared minimum above-ground rendered fraction. The Ukrainian
-  Forest contract uses a `0.12 m` embed, `0.75` minimum fraction, and `12 m`
-  maximum absolute correction.
+- Ground a combined crown-and-trunk tree from its actual highest-detail
+  bark/trunk submesh vertices after final position, yaw, scale, and one
+  batched `Physics.SyncTransforms()`. Do not use a pivot, the whole-renderer
+  minimum, or a trunk collider bottom. A low foliage card can corrupt the
+  whole-renderer minimum, and an invisible capsule overhang can raise the
+  visible trunk above a hill. Identify the bark/trunk material slots, read
+  only their submesh indices, and compute the finite world-space trunk Y
+  bounds. The Ukrainian Forest terrain intersects the trunk at exactly `0.25`
+  of that height. Store this point in renderer-free child
+  `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, require `0.75` of the trunk and at
+  least `0.75` of the complete rendered tree above terrain, and reject an
+  absolute correction above `12 m`. Use the authored child at run time so an
+  IL2CPP player build does not need mesh readback.
 - A one-sided/open mesh is not a boulder. Require a complete closed (or bottom-only-open) native LOD0 mesh, matching material, collider, and multi-angle QA.
 - For slope-bound cover, measure the full collider/mesh footprint. Reposition or remove a sandbag wall when its sampled terrain span exceeds the allowed contact tolerance; do not hide a floating wall with a vertical offset.
 - Avoid perfect rows. Use a deterministic but nonuniform layout with varied lateral position, longitudinal spacing, rotation, and compatible ground embedding; preserve deliberate lanes and spawn clearances.

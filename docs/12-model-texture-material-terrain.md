@@ -204,37 +204,40 @@ boundary visibility, and performance budgets.
 Sample the final collision surface for each root. Use a bounded root embed that
 matches the tree family. Do not place all objects at one constant world Y.
 
-For a combined crown-and-trunk renderer, use the lowest valid world-space
-renderer bound as the visible-root contact datum. Do not use the bottom of a
-native trunk collider: its hidden capsule can extend below the root mesh and
-raise the visible tree above a slope. The current full
-pine renderer contains `Pine_Needle`, `pine_bark`, and
-`Trunk_pine_var4` submeshes in one object. The current oak LOD0 renderer also
-combines `Bark_Mat`, `Bark_2_Mat`, and one leaf material. The complete
-renderer set supplies the visible minimum and the full-height extent.
+For a combined crown-and-trunk renderer, derive the ground datum from only the
+LOD0 bark/trunk submeshes. Do not use a whole-renderer bound. A low leaf card
+or branch can select a false minimum. Do not use the bottom of a native trunk
+collider: its hidden capsule can extend below the root mesh and raise the
+visible tree above a slope. The current full pine renderer contains
+`Pine_Needle`, `pine_bark`, and `Trunk_pine_var4` submeshes in one object. The
+current oak LOD0 renderer combines `Bark_Mat`, `Bark_2_Mat`, and one leaf
+material. Treat `pine_bark`, `Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat`
+as trunk slots. Read each selected submesh's indices and referenced vertices.
 
 Use this exact authoring equation:
 
 ```text
-visibleRootY = minimum finite Renderer.bounds.min.y
-correctionY = sampledSurfaceY - rootEmbedY - visibleRootY
-rootEmbedY = 0.12 m
+trunkMinY = minimum finite world Y of selected trunk vertices
+trunkMaxY = maximum finite world Y of selected trunk vertices
+trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
+correctionY = sampledSurfaceY - trunkDatumY
 newRootY = oldRootY + correctionY
+trunkAboveGroundFraction = 0.75
 aboveGroundFraction = (rendererBoundsMaxY + correctionY - sampledSurfaceY)
                       / rendererBoundsHeight
 ```
 
 Reject the placement if the valid rendered extent is `<= 0.25 m`, if
 `abs(correctionY) > 12 m`, or if
-`aboveGroundFraction < 0.75`. Run this check after final yaw and scale. The
-result must put the root system below grade and at least 75 percent of the
-rendered tree above grade. Keep the native lower-trunk collider for gameplay;
-do not use its bottom as the placement datum. Place the full batch, call
-`Physics.SyncTransforms()` once, read and correct all renderer bounds, then
-synchronize once more. Without the first pass, a newly moved high-hill tree
-can retain an earlier world bound and produce a false large correction. A
-per-tree synchronization is needlessly expensive against a
-large `TerrainCollider`.
+`aboveGroundFraction < 0.75`. Run this check after final yaw and scale. Create
+renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at `trunkDatumY`.
+After correction, require its world Y to match the sampled surface within
+`0.001 m`. The result puts the lower quarter of the actual trunk below grade
+and keeps the upper three quarters above the slope. Keep the native
+lower-trunk collider for gameplay; do not use its bottom as the datum. Place
+the full batch, call `Physics.SyncTransforms()` once, correct all trees, then
+synchronize once more. At run time, read the packaged child marker instead of
+performing IL2CPP mesh readback.
 
 Keep dense decorative foliage outside critical movement lanes. A decorative
 renderer can have no collider. A trunk that acts as cover needs a complete

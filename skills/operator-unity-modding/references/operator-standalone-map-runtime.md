@@ -124,20 +124,35 @@ that exact fallback object immediately after the live `Terrain` and
 Keep the fallback active when reconstruction fails so the failure remains
 visible, but fail readiness and do not spawn actors.
 
-After the final TerrainData is live, align collision-enabled playable trees by
-the lowest valid world-space point of the visible rendered root system, not
-by the root transform or the bottom of a native lower-trunk collider. Keep the
-native collider for gameplay; its hidden capsule can extend below the modeled
-roots and raise the visible tree. After final yaw and scale, find the minimum
-finite `Renderer.bounds.min.y`. Place the complete tree batch, call one
-`Physics.SyncTransforms()` pass before all bounds reads, apply every
-correction, and synchronize once more. Sample terrain at the root X/Z and move the root by
-`surfaceY - rootEmbed - rootContactY`. Separately calculate the full rendered
-height. Reject the placement when its above-ground rendered fraction is below
-the map contract. Ukrainian Forest uses a `0.12 m` embed, `0.75` fraction, and
-`12 m` maximum correction. Run the same algorithm in the authoring builder
-and bounded exact-scene runtime repair, use typed `GetChild(index)` traversal
-in repeat-load IL2CPP paths, and call `Physics.SyncTransforms()`.
+After the final TerrainData is live, align each collision-enabled playable
+tree by an authoring datum computed from its highest-detail bark/trunk
+submeshes. Do not use the root transform, the bottom of a native lower-trunk
+collider, or the minimum of the combined crown renderer. A hidden capsule can
+raise the visible trunk; a low branch or leaf card can also corrupt the
+combined-renderer minimum.
+
+In the exact-version Unity builder, select LOD0 renderers. For each material
+slot whose normalized name identifies bark or trunk, read that submesh's
+indices and transform the referenced vertices into world space. Compute
+`trunkMinY`, `trunkMaxY`, and:
+
+```text
+trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
+correctionY = sampledSurfaceY - trunkDatumY
+```
+
+Create renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at the
+datum before moving the tree. Move the root by `correctionY`, require the
+child to reach the sampled terrain within `0.001 m`, require `0.75` of the
+trunk and at least `0.75` of the complete rendered tree above terrain, and
+reject an absolute correction above `12 m`. Ukrainian Forest recognizes
+`pine_bark`, `Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat` as trunk slots.
+
+At run time, use the packaged child marker instead of reading mesh data. Move
+the direct tree by `groundY - marker.position.y`. Run this bounded correction
+after TerrainData bind, use typed `GetChild(index)` traversal in repeat-load
+IL2CPP paths, and call `Physics.SyncTransforms()` after the batch. The builder
+owns render-only perimeter-tree grounding.
 
 ## Runtime A* graph construction
 
@@ -349,6 +364,20 @@ peer before the host spawns the run-time owner. Collision-check
 asset-ID overload, validate the clone ID and mode on a remote peer, and
 unregister during release. Asset ID `0` is host-only evidence.
 
+Do not assume `UnregisterPrefab(GameObject)` can clean a scene-owned template
+after scene unload. Unity can destroy the object before the unload callback;
+the managed wrapper then compares equal to null while the Mirror dictionary
+still contains it. A later `RegisterPrefab` can throw from
+`UnityEngine.Object.GetName` and leave the native `MAP LOADED !BUG!` restart
+prompt in a loop. Capture the deterministic asset ID before clearing operation
+state. During release, remove only that package-owned key from
+`NetworkClient.prefabs` and call `NetworkClient.UnregisterSpawnHandler(id)`
+even when the object wrapper is fake-null. Before registration, if the same
+asset-ID entry exists and compares equal to null, evict the same two keys and
+then register. Reject any different live object as a real collision. Never
+call `NetworkClient.ClearSpawners()` for this repair because it would clear
+vanilla and other-mod registrations.
+
 ## PVP team-spawn identity
 
 The map scene owns the marker transforms and marker names. The generic
@@ -409,6 +438,8 @@ fresh map runtime. The companion must:
   the current values are still the operation-owned values;
 - restore the previous NVG colour and remove only the operation-owned runtime
   Volume/profile;
+- remove each deterministic package-owned Mirror prefab and spawn-handler key
+  by asset ID, including when Unity already destroyed the template wrapper;
 - unsubscribe callbacks and clear scene-lifetime handles;
 - prevent stale async completions from mutating the new generation;
 - prove one graph/service and one callback generation after restart.

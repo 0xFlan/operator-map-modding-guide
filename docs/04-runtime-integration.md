@@ -373,6 +373,20 @@ only a clone with the expected asset ID and operation mode. Unregister and
 destroy the operation-owned template during release. A host-only object with
 asset ID `0` is not a valid multiplayer contract.
 
+Do not rely only on `NetworkClient.UnregisterPrefab(template)` during scene
+release. Unity can destroy a scene-owned template before the callback. Its
+wrapper then compares equal to null, but Mirror can retain it under the asset
+ID. The next registration can throw from `UnityEngine.Object.GetName` and the
+native `MAP LOADED !BUG!` prompt can loop.
+
+Capture the package-owned asset ID before you clear operation state. Remove
+only that key from `NetworkClient.prefabs` and call
+`NetworkClient.UnregisterSpawnHandler(assetId)` during release, even when the
+template wrapper is fake-null. Before registration, evict the same entry only
+when it exists and compares equal to null. Reject a different live object as
+an asset-ID collision. Never use `NetworkClient.ClearSpawners()` for this
+repair because it clears unrelated registrations.
+
 Write the request frame and attempt count before native entry. Limit retries.
 Stop after the player-object or alive state proves success. An exception MUST
 NOT create one native call on every frame. Treat this route as

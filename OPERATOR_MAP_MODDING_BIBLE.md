@@ -94,7 +94,7 @@ change an identity to match a display name.
 | Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
 | Companion exact-scene entry | `ProcessStandalonePackageScene` |
 | Companion navigation owner | `EnsureStandaloneNavigationGraph` |
-| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`, visible rendered-root datum, `0.12 m` embed, `0.75` minimum above-ground fraction |
+| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`; packaged `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`; `0.25` of LOD0 bark/trunk height below terrain; `0.75` of trunk and complete tree above terrain |
 | Package ID | `community.ukrainian-forest` |
 | Map ID | `community.ukrainian-forest.ukrainian-forest` |
 | Dependency bundle | `content/operator_ukrainian_forest` |
@@ -382,31 +382,37 @@ its static structure is complete.
 Use deterministic nonuniform placement. Preserve routes, spawn clearance,
 door clearance, sight lines, and performance limits.
 
-For a combined crown-and-trunk renderer, use the minimum finite world-space Y
-of the visible rendered root system as the root-contact datum. Do not use the
-bottom of a lower-trunk collider. Some native capsules extend below the
-modeled roots; grounding that invisible overhang raises the visible tree above
-a slope. Keep the collider for gameplay collision. For the current Forest
-contract, use `rootEmbed=0.12 m`, fail when `abs(correction)>12 m`, and require
-at least `0.75` of the complete rendered height above the sampled terrain.
-Apply the check after final position, yaw, and scale. The exact equation is:
+For a combined crown-and-trunk renderer, use only the highest-detail
+bark/trunk submesh vertices. Do not use the prefab pivot, the whole-renderer
+minimum, or the bottom of a lower-trunk collider. A low leaf card or branch can
+corrupt the whole-renderer minimum. A native capsule can extend below the
+modeled roots. Keep the collider for gameplay collision. Apply final position,
+yaw, and scale before you read vertices. The exact equation is:
 
 ```text
-correction = surfaceY - 0.12 - visibleRendererBoundsMinY
+trunkMinY = minimum world Y referenced by LOD0 bark/trunk submesh indices
+trunkMaxY = maximum world Y referenced by LOD0 bark/trunk submesh indices
+trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
+correction = surfaceY - trunkDatumY
+trunkAboveGroundFraction = 0.75
 aboveGroundFraction = (rendererBoundsMaxY + correction - surfaceY)
                       / rendererBoundsHeight
 ```
 
-Place the complete tree batch, synchronize physics once, apply every
-correction, and synchronize once more. Do not synchronize separately for each
-tree against a large terrain broadphase.
+Create renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at
+`trunkDatumY` before you move the tree. Require that child to reach terrain
+within `0.001 m`, fail when `abs(correction)>12 m`, require `0.75` of the trunk
+and at least `0.75` of the complete rendered tree above terrain, then
+synchronize physics once after the full corrected batch. The run-time
+companion uses the child marker; it does not need mesh readback.
 
 The full pines are `Pine_var10_LOD0.prefab` and
 `Pine_var11_LOD0.prefab`. Their combined renderer slots are `Pine_Needle`,
 `pine_bark`, and `Trunk_pine_var4`. The three current oak prefabs use
 `Bark_Mat`, `Bark_2_Mat`, and their family leaf material in one LOD0
-renderer. Their complete renderer bounds provide the visible root datum and
-the full-height validation extent.
+renderer. The builder recognizes the four bark/trunk material names and reads
+only their submesh indices. The complete renderer bounds remain a separate
+full-tree validation extent.
 
 ## 13. Terrain and collision contract
 
@@ -559,6 +565,19 @@ for StandardPVP. Each peer collision-checks `NetworkClient.prefabs` and calls
 `NetworkServer.Spawn` overload. A remote peer validates the received asset ID
 and component type before it adopts the clone. Release unregisters the
 operation template. Asset ID `0` is not remote-client proof.
+
+Scene unload can destroy that template before the release callback. Unity's
+managed wrapper then compares equal to null while
+`NetworkClient.prefabs[assetId]` still contains it. A repeat
+`NetworkClient.RegisterPrefab` can throw from `UnityEngine.Object.GetName` and
+leave the native `MAP LOADED !BUG!` Restart Operation prompt in a loop.
+Capture the deterministic asset ID before clearing operation state. Release
+MUST remove only that ID from `NetworkClient.prefabs` and call
+`NetworkClient.UnregisterSpawnHandler(assetId)` even when the object wrapper
+is fake-null. Registration MUST evict the same fake-null entry before it
+registers the new template. A different live object is a real collision and
+MUST fail closed. Do not call `NetworkClient.ClearSpawners()` because it also
+removes vanilla and other-mod registrations.
 
 Team PVP uses one-based native IDs on this exact build.
 `PvpGameode.StartNewRound()` writes `SpawnPoint.Team=1` for Team 1 and
@@ -763,10 +782,11 @@ Before actor creation, require:
 - usable terrain and a matching `TerrainCollider` on the same object when
   declared, with both components bound to the same `TerrainData`;
 - inactive serialized terrain fallback after successful TerrainData bind;
-- complete-tree lowest finite `Renderer.bounds.min.y` aligned to the sampled
-  live terrain after final rotation and scale, with the native trunk/root
-  collision retained and the declared root embed, maximum correction, and
-  minimum above-ground rendered fraction satisfied;
+- complete-tree LOD0 bark/trunk submesh bounds and one renderer-free
+  `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` aligned to live terrain after final
+  rotation and scale, with native trunk/root collision retained, `0.25` of
+  trunk height below terrain, the maximum correction satisfied, and at least
+  `0.75` of the complete rendered tree above terrain;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
 - every required marker tightly grounded and on the live graph;
@@ -887,7 +907,8 @@ retested.
 | First spawn throws or armory player floats | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
 | First mission works but second launch has no player object | Request 1 did not create the new scene generation's `PlayerSpawnedObject`; verify the 300-frame bounded owned-host generated-server recovery and shipped move path |
 | 02:00 NVG is black outside ECOTI | Day exposure/LUT applied to the night source or white-phosphor state was not selected |
-| Trees on hills float or have buried trunks | A pivot or hidden collider bottom was used instead of the visible rendered-root datum; verify 0.12 m embed and the 0.75 above-ground fraction |
+| Trees on hills float or have buried trunks | A pivot, combined-renderer minimum, or hidden collider bottom was used; verify LOD0 bark/trunk submesh bounds, `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, exact `0.25` buried trunk fraction, and `0.75` complete-tree above-ground gate |
+| Scene loads, then `MAP LOADED !BUG!` Restart Operation loops on the second launch | A destroyed scene-owned game-mode template remained in `NetworkClient.prefabs`; inspect the deterministic asset ID, fake-null eviction before registration, and release cleanup by asset ID plus `UnregisterSpawnHandler` |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |
 | Pine reads as a bare trunk | Tree-family crown silhouette failed despite static closure |

@@ -22,10 +22,11 @@
 - terrain/exterior height and material-weight functions are continuous across
   their shared seam;
 - layout checks cover route, spawn, slope, root embedding, and prop footprint;
-- every complete tree has a valid visible rendered-root datum, its native
-  lower-trunk collision shape, a `0.12 m` root embed, an absolute correction
-  no greater than `12 m`, and at least `0.75` of its full rendered height
-  above the sampled surface;
+- every complete tree has LOD0 bark/trunk submesh bounds, one renderer-free
+  `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, its native lower-trunk collision
+  shape, an absolute correction no greater than `12 m`, `0.25` of its trunk
+  below terrain, and at least `0.75` of its full rendered height above the
+  sampled surface;
 - each PVP spawn set has separate non-empty Team 1 and Team 2 marker groups;
   current-build team IDs are exactly `1` and `2`;
 - each interactive prefab has a complete field/reference closure or is marked

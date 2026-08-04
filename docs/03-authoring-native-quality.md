@@ -134,33 +134,51 @@ embedding rather than a constant world Y:
 - incomplete or one-sided rock meshes MUST be rejected from a multi-angle
   player-height review.
 
-Use the lowest valid world-space point of the visible rendered root system as
-the tree contact datum. Do not use the bottom of a trunk collider. Some native
-capsules extend below the modeled roots; grounding that hidden overhang raises
-the visible tree above a hill. Apply this exact check after final position,
-rotation, and scale:
+Use LOD0 bark/trunk submesh vertices as the tree datum. Do not use the prefab
+pivot, the whole-renderer minimum, or the bottom of a trunk collider. A low
+leaf card or branch can corrupt the whole-renderer minimum. Some native
+capsules extend below the modeled roots. Apply this exact method after final
+position, rotation, and scale:
 
 ```csharp
-Physics.SyncTransforms(); // once after placing the complete tree batch
-Renderer[] renderers = tree.GetComponentsInChildren<Renderer>(true);
-float renderedMinimumY = renderers
-    .Where(r => r != null && r.sharedMaterial != null)
-    .Min(r => r.bounds.min.y);
-float renderedMaximumY = renderers
-    .Where(r => r != null && r.sharedMaterial != null)
-    .Max(r => r.bounds.max.y);
-float rootContactY = renderedMinimumY;
-float correction = surfaceY - 0.12f - rootContactY;
+LOD[] lods = tree.GetComponentInChildren<LODGroup>(true).GetLODs();
+Renderer[] renderers = lods[0].renderers;
+float trunkMinimumY = float.PositiveInfinity;
+float trunkMaximumY = float.NegativeInfinity;
+
+foreach (Renderer renderer in renderers)
+{
+    Mesh mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+    Vector3[] vertices = mesh.vertices;
+    Material[] materials = renderer.sharedMaterials;
+    for (int slot = 0; slot < materials.Length; slot++)
+    {
+        if (!IsRecognizedTrunkMaterial(materials[slot].name))
+            continue;
+        foreach (int index in mesh.GetIndices(slot))
+        {
+            float y = renderer.transform.TransformPoint(vertices[index]).y;
+            trunkMinimumY = Mathf.Min(trunkMinimumY, y);
+            trunkMaximumY = Mathf.Max(trunkMaximumY, y);
+        }
+    }
+}
+
+float trunkHeight = trunkMaximumY - trunkMinimumY;
+float trunkDatumY = trunkMinimumY + trunkHeight * 0.25f;
+float correction = surfaceY - trunkDatumY;
 tree.transform.position += Vector3.up * correction;
 ```
 
-Also calculate the full rendered vertical extent. Fail the build when
-`(renderedMaximumY + correction - surfaceY) / renderedHeight < 0.75f` or when
-`abs(correction) > 12f`. This rule puts only the root zone below the terrain
-and keeps at least three quarters of the rendered tree above it. The tree must
-still keep its native lower-trunk collider for gameplay collision, but that
-collider is not the visual placement datum. Reject a prefab with no valid
-rendered extent. Do not guess from the root pivot.
+`IsRecognizedTrunkMaterial` must accept the shipped `pine_bark`,
+`Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat` slots. Create renderer-free
+child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at `trunkDatumY` before moving
+the tree. Fail when its corrected world Y differs from terrain by more than
+`0.001 m`, when the trunk-above fraction differs from `0.75`, when the full
+rendered-tree above fraction is below `0.75`, or when
+`abs(correction) > 12f`. Reject an unreadable mesh, invalid submesh index,
+missing material, non-finite bound, or zero-height trunk. Keep the native
+lower-trunk collider for gameplay collision, but do not use it as the datum.
 
 Place the full tree batch first. Synchronize transforms once, apply the
 root-contact equation to every tree, and synchronize once more. Do not call

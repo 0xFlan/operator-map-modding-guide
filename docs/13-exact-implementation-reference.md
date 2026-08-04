@@ -323,10 +323,45 @@ The bundle authoring source uses these exact members:
 
 | Member or constant | Current value or action |
 | --- | --- |
-| `CompleteTreeRootContactEmbedMeters` | `0.12f` |
+| `CompleteTreeTrunkGroundDatumName` | `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` |
+| `CompleteTreeBuriedTrunkFraction` | `0.25f` |
 | `CompleteTreeMinimumAboveGroundFraction` | `0.75f` |
-| `AlignCompleteTreeRootContactToSurface` | Runs after its caller places a complete tree batch and calls one `Physics.SyncTransforms()` pass. It reads the lowest finite valid `Renderer.bounds.min.y` as the visible-root datum and the complete renderer maximum as the full-height gate. It does not use the hidden bottom of a trunk collider. The caller publishes all corrected transforms with one final synchronization pass. |
+| `TryGetCompleteTreeTrunkBounds` | Selects the first `LODGroup` LOD, matches `pine_bark`, `trunk_pine`, `bark_mat`, or `bark_2_mat`, reads each matching mesh submesh index, transforms referenced vertices to world space, and returns finite trunk minimum/maximum Y. |
+| `AlignCompleteTreeRootContactToSurface` | Creates the renderer-free datum at 25 percent of the rendered trunk height, moves it to the sampled terrain, validates exact contact within `0.001 m`, and uses the complete renderer maximum as the separate full-tree gate. It does not use a pivot, whole-renderer minimum, or collider bottom. |
 | maximum authoring correction | `12 m`; a larger correction fails the build |
+
+The controlling calculation in
+`Assets/Editor/BuildHillyUkrainianForestBundle.cs` is:
+
+```csharp
+if (!TryGetCompleteTreeTrunkBounds(
+        instance,
+        out var trunkMinimumY,
+        out var trunkMaximumY))
+{
+    throw new InvalidOperationException(
+        "Complete tree has no readable LOD0 bark/trunk submesh bounds: " +
+        instance.name);
+}
+
+var trunkHeight = trunkMaximumY - trunkMinimumY;
+var datumRoot = new GameObject(
+    "NATIVE_TRUNK_GROUND_DATUM_25_PERCENT");
+datumRoot.transform.SetParent(instance.transform, true);
+datumRoot.transform.position = new Vector3(
+    instance.transform.position.x,
+    trunkMinimumY + trunkHeight * 0.25f,
+    instance.transform.position.z);
+
+var correction = surfaceY - datumRoot.transform.position.y;
+instance.transform.position += Vector3.up * correction;
+```
+
+`TryGetCompleteTreeTrunkBounds` gets `mesh.GetIndices(slot)`. It rejects an
+index outside `mesh.vertices`. It transforms each accepted vertex with
+`renderer.transform.TransformPoint(vertices[index])`. It then updates only
+the trunk minimum and maximum Y. The leaf material slot does not enter this
+calculation.
 
 The builder calls `AlignCompleteTreeRootContactToSurface` for each
 `NATIVE_TREE_*` root with `HeightAt(x,z)` and for each
@@ -334,7 +369,7 @@ The builder calls `AlignCompleteTreeRootContactToSurface` for each
 
 The current complete tree sources are:
 
-| Family | Exact prefab asset | Root-contact evidence |
+| Family | Exact prefab asset | Trunk-submesh evidence |
 | --- | --- | --- |
 | pine 10 | `Assets/OperatorNativeAssets/UkrainianPineCandidate/Prefabs/Pine_var10_LOD0.prefab` | root `CapsuleCollider`; combined renderer slots are `Pine_Needle`, `pine_bark`, and `Trunk_pine_var4` |
 | pine 11 | `Assets/OperatorNativeAssets/UkrainianPineCandidate/Prefabs/Pine_var11_LOD0.prefab` | native lower-trunk collider; same three combined-renderer material slots |
@@ -342,15 +377,17 @@ The current complete tree sources are:
 | field oak 4 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_4.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_4_Mat` |
 | field oak 5 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_5.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_5_Mat` |
 
-Do not use the bottom of the native trunk capsule as the visible root datum.
-These collision shapes can extend below the modeled roots and raise the tree
-when their hidden bottom is placed at grade. Keep them for gameplay collision.
+Do not use the bottom of the native trunk capsule or the combined-renderer
+minimum as the trunk datum. A collider can extend below the model. A low leaf
+card or branch can be below the root system. Keep collision shapes for
+gameplay, and use only the selected bark/trunk submesh vertices for placement.
 
 The map companion uses `AlignStandaloneAuthoredTreesToTerrain` after the
-reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight`, uses
-the same `0.12 m` root embed, `0.75` above-ground fraction, and `12 m` limit,
-calls `Physics.SyncTransforms`, and logs aligned, rejected, minimum-fraction,
-and largest-correction values. Runtime repair processes only the 96
+reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight`, moves
+each root by `groundY - marker.position.y`, enforces the `0.75` complete-tree
+above-ground fraction and `12 m` limit, calls `Physics.SyncTransforms`, and
+logs aligned, missing-datum, rejected, minimum-fraction, and
+largest-correction values. Runtime repair processes only the 96
 collision-enabled `NATIVE_TREE_*` roots. The deterministic Unity build owns
 the 180 render-only `NATIVE_PERIMETER_TREE_*` roots because their colliders are
 disabled after authoring. Runtime child traversal uses
@@ -423,7 +460,7 @@ own map-specific reconstruction:
 | `GroundLateNetworkPlayerObjectInstance` | Resolve the current standalone root for a late owned player callback. If the exact terrain-ready gate does not pass, return without moving the player. Do not use the legacy Office pre-map fallback in a standalone package scene. |
 | `GroundAirbornePlayerControllers` | During the bounded initial handoff, repair a known local root at the old sky pose or more than `2 m` below the sampled live surface. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
-| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable complete-tree visible rendered-root data after run-time TerrainData bind; keep native trunk collision, enforce the 0.12 m root embed, 75-percent rendered-height gate, 12 m correction limit, and typed child-index traversal. |
+| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable trees by packaged `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` after run-time TerrainData bind; keep native trunk collision, enforce the 25-percent buried-trunk contract, 75-percent complete-rendered-height gate, 12 m correction limit, and typed child-index traversal. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |
