@@ -22,9 +22,10 @@ OPERATOR, BepInEx, Il2CppInterop, or A* update.
 10. [Host player-spawn boundary](#host-player-spawn-boundary)
 11. [PVP team-spawn identity](#pvp-team-spawn-identity)
 12. [Restart and teardown](#restart-and-teardown)
-13. [Release layout](#release-layout)
-14. [Validation sequence](#validation-sequence)
-15. [Rejected shortcuts](#rejected-shortcuts)
+13. [Stationary player-camera observer QA](#stationary-player-camera-observer-qa)
+14. [Release layout](#release-layout)
+15. [Validation sequence](#validation-sequence)
+16. [Rejected shortcuts](#rejected-shortcuts)
 
 ## Ownership model
 
@@ -603,6 +604,31 @@ This bridge belongs in generic Modded Operations lifecycle code. Generic
 manifest terrain reconstruction also belongs in Modded Operations. Exact-map
 material, grounding, lighting, navigation, and marker diagnostics remain
 map-companion work. No donor scene is required.
+
+## Stationary player-camera observer QA
+
+When no human can steer the player, use a private environment-gated observer
+that enters through the real Cerberus, Confirm, and infiltration-selector
+objects. Keep the owned player stationary. Require its real
+`PlayerSpawnedObject`, package spawn, declared Cinemachine camera, retail
+output camera, mode actors, and exact scene. A free camera or forced scene is
+not equivalent gameplay evidence.
+
+Select one exact immutable operation ID from the frozen catalog. Do not select
+only the first operation with a matching mode. Refuse an absent ID or a
+mode/ID mismatch. Bound the observation time. Use at least 122 seconds when
+the profiled AI snapshots through 120 seconds are required.
+
+The private launcher must refuse an already-running OPERATOR process. Record
+the executable path, process ID, and start time for every controlled process.
+On timeout, use a graceful close first and act only on an exact recorded
+process. Collect and hash the initial and restart screenshots, BepInEx logs,
+and observer trace. Remove the driver, control files, capture directory, and
+process settings after the run. Never include them in a release archive.
+
+Programmatic live-UI event invocation can prove unattended lifecycle and
+rendering. It does not replace a physical-pointer test when the click surface
+itself changed.
 
 ## Release layout
 

@@ -1061,3 +1061,32 @@ for the complete authoring, native-application, foliage, logging, and test
 procedure. Use
 [`operator-map-package-v2.schema.json`](schemas/operator-map-package-v2.schema.json)
 for the machine-readable contract.
+
+## Private unattended observer method
+
+Use a private stationary player-camera observer when no human can steer the
+player during QA. The observer must not force a scene or create a free camera.
+It must enter Lone Wolf, access the player-owned `MissionLaptop`, open the real
+Cerberus window and MODDED OPS tab, select one exact immutable operation ID,
+press Execute and Confirm, and confirm the shipped infiltration selector.
+
+After the exact additive scene loads, require the real owned
+`PlayerSpawnedObject`, declared package spawn, Cinemachine player camera,
+retail output camera, native readiness, and mode-correct actor population.
+Keep the player stationary. Capture the initial player-camera result. Then
+call the shipped Restart Operation path and repeat every gate for the new
+scene generation.
+
+The launcher must refuse an existing OPERATOR process and record the exact
+path, process ID, and start time for each process that it creates. It must
+bound the observation time, hash all logs/traces/screenshots, and remove its
+driver, control files, capture directory, and process settings after the game
+exits. Use at least a 122-second hold for an AI profile that records through
+120 seconds. A shorter run proves only the gates that it reached.
+
+This driver is QA code. Do not put it in the package directory, framework
+archive, map archive, or end-user installation. Programmatic live-UI event
+invocation does not replace a physical-pointer test when the UI click surface
+itself changed. See
+[Validation and release](docs/07-validation-and-release.md) for the exact
+sequence and evidence record.
