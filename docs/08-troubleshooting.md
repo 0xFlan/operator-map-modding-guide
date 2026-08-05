@@ -26,7 +26,8 @@
 | Double sun or odd shadows | scene light hierarchy, controller ownership, mod-created lights | lighting ownership |
 | Different red dot/laser | player-camera exposure, tone map, bloom, optic camera/custom pass | environment stack |
 | Works in editor but not game | bundle platform/version, installed shader availability, IL2CPP object validity | runtime integration |
-| Exact scene loads as brown/flat terrain | live scene path, active proxy/error shaders, texture closure, companion activation | map-owned material reconstruction |
+| Brown proxy flashes before the detailed map | native loading canvas `activeSelf` and `activeInHierarchy`; exact call order in `OnSceneLoaded` | call shipped `GameManagerNetwork.ShowLoadingScreen()` before terrain/material preparation; let native readiness hide it |
+| Exact scene remains brown/flat after readiness | live scene path, active proxy/error shaders, texture closure, companion activation, shared live `TerrainData` | map-owned material and terrain reconstruction |
 | Enemies appear and fall vertically | resident scanned graph, every enemy/HVT marker height, tight ground delta, on-graph result | map-owned navigation/marker grounding |
 | Enemies spawn beyond the barrier | gameplay-wall bounds versus visual terrain apron, marker coordinates/clearance, graph centre/dimensions | map-owned markers and companion navigation bounds |
 | Too many or too few PVE enemies | package `minEnemies`/`maxEnemies`, valid marker count, host selection log | package population contract and generic adapter |
@@ -50,6 +51,32 @@ Do not fix a symptom by adding unrelated geometry, light, or shaders with an
 unrelated rendering contract.
 Trace it to the narrowest responsible layer, add a regression check, and
 record what evidence ruled out the alternatives.
+
+## Brown proxy decision procedure
+
+Use this order. Do not change bundles until the evidence selects the bundle.
+
+1. Confirm the exact scene path in the log.
+2. Confirm that `GameManagerNetwork.ShowLoadingScreen()` ran before
+   `TryPrepareRuntimeTerrain` or the map companion's material repair.
+3. Read `LoadingScreen.activeSelf` and `activeInHierarchy`. Both must be
+   `true` at this boundary.
+4. Ignore `LoadingScreenVisible` as a canvas-state probe on the supported
+   build. Its RVA `0x0091A840` getter returns `_hideLoadingScreenSoon` at
+   offset `0x2A4`.
+5. If the brown world was visible only before readiness, fix presentation
+   ownership. The portable proxy is expected cargo, but the player must not
+   see it.
+6. If the brown world remains visible after readiness, count active renderers
+   that use portable or error shaders. Confirm that `Terrain` and
+   `TerrainCollider` share the same live `TerrainData`. Then inspect texture
+   closure and native property destinations.
+7. Confirm the world-contract line. Ukrainian Forest requires
+   `portableOrErrorShaderRenderers=0` and `valid=True`.
+
+The supported-build vanilla pair is `ShowLoadingScreen` RVA `0x00916210` and
+`HideLoadingScreen` RVA `0x0090E950`. Use the shipped pair. Do not create a
+map-owned loading overlay.
 
 A marker being on a scanned node does not prove that it is inside the playable
 combat volume. Check wall containment before grounding or navigation. Likewise,

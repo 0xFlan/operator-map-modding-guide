@@ -52,8 +52,9 @@ Read [references/implementation-locators.md](references/implementation-locators.
     root `BrainAI`, root `NetworkIdentity`, enabled weapon spawning, and a
     non-empty weapon list. Create bots through
     `RaidManager.ServerSpawnAI(false)`, not a one-argument manual network spawn.
-    Keep these current candidate rules at `PROVEN-STATIC` until a physical
-    first Confirm and reciprocal firearm test pass.
+    The current first Confirm path is `PROVEN-RUNTIME` for the pinned
+    single-player Forest scope. Reciprocal firearm behavior remains a separate
+    gate.
 12. Define navigation and AI markers from the authoritative playable physics
     and bullet-interaction volume, never a larger render-only terrain/scenery
     apron. The map/package owns marker coordinates; the exact-scene companion
@@ -70,6 +71,9 @@ Read [references/implementation-locators.md](references/implementation-locators.
     then activate only authored sight-collider children with exact layer,
     trigger, count, collision-matrix, and bullet-mask evidence. Never make the
     generic framework synthesize map-specific sight geometry or change PVP.
+    Require one enabled `Pathfinding.RVO.RVOSimulator` with the map-scoped
+    `AstarPath`. Measure BOT V2 displacement through `BrainAI.agent.position`,
+    not the stationary root `BrainAI.transform.position`.
 13. Treat normal `DoorV2` objects as authored map/building prefab content. Import an authorized complete source prefab with its original `.meta` and all dependencies, preserve its pivot, physics sync, paired handles, FinalIK objects, damage parts, navigation cut, and both A* links, and let normal scene and Mirror lifecycle initialize it. Do not spawn the normal door graph from a companion. Some AssetRipper exports lose custom fields; reject those damaged exports. Keep run-time cloning or component reconstruction experimental. Preserve serialized dead fields unless the game developer migrates the existing prefab data.
     Run `templates/Editor/ValidateDoorV2Prefab.cs` before the map build. Its
     serialized graph checks are necessary but not sufficient: A* endpoint
@@ -122,7 +126,7 @@ Read [references/implementation-locators.md](references/implementation-locators.
     map-scoped borrower API can return an exact asset, but require a live probe
     for the concrete asset type before a release depends on it. Modded
     Operations `0.3.17` plus Forest `0.4.12` returned null for all three raw
-    pine `TextAsset` requests. Forest `0.4.15` instead resolves the exact
+    pine `TextAsset` requests. Forest `0.4.17` instead resolves the exact
     resident compiled shaders and binds portable proxy textures to the real
     shader property names. Treat the generic borrower as `PROVEN-STATIC`, not
     `SUPPORTED`, until the concrete requested type passes live. Only the
@@ -138,12 +142,19 @@ Read [references/implementation-locators.md](references/implementation-locators.
     5, bloom `.03`, and lens-flare intensity `.5`. The rejected bright PVP
     donor used 52,241.375 lux, bloom `.359`, and lens flare `1`.
     Make one component the process-global render owner. In the current system,
-    the package selects `native-outdoor-v1`, Modded Operations `0.3.19`
+    the package selects `native-outdoor-v1`, Modded Operations `0.3.20`
     applies and restores the sun/Volume/NVG transaction, the package owns the
     verified LUT, and the map companion does not install a second global
     Volume. At 02:00, require white phosphor across all tubes and visible world
     detail outside the brighter ECOTI channel.
-20. For a public mod repository, publish the complete authored source and a
+20. At the exact additive-scene boundary, call the shipped
+    `GameManagerNetwork.ShowLoadingScreen()` before terrain or material
+    preparation. On the supported build, the method is at RVA `0x00916210`
+    and the native hide method is at RVA `0x0090E950`. Verify
+    `LoadingScreen.activeSelf` and `activeInHierarchy`; the
+    `LoadingScreenVisible` getter returns `_hideLoadingScreenSoon` and is not
+    the canvas-state probe. Let `GameManagerNetwork` own the hide transition.
+21. For a public mod repository, publish the complete authored source and a
     hash-pinned decompiler snapshot of each final mod DLL. Record the DLL
     version, bytes, SHA-256, and decompiler version. Represent each omitted
     authorized or large asset with an explicit bracketed record such as

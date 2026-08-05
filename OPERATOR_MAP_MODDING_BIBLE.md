@@ -25,7 +25,7 @@ This document uses the language and evidence rules in
 ## 1. Scope and status
 
 The current method has strong static and bounded runtime evidence. Forest
-`0.4.15` and Modded Operations `0.3.18` have accepted local first launch,
+`0.4.17` and Modded Operations `0.3.20` have accepted local first launch,
 one-click Confirm, 11:00 daylight, pine surface, tree contact, unload, Lone
 Wolf re-entry, repeat launch, above-terrain repeat spawn, and 02:00
 white-phosphor NVG results. The 2026-08-04 bounded runtime test also accepts
@@ -44,6 +44,11 @@ The current first-Confirm owner retention, repeat-launch player recovery,
 same-process KIA restart, deterministic network game-mode identity, tree root
 contact, and local render transaction are `PROVEN-RUNTIME` for the tested
 single-player scope.
+The Forest-only `dense-forest-balanced-v1` behavior is also
+`PROVEN-RUNTIME` for one first launch and one same-process native restart. The
+two accepted 120-second runs created 13 and 12 bots, preserved positive native
+wander delays, moved 12 bots in each run, moved 4 and 6 bots toward insertion,
+and recorded authored vegetation sight obstruction.
 Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
 damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
 
@@ -482,6 +487,7 @@ Core validates and freezes packages
 -> Confirm joins that request or uses the same-content cache
 -> framework verifies dependency bundles in manifest order
 -> framework verifies and loads the exact scene bundle and scene path
+-> framework enters the shipped GameManagerNetwork loading presentation
 -> companion verifies exact package, map, operation, scene, and build identity
 -> framework reconstructs manifest-declared TerrainData and validates walkable collision
 -> companion repairs exact-map materials, navigation, grounding, and interactives
@@ -496,6 +502,27 @@ Core validates and freezes packages
 
 A scene-loaded callback is not a world-ready signal. Do not use an arbitrary
 frame delay as the authoritative readiness contract.
+
+On the supported build, use `GameManagerNetwork.ShowLoadingScreen` at RVA
+`0x00916210` when the exact additive package scene enters. Vanilla
+`OnAllPlayersLoaded(false)` uses this method. It activates the shipped canvas,
+freezes the current player body, clears velocity, and closes infiltration UI.
+Call it before terrain or material preparation. Keep the matching
+`HideLoadingScreen` RVA `0x0090E950` transition under native
+`GameManagerNetwork` ownership.
+
+This call closes the one-frame gap before the replacement package `GameMode`
+can assert the native readiness barrier. Without the call, the camera can show
+the portable brown proxy. Validate the actual canvas through
+`LoadingScreen.activeSelf` and `activeInHierarchy`. The property named
+`LoadingScreenVisible` is not the canvas state on this build. Its getter at
+RVA `0x0091A840` returns `_hideLoadingScreenSoon` at offset `0x2A4`.
+
+Large verified packages can remain slower than vanilla maps on a cold load.
+The Forest package reads `647869804` bytes across two bundles. Its
+`630271199`-byte dependency measured about 23 seconds on a cold read. Retail
+maps can use already resident installed content. Do not remove verification
+or show the proxy to hide this difference.
 
 ## 16. Mission-laptop UI contract
 
@@ -653,16 +680,19 @@ A scene bundle does not prove that a live A* graph exists.
 The exact-scene companion MUST:
 
 1. Resolve or create one map-scoped `AstarPath` service.
-2. Add the verified installed graph type.
-3. Set dimensions from the playable physics and bullet-interaction volume.
-4. Configure slope, step, erosion, neighbor, corner, height, and obstacle
+2. Resolve or add one enabled `Pathfinding.RVO.RVOSimulator` on the same host.
+   The shipped `FollowerEntity` movement component requires this service.
+3. Add the verified installed graph type.
+4. Set dimensions from the playable physics and bullet-interaction volume.
+5. Configure slope, step, erosion, neighbor, corner, height, and obstacle
    rules from measured actor limits.
-5. Restore each temporary scan-layer change in a `finally` block.
-6. Scan the exact map-owned graph.
-7. Reject an outside marker before nearest-node lookup.
-8. Limit horizontal correction.
-9. Use a tight local ground test.
-10. Require `AstarPath.IsPointOnNavmesh` for every mission marker class.
+6. Restore each temporary scan-layer change in a `finally` block.
+7. Scan the exact map-owned graph.
+8. Reject an outside marker before nearest-node lookup.
+9. Limit horizontal correction.
+10. Use a tight local ground test.
+11. Require `AstarPath.IsPointOnNavmesh` for every mission marker class.
+12. Reject readiness if `RVOSimulator.active` is null or disabled.
 
 Apply this contract to enemies, HVTs, bosses, reinforcements, and each other
 role that the operation can create.
@@ -684,6 +714,12 @@ Create generic PVE actors through the shipped owner-aware
 root `BrainAI`, root `NetworkIdentity`, enabled weapon spawning, and a
 non-empty weapon list. Do not use a one-argument manual network spawn. A
 working grenade does not prove a working firearm owner.
+
+The supported `BOT V2` prefab stores `BrainAI` and `NetworkIdentity` on the
+root. Its `SK_Insurgent_P8` child stores `AgentController` and the enabled
+`FollowerEntity`. The root can remain stationary while the rendered bot and
+navigation entity move. Read `brain.agent.position` for displacement. Do not
+use `brain.transform.position` as the movement acceptance metric.
 
 Test representative routes. Record each start, goal, path result, path length,
 and failed segment.
@@ -972,7 +1008,7 @@ and mark their status clearly.
 
 ## 29. Fixed PVE AI and foliage sight contract
 
-Operator Mod API `0.2.0-alpha.3` and Modded Operations `0.3.19` add schema
+Operator Mod API `0.2.0-alpha.3` and Modded Operations `0.3.20` add schema
 version 2. A schema-v2 PVE operation can declare one immutable
 `pveAiProfile`. Schema v1 and PVP reject it. The framework adds no difficulty
 UI and makes no global AI change.
@@ -1001,19 +1037,22 @@ invisible movement or ballistic wall.
 The Ukrainian Forest worked candidate uses a 70 by 140 m playable volume,
 78.87 m nearest solo enemy gap, 45 m detection, 90-degree FOV, preserved
 native effective range, 38 m delayed native wander, communications on,
-counter-suppression off, and 274 authored barberry triggers on layer 18,
-`AI_VisionBlock`. PVP omits the profile. The implementation and static tests
-are `PROVEN-STATIC`. Physical first-run and repeat-run AI behavior remains the
-acceptance gate.
+counter-suppression off, and 183 authored barberry triggers on layer 18,
+`AI_VisionBlock`. The exact split is 79 direct plus 104 perimeter. The source
+scene contains 118 direct and 156 perimeter bushes because the placement
+cycle also includes 91 Juniper instances. Those Junipers do not ship the
+native inactive `AI Collider` child and must not receive a synthetic one. PVP
+omits the profile. The implementation, first launch, and same-process restart
+are `PROVEN-RUNTIME` for this exact Forest scope.
 
 For each PVE operation that has a profile, Modded Operations tracks only the
 new `BrainAI` IDs created by its native population call. It records the live
 `WanderTimer * Patience` and profile destinations. It then records movement,
 movement toward insertion, native target/state fields, and same-mask sight
 probes at 0, 10, 30, 60, 90, and 120 seconds. The gate is the presence of the
-profile. It does not contain a worked-example map ID. These reports strengthen
-runtime evidence but do not replace physical search, occlusion, acquisition,
-and reciprocal firearm tests.
+profile. It does not contain a worked-example map ID. These reports provide
+the accepted physical search and foliage-obstruction evidence for the tested
+Forest scope. Reciprocal firearm damage remains a separate gate.
 
 Use [AI navigation, routes, and behavior](docs/11-ai-navigation-and-behavior.md)
 for the complete authoring, native-application, foliage, logging, and test

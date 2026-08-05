@@ -5,10 +5,9 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The identities came from the version `0.3.17` package manifest and the
-current framework and companion source. The listed bundles predate the
-current `0.4.15` PVP-Woods lighting authoring update. Rebuild them before a
-release. A new build can have different byte counts and SHA-256 values.
+status. The identities came from the version `0.3.19` package manifest and the
+current framework and companion source. The two bundles are the accepted
+Forest `0.4.17` payloads. Rebuild and rehash them after an authoring change.
 
 ## Path tokens
 
@@ -132,7 +131,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.17` value |
+| Field | Version `0.3.19` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -156,9 +155,9 @@ The exact emitted package files had these manifest records:
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.17` values into a different archive. The two bundle values
-above are the last emitted pre-`0.4.15` payload identities. They are not final
-release identities for the updated builder.
+these version `0.3.19` values into a different archive. The current external
+validator and live Forest `0.4.17` world contract accept the two bundle values
+above.
 
 ## Ukrainian Forest operation records
 
@@ -458,19 +457,17 @@ unload.
 Do not apply the day `AgX - Powerful` external LUT or the PVP-Woods day
 exposure limits `8.5..11` to this night source.
 
-The package selects `native-outdoor-v1`. Modded Operations `0.3.18` is the
+The package selects `native-outdoor-v1`. Modded Operations `0.3.20` is the
 single process-global render owner. `ApplyStandaloneRenderContract` applies
 the day or night values, loads the package-verified LUT for day only, selects
 white phosphor for 02:00, logs every selected control, and restores its prior
-state during reverse teardown. Forest `0.4.15` owns scene reconstruction and
+state during reverse teardown. Forest `0.4.17` owns scene reconstruction and
 the LUT payload. It does not install a competing global Volume.
 
-The exact accepted framework DLL is 151,552 bytes with SHA-256
-`71F21527FF959DBCF3C7AD1894937F56A9D931E0BF1A6B038C857249861A745C`.
-The mod repository publishes both its authored source and an ILSpy
-`10.1.1.8388` snapshot under `decompiled/release-0.3.18`. The archived
-`0.3.17` snapshot contains the rejected 52,241.375-lux day value and is not a
-current instruction source.
+The mod repository publishes authored source and an ILSpy `10.1.1.8388`
+snapshot under `decompiled/release-0.3.20`. Read the matching release checksum
+file for the exact DLL hash. Archived snapshots can contain rejected behavior
+and are not current instruction sources.
 
 ## Framework and companion source locators
 
@@ -483,6 +480,7 @@ standalone flow:
 | `BuildPackageInfiltrationMapPrefab` | Build the native selector presentation for a package operation. |
 | `BeginSelectedMapPrefetch` | Start one bounded selected-map dependency and scene-bundle load after row selection. |
 | `BeginCatalogOperationLaunch` | Capture the selected operation and exact player-owned laptop before asynchronous package I/O. |
+| `ShowNativeLoadingScreenForPackageScene` | Enter shipped `GameManagerNetwork.ShowLoadingScreen` before additive-scene terrain/material preparation. |
 | `ProcessPendingLaunch` | Load one verified bundle request at a time, reject role/scene violations, and continue a waiting Confirm automatically. |
 | `RestoreCapturedLaunchLaptop` | Restore only the captured `playerNetworking` field when the same laptop released it during loading. |
 | `SetNativeConfirmationLoadingState` | Keep the private modal visible and non-interactable until loading succeeds or fails. |
@@ -521,7 +519,7 @@ own map-specific reconstruction:
 | `GroundAirbornePlayerControllers` | During the bounded initial handoff, repair a known local root at the old sky pose or more than `2 m` below the sampled live surface. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
 | `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable trees by packaged `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH` after run-time TerrainData bind; sample its stored contact X/Z, keep native trunk collision, enforce the family-aware reference, 75-percent complete-rendered-height gate, 12 m correction limit, and typed child-index traversal. |
-| `LoadVerifiedRawPineMaterialAsset` | Rejected `0.4.12` experiment retained for forensic comparison. The active `0.4.15` pine path does not use it. |
+| `LoadVerifiedRawPineMaterialAsset` | Rejected `0.4.12` experiment retained for forensic comparison. The active `0.4.17` pine path does not use it. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |

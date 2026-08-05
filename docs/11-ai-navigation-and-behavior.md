@@ -4,9 +4,9 @@ Status: `SUPPORTED` for a current-build map-owned A* `GridGraph` and generic
 native PVE actor flow. Re-check the installed A* and game interop after each
 update.
 
-The owner-retention and owner-aware firearm-population corrections described
-below are `PROVEN-STATIC` for the current candidate. Keep them below
-`SUPPORTED` until one physical first Confirm and reciprocal firearm test pass.
+The owner-retention path and Forest search profile are `PROVEN-RUNTIME` for
+the current single-player first launch and native restart. Reciprocal firearm
+damage remains a separate acceptance gate.
 
 ## Use the native AI stack
 
@@ -45,17 +45,24 @@ Use this current-build sequence:
 1. Call `AstarPath.FindAstarPath()`.
 2. Reuse a service only when exact-scene ownership is compatible.
 3. Otherwise create one map-scoped host and add `AstarPath`.
-4. Require `astar.data`.
-5. Remove only a previous graph that the companion owns.
-6. Add a graph with
+4. Resolve or add one enabled `Pathfinding.RVO.RVOSimulator` on the same
+   host. Require `RVOSimulator.active`.
+5. Require `astar.data`.
+6. Remove only a previous graph that the companion owns.
+7. Add a graph with
    `astar.data.AddGraph(Il2CppType.Of<GridGraph>())`.
-7. Convert the wrapper with `TryCast<GridGraph>()`.
-8. Set center, rotation, aspect, node size, width, and depth.
-9. Call `GridGraph.SetDimensions(width, depth, nodeSize)`.
-10. Configure slope, step, erosion, neighbors, corner policy, height sampling,
+8. Convert the wrapper with `TryCast<GridGraph>()`.
+9. Set center, rotation, aspect, node size, width, and depth.
+10. Call `GridGraph.SetDimensions(width, depth, nodeSize)`.
+11. Configure slope, step, erosion, neighbors, corner policy, height sampling,
     ground requirement, and obstacle collision.
-11. Call `astar.Scan(graph)` for the exact graph.
-12. Record graph ownership, center, dimensions, node size, and scan result.
+12. Call `astar.Scan(graph)` for the exact graph.
+13. Record A*, RVO, graph ownership, center, dimensions, node size, and scan
+    result.
+
+Vanilla `level16` stores `AstarPath` and an enabled `RVOSimulator` on its
+`Astar Navmesh` GameObject. The shipped `BOT V2` uses `FollowerEntity`, so a
+valid graph without RVO can still leave every bot stationary.
 
 Measure all values from the map traversal contract. Do not copy graph
 dimensions from a visually similar map.
@@ -156,8 +163,13 @@ contact inside intended routes. Validate the result in the physical camera;
 geometry is a tuning input, not final proof.
 
 The current `RaidManager.ApplyBotSpawnSettings` copies detection range, FOV,
-communications, counter-suppression, effective range except `-1`, and wander
-distance except `-1` to the native bot. It does not consume marker
+communications, counter-suppression, effective range except `-1`, wander
+distance except `-1`, and `BotSpawnDetails.idleState` to the native bot. The
+last field is essential: it writes marker offset `0x20` to
+`BrainAI.idleStates` offset `0x2D4`. Native `BrainAI.UpdateStateMachine` calls
+`Wander(dt)` only when `CurrentState` is `Idle` and `idleStates` is `Wander`.
+A nonzero radius with the default `Idle` substate produces no movement. Set
+the substate only for the profiled PVE operation. It does not consume marker
 `DetectionTimeMultiplier` or `HearingRange` in the pinned build. Use `-1` for
 maximum effective range when the map must preserve the selected native AI
 prefab's value.
@@ -183,23 +195,27 @@ exact name, layer, collider type, authored count, and active count. Keep it a
 trigger. Verify the collision matrix and bullet mask before use. Do not add an
 invisible movement or projectile wall. Do not enable the contract globally.
 
-Ukrainian Forest is the worked example. It requires 118 direct plus 156
-perimeter barberry blockers, for 274 total. Its playable volume is 70 by
+Ukrainian Forest is the worked example. It contains 118 direct and 156
+perimeter bushes. Its deterministic Barberry 2, Barberry 3, Juniper cycle
+produces 79 direct plus 104 perimeter native barberry blockers, for 183 total.
+The remaining 91 Junipers have no native inactive `AI Collider` child. Do not
+add a synthetic blocker to them. Its playable volume is 70 by
 140 m. The nearest solo enemy gap is 78.87 m. Its 38 m wander radius is less
 than half of that gap, 39.44 m. Its fixed 45 m range and 90-degree FOV are a
 map-owned PVE profile. The PVP operation omits it.
 
 Log the profile ID and every applied value. Log authored and active sight-
-blocker counts and the exact layer. Keep the evidence `PROVEN-STATIC` until a
-first launch and same-process repeat launch prove search timing, foliage
-occlusion, believable acquisition, and reciprocal firearm damage.
+blocker counts and the exact layer. The first launch and same-process native
+restart are `PROVEN-RUNTIME` for search timing, displacement, movement toward
+insertion, and authored foliage obstruction. Reciprocal firearm damage remains
+a separate gate.
 
-Modded Operations `0.3.19` starts one bounded read-only diagnostic when a PVE
+Modded Operations `0.3.20` starts one bounded read-only diagnostic when a PVE
 operation has `pveAiProfile`. It does not use a map ID. It records only the
 new `BrainAI` instances added by the package's native
 `RaidManager.ServerSpawnAI(false)` call. It reports the live
-`WanderTimer * Patience`, detection range, FOV, wander distance, and
-communications state. It then reports movement and same-mask sight probes at
+`WanderTimer * Patience`, detection range, FOV, wander distance, the live
+`idleWander` count, and communications state. It then reports movement and same-mask sight probes at
 0, 10, 30, 60, 90, and 120 seconds.
 
 Require these two log prefixes:
@@ -215,6 +231,12 @@ hit is vegetation geometry evidence. `actualSeenTarget` comes from
 proof that the bot acquired or forgot the player. Do not treat movement alone
 as proof of a believable route. Review the physical camera and test firearms
 in both directions.
+
+The shipped `BOT V2` hierarchy keeps `BrainAI` and `NetworkIdentity` on the
+network root. Its `SK_Insurgent_P8` child keeps `AgentController` and the
+enabled `FollowerEntity`. The root can remain still while the native entity
+moves. Measure displacement from `brain.agent.position`; do not use
+`brain.transform.position`.
 
 ## Route authoring
 

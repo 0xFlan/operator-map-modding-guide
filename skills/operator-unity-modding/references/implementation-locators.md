@@ -18,9 +18,9 @@ drive-specific workspace, a private log, or a private test control.
 ## Generic framework
 
 - Assembly: `OperatorModdedOperations.dll`.
-- Current candidate version: `0.3.19`.
-- Current Release binary: 159,232 bytes; SHA-256
-  `257F5449463BF2D2E2BD71CBC3AEA513A1788E882578CA98B631FB70E2EB1F25`.
+- Current version: `0.3.20`.
+- Build the exact Release binary from the current source. Verify its hash
+  against the release archive checksum file.
 - Current source file: `CerberusNativeTabFix.cs`.
 - Install directory:
   `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
@@ -33,6 +33,12 @@ drive-specific workspace, a private log, or a private test control.
 - Confirm capture: `BeginCatalogOperationLaunch` and `PendingMapLaunch`.
 - Confirm owner repair: `RestoreCapturedLaunchLaptop`.
 - Confirm loading state: `SetNativeConfirmationLoadingState`.
+- Additive-scene native loading gate:
+  `ShowNativeLoadingScreenForPackageScene` calls
+  `GameManagerNetwork.ShowLoadingScreen()` before runtime terrain/material
+  preparation. Verify `LoadingScreen.activeSelf` and `activeInHierarchy`.
+  `LoadingScreenVisible` returns `_hideLoadingScreenSoon` on the supported
+  build and is not the canvas-state probe.
 - Verified dependency-asset loan:
   `LoadVerifiedMapDependencyAsset<T>(mapId, assetPath)`. The framework keeps
   bundle ownership and unload responsibility. This generic cross-plugin path
@@ -79,6 +85,9 @@ drive-specific workspace, a private log, or a private test control.
 - The snapshot reads live `WanderTimer * Patience`, movement, movement toward
   insertion, `CurrentSeenTarget`, `CurrentState`, and
   `EyesAI.DetectionLayerMask`. It writes no AI field.
+- Native bot movement probe: `GetProfiledPveNavigationPosition` reads
+  `BrainAI.agent.position` from the `AgentController` child. Do not read the
+  stationary `BrainAI` root transform.
 - Required Operator Mod API: `0.2.0-alpha.3`.
 - Lifecycle release: `ReleaseStandaloneSceneContracts` and
   `ReleaseStandaloneGameMode`; release captures `BootstrapAssetId` and removes
@@ -95,7 +104,7 @@ that more than one package can select.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.18`.
+- Package: `community.ukrainian-forest`, version `0.3.19`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
@@ -130,14 +139,16 @@ that more than one package can select.
 - Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
-- Companion candidate version: `0.4.16`.
-- Current companion Release binary: 297,472 bytes; SHA-256
-  `1B93F389137EEB003A37FF3DAB30B11DC21B159D0D4FD5A78E25BA6393407D7D`.
+- Companion version: `0.4.17`.
+- Build the exact Release binary from the current source. Verify its hash
+  against the release archive checksum file.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
 - Exact-scene entry: `ProcessStandalonePackageScene`.
 - Forest sight activation: `ConfigureForestVegetationVisionBlockers`; exactly
-  118 direct plus 156 perimeter `AI Collider` triggers on layer 18
-  `AI_VisionBlock`, for 274 total.
+  79 direct plus 104 perimeter `AI Collider` triggers on layer 18
+  `AI_VisionBlock`, for 183 total. The source scene has 118 direct and 156
+  perimeter bushes, but 91 of them are Juniper instances without the native
+  blocker child. Never invent a blocker for those Junipers.
 - Navigation owner: `EnsureStandaloneNavigationGraph`.
 - Bounds gate: `IsInsideForestPlayableBounds`.
 - World audit: `LogStandaloneWorldContract`.
@@ -158,7 +169,7 @@ that more than one package can select.
   `Normal_vegetation`, and `mask_vegetation`. The opaque state uses exact
   hashed `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`, and
   `Vector1_813F3AD6` values plus `_Wetness_sm=0`, `_Vertex_AO_sm=0`, and
-  `_cutoff=.25`. The active `0.4.15` path does not depend on raw-TextAsset
+  `_cutoff=.25`. The active `0.4.17` path does not depend on raw-TextAsset
   borrowing.
 - Exact day donor: `sharedassets11.assets`, `PVP Woods Warehouse`, `Nice Sun`
   GameObject path `5150`, Transform path `14228`, Light path `41512`, and

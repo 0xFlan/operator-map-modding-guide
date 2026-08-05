@@ -171,6 +171,12 @@ after the batch. The builder owns render-only perimeter-tree grounding.
 A scene AssetBundle does not prove that the standalone session has a resident
 `AstarPath` service or a scanned graph. Navigation is live runtime state.
 
+The graph host also needs the native RVO service. Vanilla `level16` stores an
+enabled `Pathfinding.RVO.RVOSimulator` with `AstarPath` on `Astar Navmesh`.
+The shipped `BOT V2` uses `FollowerEntity` on its moving model child. A graph
+without an active RVO simulator can accept markers while every bot remains
+stationary.
+
 For the current installed A* IL2CPP surface, the validated shape is:
 
 1. Call `AstarPath.FindAstarPath()` and reuse a compatible target-scene service
@@ -189,6 +195,8 @@ For the current installed A* IL2CPP surface, the validated shape is:
    sampling, ground requirement, and capsule/obstacle collision from the map's
    measured traversal contract.
 7. Scan the specific graph with `astar.Scan(graph)`.
+8. Resolve or add an enabled `RVOSimulator` on the same host and require
+   `RVOSimulator.active` before actor readiness.
 
 When OPERATOR layers cannot be authored portably, a temporary scan layer is
 valid only as a scoped transaction:
@@ -272,6 +280,12 @@ inspection shows that it uses owner-aware
 `BotSpawnDetails`. Keep this claim at `PROVEN-STATIC` until reciprocal firearm
 damage passes. A grenade result is not sufficient.
 
+The shipped `BOT V2` prefab keeps `BrainAI` and `NetworkIdentity` on its
+network root. Its `SK_Insurgent_P8` child keeps `AgentController` and the
+enabled `FollowerEntity`. The root can remain stationary while the moving
+entity searches. Measure displacement with `brain.agent.position`, not
+`brain.transform.position`.
+
 Log actual/expected counts and fail closed. Do not reduce the contract to
 “sceneLoaded fired” or “there is a terrain somewhere.”
 
@@ -293,8 +307,12 @@ Apply the profile to each `BotSpawnDetails` before
 `RaidManager.ServerSpawnAI(false)`. Current native
 `RaidManager.ApplyBotSpawnSettings` transfers detection range, FOV,
 communications, counter-suppression, effective range except `-1`, and wander
-distance except `-1`. It does not consume marker `DetectionTimeMultiplier` or
-`HearingRange` on the pinned build. `BrainAI.Wander` preserves its prefab
+distance except `-1`. It also copies `BotSpawnDetails.idleState` to
+`BrainAI.idleStates`. A wander distance alone does not cause movement. Set
+the profiled PVE marker substate to `BrainAI.IdleStates.Wander`; native
+`BrainAI.UpdateStateMachine` calls `Wander(dt)` only for that substate. It
+does not consume marker `DetectionTimeMultiplier` or `HearingRange` on the
+pinned build. `BrainAI.Wander` preserves its prefab
 `WanderTimer * Patience` delay and then chooses around the current position;
 repeated choices can expand a search.
 
@@ -314,13 +332,17 @@ collider type, and trigger state. Require exact authored and active counts.
 Verify the collision matrix and bullet mask so the collider does not become a
 movement or projectile wall. Do not enable it globally.
 
-The Ukrainian Forest `PROVEN-STATIC` candidate uses a 70 by 140 m playable
+The Ukrainian Forest `PROVEN-RUNTIME` profile uses a 70 by 140 m playable
 volume, 78.87 m nearest solo enemy gap, 45 m detection, 90-degree FOV,
 native-prefab effective range, 38 m wander, communications on,
-counter-suppression off, and exactly 274 authored barberry triggers on layer
-18 `AI_VisionBlock`. PVP omits the profile. Require a physical first launch
-and same-process repeat launch for search timing, foliage occlusion,
-acquisition, and reciprocal firearm acceptance.
+counter-suppression off, and exactly 183 authored barberry triggers on layer
+18 `AI_VisionBlock`: 79 from 118 direct bushes and 104 from 156 perimeter
+bushes. The repeated prefab cycle is Barberry 2, Barberry 3, then Juniper.
+Only both barberry prefabs contain the native inactive `AI Collider` child;
+the 91 Juniper instances do not. Do not synthesize Juniper blockers. PVP omits
+the profile. First launch and same-process restart accept search timing,
+movement, movement toward insertion, and authored foliage obstruction.
+Reciprocal firearm behavior remains a separate gate.
 
 ## Selected-map cold-load prefetch
 
@@ -348,6 +370,29 @@ unbounded speculative queue.
 This method moves cold I/O earlier. It does not remove the bytes. Treat it as
 `PROVEN-STATIC` until a physical row-to-Confirm run records the expected
 timings and launches once.
+
+## Native loading presentation
+
+After the exact additive scene passes identity checks, call the shipped
+`GameManagerNetwork.ShowLoadingScreen()` before terrain or material repair.
+The supported build places this method at RVA `0x00916210`. Vanilla
+`OnAllPlayersLoaded(false)` uses the same path. The method activates the
+shipped loading canvas, freezes the current player body, clears velocity, and
+closes the infiltration UI. Leave the matching hide transition at RVA
+`0x0090E950` under native `GameManagerNetwork` ownership.
+
+This call closes the one-frame gap before the replacement `GameMode` can own
+the readiness barrier. Without it, the package's portable brown proxy can be
+visible while the companion rehydrates native shaders and live `TerrainData`.
+
+For a log probe, read `LoadingScreen.activeSelf` and `activeInHierarchy`. Do
+not use `LoadingScreenVisible` as the canvas state. Its supported-build getter
+at RVA `0x0091A840` returns `_hideLoadingScreenSoon` at offset `0x2A4`.
+
+The Forest dependency and scene bundles total `647869804` bytes. Its
+`630271199`-byte dependency measured about 23 seconds on one cold load.
+Vanilla content can already be resident. Keep verification and the native
+loading presentation instead of exposing the proxy.
 
 ## Host player-spawn boundary
 

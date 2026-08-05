@@ -187,6 +187,11 @@ A large cold dependency bundle can take longer than a vanilla map because the
 base game can already have retail content resident. Prefetch moves I/O to
 selection time. It does not remove the physical byte cost.
 
+For the reference Forest package, the declared dependency and scene bundles
+total `647869804` bytes. The `630271199`-byte dependency bundle measured about
+23 seconds on one cold load. Treat this as verified content I/O, not as a
+reason to show the scene's portable proxy.
+
 ## 9. One-Confirm launch
 
 `BeginCatalogOperationLaunch` revalidates the operation/time pair. It captures
@@ -218,6 +223,22 @@ Do not call `OperationsManager.StartOperation`,
 `OnSceneLoaded` accepts only the active map's exact path/name and marker
 contract. It releases any old generation state, clears player/mode/PVE
 tracking, and schedules preparation.
+
+Before it schedules preparation, it calls the shipped
+`GameManagerNetwork.ShowLoadingScreen()` method. On the supported build, the
+method is at RVA `0x00916210`; vanilla
+`GameManagerNetwork.OnAllPlayersLoaded(false)` uses the same route. The method
+activates the shipped canvas, freezes the current player body, clears
+velocity, and closes infiltration UI. The native hide method is at RVA
+`0x0090E950` and remains owned by `GameManagerNetwork`.
+
+This call closes the additive-scene one-frame gap before the replacement
+`GameMode` can own the all-players-loaded barrier. Without it, the authored
+brown proxy can be visible before runtime material and terrain repair.
+
+Validate `LoadingScreen.activeSelf` and `activeInHierarchy`. Do not use the
+misnamed `LoadingScreenVisible` property as a canvas probe. Its supported-build
+getter at RVA `0x0091A840` returns `_hideLoadingScreenSoon` at offset `0x2A4`.
 
 `PrepareStandaloneScene` uses:
 
@@ -259,6 +280,14 @@ RepairBundleMaterials
 -> EnsureStandaloneNavigationGraph
 -> LogStandaloneWorldContract
 ```
+
+`EnsureStandaloneNavigationGraph` creates or reuses the map-scoped
+`AstarPath`. It also requires an enabled
+`Pathfinding.RVO.RVOSimulator` on the same host. Vanilla `level16` stores this
+pair on the `Astar Navmesh` GameObject. The current native `BOT V2` prefab
+keeps `BrainAI` on its stationary network root and `AgentController` plus
+`FollowerEntity` on the moving `SK_Insurgent_P8` child. Measure search motion
+from `brain.agent.position`, not `brain.transform.position`.
 
 The diagnostic is an exact-map release gate. Generic terrain and game-mode
 readiness remain framework-owned.
