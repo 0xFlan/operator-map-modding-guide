@@ -9,6 +9,7 @@ Use this reference when a task needs exact standalone artifact identities.
 - `<UNITY_PROJECT>` contains `Assets` and `ProjectSettings`.
 - `<PACKAGE_CATALOG>` contains one or more package directories.
 - `<PACKAGE_ROOT>` contains `operator-map-package.json` for one package.
+- `<PROJECT_EVIDENCE_LOG>` is the complete project BIBLE or evidence log.
 - `<USER_PROFILE>` is the operating-system user profile directory.
 
 Keep these tokens in reusable output. Do not publish a real user name, a
@@ -17,29 +18,88 @@ drive-specific workspace, a private log, or a private test control.
 ## Generic framework
 
 - Assembly: `OperatorModdedOperations.dll`.
+- Current candidate version: `0.3.18`.
+- Current Release binary: 151,552 bytes; SHA-256
+  `71F21527FF959DBCF3C7AD1894937F56A9D931E0BF1A6B038C857249861A745C`.
 - Current source file: `CerberusNativeTabFix.cs`.
 - Install directory:
   `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
 - Native selector builder: `BuildPackageInfiltrationMapPrefab`.
+- Briefing formatter: `FormatCatalogBriefing`.
+- Preview decoder/cache: `GetOrLoadPreviewSprite`.
+- Preparation/fullscreen preview binder: `ReplaceNativeMapPreview`.
 - Native launch calls: `InfilSelectorDisplayer.SpawnMap` and
   `CerebusOpboard.Start_Operation`.
+- Confirm capture: `BeginCatalogOperationLaunch` and `PendingMapLaunch`.
+- Confirm owner repair: `RestoreCapturedLaunchLaptop`.
+- Confirm loading state: `SetNativeConfirmationLoadingState`.
+- Verified dependency-asset loan:
+  `LoadVerifiedMapDependencyAsset<T>(mapId, assetPath)`. The framework keeps
+  bundle ownership and unload responsibility. This generic cross-plugin path
+  is `PROVEN-STATIC`; Forest `0.4.12` returned null for live `TextAsset`
+  requests. Require a type-specific live probe before release use.
 - Scene gate: `ValidateStandaloneSceneContract`.
+- Generic runtime terrain owner: `TryPrepareRuntimeTerrain` and
+  `ValidateWalkableGroundContract`.
 - Gameplay bootstrap: `CreateStandaloneGameplayBootstrap`.
+- Current-scene player spawn registration:
+  `ConfigureStandalonePlayerSpawnContract`.
+- First owned-player kickoff: `PlayerMaster.SpawnPlayer()`.
+- Repeat-launch host recovery:
+  `InvokeGeneratedServerPlayerSpawnBody` calls
+  `UserCode_CMDSpawnPlayer__NetworkIdentity` once after the 300-frame grace
+  period if the first kickoff did not produce a player object.
+- Owned-host request limit: two requests. The first request is the native
+  client kickoff. The second request is the generated server-body recovery.
+- Team-aware player marker selection: `SelectPlayerMarker` and
+  `PvpMarkerMatchesTeam`.
+- Native PVP owner: `StandalonePvpGameMode : PvpGameode`.
+- Deterministic network prefab asset IDs:
+  `StandalonePveGameModeAssetId = 0x4D4F5001` and
+  `StandalonePvpGameModeAssetId = 0x4D4F5002`.
+- Per-peer prefab registration: `NetworkClient.RegisterPrefab`.
+- Repeat-generation stale-entry repair:
+  `EnsureStandaloneBootstrapPrefabRegistered` removes only a fake-null entry
+  from `NetworkClient.prefabs` by the deterministic asset ID and calls
+  `NetworkClient.UnregisterSpawnHandler(assetId)` before registration.
+- Server spawn: `NetworkServer.Spawn` with the selected deterministic asset
+  ID.
+- Remote game-mode adoption: `TryAdoptNetworkSpawnedGameMode`.
+- Native PVP list/default wiring: `ConfigureStandalonePvpController`.
+- Native PVP required-reference wiring: `ConfigureStandalonePvpPresentation`.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
-- PVE creation: `TrySpawnStandalonePveEnemies`.
-- Lifecycle release: `ReleaseStandaloneGameMode`.
+- PVE creation: `TrySpawnStandalonePveEnemies` and
+  `RaidManager.ServerSpawnAI(false)`.
+- Lifecycle release: `ReleaseStandaloneSceneContracts` and
+  `ReleaseStandaloneGameMode`; release captures `BootstrapAssetId` and removes
+  its prefab/spawn-handler keys even when `BootstrapPrefabRoot` is fake-null.
+- Map-neutral render transaction: `ApplyStandaloneRenderContract`. The
+  package selects `native-outdoor-v1`; the framework owns the process-global
+  sun, HDRP Volume, white-phosphor selection, and reverse restore. The package
+  owns its verified LUT. The map companion must not install a competing global
+  Volume.
 
-The framework MUST NOT contain a map name, map coordinate, shader profile, or
-graph size.
+The framework MUST NOT contain a map name, map coordinate, map-material
+profile, or graph size. It MAY contain a named map-neutral render contract
+that more than one package can select.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.5`.
+- Package: `community.ukrainian-forest`, version `0.3.17`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
+- Dependency bundle: 630,271,199 bytes; SHA-256
+  `09679986BEC2ABD40A4FE45D2D4559E645A9C30183D6D2926D0709AF18475138`.
+- Scene bundle: 17,598,605 bytes; SHA-256
+  `EDA200913A03F478C08D70C75D0CADD91D30BFAC30D37525CA8E1F5EFC40A6FE`.
 - Scene:
   `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
+- Preview: `media/ukraine_forest_preview.jpg`, 6,385,660 bytes, SHA-256
+  `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255`.
+- Verify these bundle identities against the current `files[]` records before
+  release. Unity `6000.3.8f1` emitted them after the PVP-Woods lighting
+  authoring change, and both in-editor gates plus the external validator passed.
 - PVE operation: `community.ukrainian-forest.pve`.
 - PVE population range: `10` through `15`, inclusive.
 - PVP operation: `community.ukrainian-forest.pvp`.
@@ -47,33 +107,51 @@ graph size.
 - Scene marker:
   `MAP_ID_community.ukrainian-forest.ukrainian-forest`.
 - Spawn sets: `SPAWN_SET_forest-pve` and `SPAWN_SET_forest-pvp`.
+- Team 1 marker role: normal PVE-player side, ten markers, authored local
+  Z range `5.4` through `13.2`.
+- Team 2 marker role: PVE-enemy side, ten markers, authored local Z range
+  `82.4` through `90.2`.
+- Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
+- Companion candidate version: `0.4.15`.
+- Current companion Release binary: 296,960 bytes; SHA-256
+  `86F9FC38CC519A68B1AC3B0E506828519D7E064CA9FD0468886C7D183A9A7903`.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
 - Exact-scene entry: `ProcessStandalonePackageScene`.
 - Navigation owner: `EnsureStandaloneNavigationGraph`.
 - Bounds gate: `IsInsideForestPlayableBounds`.
 - World audit: `LogStandaloneWorldContract`.
+- Authored-tree grounding: `AlignStandaloneAuthoredTreesToTerrain`.
+- Authored-tree ground datum:
+  `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`, computed in Unity from LOD0
+  bark/trunk submesh indices and vertices. Recognized slots are `pine_bark`,
+  `Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat`. Narrow pines use one sixth
+  of the full rendered trunk at the center sample. Broad oaks use the oriented
+  main-stem reference, a `0.25 m` embed, and the lowest contact in a bounded
+  `0.60 m` to `2.00 m` root footprint. The datum stores that contact X/Z.
+  Require `0.75` of the complete rendered tree above terrain. The maximum
+  absolute correction is `12 m`.
+- Active pine material path: `FindNativeMaterialShader` selects
+  `Shader Graphs/BotD_Graph_Lit_TranslucentAlphaCutoff` for `Pine_Needle` and
+  `Shader Graphs/SeedMesh_Tree_Bark` for `pine_bark` and
+  `Trunk_pine_var4`. `CopyBundleMaterialProperties` binds `_MainTex`,
+  `Normal_vegetation`, and `mask_vegetation`. The opaque state uses exact
+  hashed `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`, and
+  `Vector1_813F3AD6` values plus `_Wetness_sm=0`, `_Vertex_AO_sm=0`, and
+  `_cutoff=.25`. The active `0.4.15` path does not depend on raw-TextAsset
+  borrowing.
+- Exact day donor: `sharedassets11.assets`, `PVP Woods Warehouse`, `Nice Sun`
+  GameObject path `5150`, Transform path `14228`, Light path `41512`, and
+  `Global Volume Profile 1` path `198`. Use 30,000 lux, 5,500 K, bounce 5,
+  bloom `.03`, and lens-flare intensity `.5` with the audited overrides.
+- Accepted local lifecycle evidence on 2026-08-04: one-click 11:00 launch,
+  non-white and non-glossy pines, operation unload, Lone Wolf re-entry,
+  one-click repeat 02:00 launch, above-terrain repeat spawn, four-tube white
+  phosphor, and terrain visibility outside ECOTI.
+- IL2CPP-safe foliage traversal: index from `0` through
+  `foliageRoot.childCount - 1`, then call `foliageRoot.GetChild(index)`.
 - Teardown: `OnSceneUnloaded`.
 
 The package is a worked reference. Do not treat its IDs, coordinates, or
 assets as universal constants.
-
-## Public authoring code
-
-- `templates/Editor/BuildStandaloneMapBundles.cs` builds the dependency bundle
-  before the scene bundle.
-- `BuildStandaloneMapBundles.VerifyBundle` requires zero scenes in a
-  dependency bundle and exactly one declared scene in a scene bundle.
-- `templates/Editor/ValidateStandaloneMapScene.cs` validates exact identity,
-  the selected manifest operation, terrain collision, markers, and bounds.
-- `ValidateStandaloneMapScene.LoadSelectedOperation` uses the selected PVE
-  operation's `minEnemies`. It does not require AI markers for PVP.
-- `ValidateStandaloneMapScene.ContainsWithClearance` converts world-space wall
-  clearance to local units for a scaled `BoxCollider`.
-- `schemas/operator-map-package.schema.json` is the closed pre-v1 package
-  contract.
-
-Read `docs/13-exact-implementation-reference.md` in the public guide for the
-complete asset addresses, terrain layer records, bundle hashes, and runtime
-verification matrix.

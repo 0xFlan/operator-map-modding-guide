@@ -5,6 +5,11 @@ OPERATOR maps. It uses the current standalone Modded Operations method. It
 assumes a Windows PC, a legal local OPERATOR installation, Unity, AssetRipper,
 and BepInEx IL2CPP.
 
+Worked public implementations:
+
+- [OPERATOR: Modded Operations framework](https://github.com/0xFlan/operator-modded-operations)
+- [Ukrainian Forest reference map](https://github.com/0xFlan/operator-ukrainian-forest)
+
 The framework in this manual is **OPERATOR: Modded Operations — Standalone Map
 Framework**. Read the
 [OPERATOR Standalone Map Modding BIBLE](OPERATOR_MAP_MODDING_BIBLE.md) before
@@ -21,28 +26,37 @@ you make a release package.
    bundle using [docs/03a-assetripper-to-bundle.md](docs/03a-assetripper-to-bundle.md).
 6. Author terrain, full prefabs, foliage, cover, and LOD using
    [docs/03-authoring-native-quality.md](docs/03-authoring-native-quality.md).
-7. Build the [standalone package](docs/10-standalone-packages.md).
-8. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
-9. Implement and test first spawn, respawn, collision, and bounds using
+7. Wire the exact mission row, briefing, preview, infiltration marker, time,
+   bundle, and scene data with
+   [docs/03b-modded-operations-presentation.md](docs/03b-modded-operations-presentation.md).
+8. Wire PVE or the shipped `PvpGameode` owner with
+   [docs/03c-native-mode-ownership-and-pvp.md](docs/03c-native-mode-ownership-and-pvp.md).
+9. Build the [standalone package](docs/10-standalone-packages.md).
+10. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
+11. Implement and test first spawn, respawn, collision, and bounds using
    [docs/05-spawn-and-gameplay.md](docs/05-spawn-and-gameplay.md).
-10. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
-11. Wire native interactive objects with the
+12. Build and test [AI navigation and routes](docs/11-ai-navigation-and-behavior.md).
+13. Wire native interactive objects with the
     [`DoorV2` reference method](docs/09-interactive-prefabs-and-doorsv2.md).
-12. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
+14. Match HDRP, sunlight, volumes, fog, and player-camera fidelity using
    [docs/06-hdrp-and-fidelity.md](docs/06-hdrp-and-fidelity.md).
-13. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
-14. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
+15. Complete the gates in [docs/07-validation-and-release.md](docs/07-validation-and-release.md).
+16. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
     to locate current code, bundles, assets, object names, and verification
     commands.
+17. Trace every authored value through launch, terrain, player, AI, failure,
+    restart, and teardown with the
+    [end-to-end package lifecycle](docs/14-end-to-end-package-lifecycle.md).
 
 ## Runtime paths
 
 For a map selected from the mission laptop and loaded without a retail donor
 map, use the standalone architecture. Use a strict data-only package,
 **OPERATOR: Modded Operations**, and an optional exact-scene map companion for
-native material, `TerrainData`, navigation, or other runtime-only
-reconstruction. Map-specific reconstruction does not belong in the generic
-framework.
+native material repair, navigation, grounding, or other map-specific runtime
+work. The generic framework reconstructs manifest-declared `TerrainData` and
+binds shared render/collision state. Map equations and exact asset repairs do
+not belong in the generic framework.
 
 The scene/package owns marker coordinates, combat walls, tree families, and
 PVE `minEnemies`/`maxEnemies`. The exact-scene companion builds navigation
@@ -72,6 +86,12 @@ remains available for explicit local diagnostics. See the
   terrain, materials, foliage, grounding, props, and LOD.
 - [03a AssetRipper to bundle](docs/03a-assetripper-to-bundle.md): reference
   export, asset closure, map prefab, and `StandaloneWindows64` bundle build.
+- [03b Modded Operations presentation](docs/03b-modded-operations-presentation.md):
+  exact mission row, briefing, preview-image, infiltration-marker, time-code,
+  bundle-content, hashing, and in-game presentation workflow.
+- [03c Native mode ownership](docs/03c-native-mode-ownership-and-pvp.md):
+  exact PVE/PVP owner boundary, one-based team markers, shipped
+  `PvpGameode` defaults and references, lifecycle, teardown, and test gates.
 - [04 Runtime integration](docs/04-runtime-integration.md): standalone
   ownership, exact load order, readiness, mode owner, restart, and teardown.
 - [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,
@@ -88,6 +108,12 @@ remains available for explicit local diagnostics. See the
   file closure, identity, markers, terrain payloads, and load validation.
 - [Package JSON Schema](schemas/operator-map-package.schema.json): closed
   machine-readable pre-v1 manifest contract.
+- [Package manifest template](templates/operator-map-package.example.json):
+  complete PVE/PVP schema shape with explicit placeholder hashes; read the
+  [template instructions](templates/README-package-template.md) before use.
+- [DoorV2 prefab validator](templates/Editor/ValidateDoorV2Prefab.cs): exact
+  developer-source GUID, component, serialized-reference, reciprocal-handle,
+  pivot, sound-array, and destroyed-door graph checks.
 - [11 AI navigation and behavior](docs/11-ai-navigation-and-behavior.md):
   playable-only A* graph, marker grounding, routes, cover, combat, and restart.
 - [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,
@@ -96,6 +122,9 @@ remains available for explicit local diagnostics. See the
 - [13 Exact implementation reference](docs/13-exact-implementation-reference.md):
   path tokens, source members, assembly names, bundle names, Ukrainian Forest
   asset addresses, scene objects, and exact load order.
+- [14 End-to-end package lifecycle](docs/14-end-to-end-package-lifecycle.md):
+  complete data-to-runtime flow, exact code members, Forest material and
+  lighting example, failure decisions, restart, teardown, and release proof.
 - [Archived methods](docs/archive/README.md): methods that MUST NOT be used as
   current standalone release proof.
 - [Codex skill](skills/operator-unity-modding/SKILL.md): reusable instructions

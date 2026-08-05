@@ -7,6 +7,11 @@ Forest material identities. That reference uses privacy-safe path tokens. Do
 not put a private drive path or an operating-system account name in a public
 procedure.
 
+Use
+[`docs/14-end-to-end-package-lifecycle.md`](docs/14-end-to-end-package-lifecycle.md)
+for the complete authoring-data, Cerberus, bundle, terrain, player, PVE/PVP,
+failure, restart, and teardown chain.
+
 This document is the normative technical contract for a standalone OPERATOR
 map. It is written for human authors and automated engineering tools.
 
@@ -19,12 +24,28 @@ This document uses the language and evidence rules in
 
 ## 1. Scope and status
 
-The current standalone method is `SUPPORTED` for its tested current-build,
-local PVE and PVP scope. Re-test the complete matrix after an OPERATOR, Unity,
-BepInEx, Il2CppInterop, A*, Core, or framework update.
+The current method has strong static and bounded runtime evidence. Forest
+`0.4.15` and Modded Operations `0.3.18` have accepted local first launch,
+one-click Confirm, 11:00 daylight, pine surface, tree contact, unload, Lone
+Wolf re-entry, repeat launch, above-terrain repeat spawn, and 02:00
+white-phosphor NVG results. The 2026-08-04 bounded runtime test also accepts
+same-process KIA restart through the shipped Mission Failed UI. It restored
+one owned playable player and grounded 14 of 14 active Forest `BrainAI`
+instances within 0.03 m of Terrain. Reciprocal firearm damage and the two-peer
+PVP matrix remain open. Do not label the complete pair `SUPPORTED` until those
+gates pass. Re-test the complete matrix
+after an OPERATOR, Unity, BepInEx, Il2CppInterop, A*, Core, or framework
+update.
 
 The method does not yet prove general multiplayer content agreement, late
 join, or all possible maps. Treat these claims as separate gates.
+
+The current first-Confirm owner retention, repeat-launch player recovery,
+same-process KIA restart, deterministic network game-mode identity, tree root
+contact, and local render transaction are `PROVEN-RUNTIME` for the tested
+single-player scope.
+Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
+damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
 
 The old retail-scene prefab overlay is `RETIRED` for standalone mission
 parity. Keep it only for an explicit diagnostic test. See
@@ -74,18 +95,28 @@ change an identity to match a display name.
 | Generic framework assembly | `OperatorModdedOperations.dll` |
 | Generic framework source file | `CerberusNativeTabFix.cs` |
 | Native selector builder | `BuildPackageInfiltrationMapPrefab` |
+| Preview decoder/cache | `GetOrLoadPreviewSprite` |
+| Preparation/fullscreen preview binder | `ReplaceNativeMapPreview` |
+| Briefing formatter | `FormatCatalogBriefing` |
 | Native launch calls | `InfilSelectorDisplayer.SpawnMap`, `CerebusOpboard.Start_Operation` |
+| Confirm owner retention | `BeginCatalogOperationLaunch`, `RestoreCapturedLaunchLaptop`, `SetNativeConfirmationLoadingState` |
+| Verified dependency-asset loan | `LoadVerifiedMapDependencyAsset<T>(mapId, assetPath)`; framework retains bundle ownership |
 | Scene contract gate | `ValidateStandaloneSceneContract` |
+| Repeat-launch player recovery | `RequestStandalonePlayerSpawn`, `InvokeGeneratedServerPlayerSpawnBody`, `SpawnAndPositionStandalonePlayers` |
+| Deterministic game-mode identity | PVE `0x4D4F5001`, PVP `0x4D4F5002`, `NetworkClient.RegisterPrefab`, `TryAdoptNetworkSpawnedGameMode` |
 | PVE count selector | `ChooseStandalonePveEnemyCount` |
+| PVE creator | `TrySpawnStandalonePveEnemies`, `RaidManager.ServerSpawnAI(false)` |
 | Ukrainian Forest companion assembly | `OperatorUkrainianForest.dll` |
 | Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
 | Companion exact-scene entry | `ProcessStandalonePackageScene` |
 | Companion navigation owner | `EnsureStandaloneNavigationGraph` |
+| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`; packaged `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`; family-aware pine center and broad-oak bounded root-footprint contact; at least `0.75` of the complete tree above terrain |
 | Package ID | `community.ukrainian-forest` |
 | Map ID | `community.ukrainian-forest.ukrainian-forest` |
 | Dependency bundle | `content/operator_ukrainian_forest` |
 | Scene bundle | `content/operator_ukrainian_forest_scene` |
 | Scene path | `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity` |
+| Preview file | `media/ukraine_forest_preview.jpg` |
 | PVE operation and range | `community.ukrainian-forest.pve`, `10` through `15` enemies |
 | PVP operation and AI count | `community.ukrainian-forest.pvp`, zero AI |
 | Terrain object | `NATIVE_Ground_HillyTerrain` |
@@ -96,7 +127,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.5` file records, terrain payload addresses, material
+The full package version `0.3.17` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -107,9 +138,9 @@ Keep these owners separate.
 | Owner | MUST own | MUST NOT own |
 | --- | --- | --- |
 | Core and catalog | Package verification, immutable identity, deterministic catalog | Map-specific Unity or game logic |
-| OPERATOR: Modded Operations | Private native-style mission UI, exact bundle and scene load, readiness, native-compatible mode ownership, generic player and PVE/PVP lifecycle, shipped failure-UI handoff, restart | Map names, shader profiles, terrain dimensions, graph dimensions, marker coordinates, tree repair |
+| OPERATOR: Modded Operations | Private native-style mission UI, exact bundle and scene load, readiness, `InfiltrationManager`-compatible PVE bridge, shipped `PvpGameode` lifecycle, player creation, shipped failure-UI handoff, restart | Map names, shader profiles, terrain dimensions, graph dimensions, marker coordinates, tree repair |
 | Data-only map package and scene | Manifest, operations, bundles, preview, portable assets, world, collision, walls, lighting, markers, PVE population range | Executable code, generic mission UI, global game state |
-| Optional exact-scene companion | Native material and `TerrainData` reconstruction, map-owned A* graph, marker validation, map-specific interactive initialization, strict world validation, teardown | Catalog, generic mission UI, other maps, shipped failure UI |
+| Optional exact-scene companion | Native material repair after generic terrain bind, map-owned A* graph, marker diagnostics, map-specific interactive initialization, strict world diagnostics, teardown | Catalog, generic terrain payload decoding, generic mission UI, other maps, shipped failure UI |
 
 The package directory MUST remain data-only. Install a required map companion
 as a separate BepInEx plugin.
@@ -184,6 +215,39 @@ The manifest MUST declare:
 - complete regular-file closure;
 - final file lengths and SHA-256 values.
 
+The manifest supplies the mission presentation. Do not store mission-laptop
+text in a Unity scene object and expect the framework to discover it. Use this
+mapping:
+
+| Presentation result | Manifest source |
+| --- | --- |
+| row order | `operations[].displayOrder` |
+| row and briefing title | `operations[].displayName` |
+| row mode and runtime mode contract | `operations[].mode` |
+| row/briefing area | `operations[].areaOfOperation` |
+| briefing body | `operations[].sitrep` |
+| preparation, fullscreen, and infiltration-selector image | `maps[].previewImage` |
+| infiltration marker labels and 2D positions | `operations[].infiltrations[]` |
+| infiltration-time choices | `operations[].timeCodes` and `defaultTimeCode` |
+| exact scene target | `maps[].sceneBundle` and `maps[].scenePath` |
+| 3D player and AI contract | `spawnSet` plus scene metadata/marker objects |
+
+The preview is a verified raw package file outside the Unity bundles. The
+framework reads it with `File.ReadAllBytes`, decodes it with
+`ImageConversion.LoadImage`, and creates one map-owned sprite. All operations
+under one map share that image. Schema version 1 does not have a
+per-operation preview.
+
+Each infiltration `mapPositionX/Y` pair is a normalized Unity UI anchor. It
+places a 2D native selector marker on the preview; it does not place a player
+in the scene. `(0,0)` is the lower-left and `(1,1)` is the upper-right.
+
+The complete author procedure is in
+[Modded Operations mission presentation and bundle data](docs/03b-modded-operations-presentation.md).
+Use [Native mode ownership, PVE, and StandardPVP](docs/03c-native-mode-ownership-and-pvp.md)
+for the exact map/framework/retail ownership boundary and the current-build
+`PvpGameode` field contract.
+
 The `files` array MUST contain each regular package file except the manifest.
 Core MUST bind the exact manifest bytes separately into package content
 identity.
@@ -232,6 +296,21 @@ The scene MUST own:
 - player, enemy, HVT, and other mission markers;
 - map and spawn-set metadata;
 - portable model, texture, and material records.
+
+Use the dependency bundle for reusable or address-loaded Unity assets:
+
+- complete meshes and prefabs;
+- portable materials and their base/alpha, normal, mask, height, thickness,
+  detail, and special-map closure;
+- runtime terrain height/surface-weight payload textures;
+- lighting records and serialized map LUTs;
+- audio, VFX, and complete authorized interactive dependencies.
+
+Use the scene bundle for the exact `.unity` scene and its authored object
+graph. Keep the raw mission preview, optional raw external half-float LUT, and
+manifest outside the bundles. Every runtime-loaded Unity asset address MUST
+match `AssetBundle.GetAllAssetNames()`. Every scene address MUST match
+`AssetBundle.GetAllScenePaths()`.
 
 A prefab-only bundle is not a standalone mission.
 
@@ -319,6 +398,35 @@ its static structure is complete.
 Use deterministic nonuniform placement. Preserve routes, spawn clearance,
 door clearance, sight lines, and performance limits.
 
+For a combined crown-and-trunk renderer, use only the highest-detail
+bark/trunk submesh vertices. Do not use the prefab pivot, the whole-renderer
+minimum, or a generic collider bottom. A low leaf card can corrupt the minimum.
+A broad-crown bark submesh can include high spreading branches. Keep native
+colliders for gameplay. Apply final position, yaw, and scale before you read
+vertices. Define and visually test a family-aware reference.
+
+The current Ukrainian Forest proof uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. A narrow pine uses one sixth of the full
+LOD0 trunk span and the center terrain sample. A broad oak uses the oriented
+main-stem reference, a `0.25 m` additional embed, and the lowest terrain
+contact across a bounded `0.60 m` through `2.00 m` lower-root footprint. Store
+that contact X/Z in the datum.
+
+At run time, calculate `correction = sampledSurfaceYAtDatum - datum.position.y`.
+Do not sample the tree root center. Require the child to reach terrain within
+`0.001 m`, fail when `abs(correction)>12 m`, require at least `0.75` of the
+complete rendered tree above terrain, and synchronize physics once after the
+corrected batch. The run-time companion uses the child marker and does not
+need mesh readback.
+
+The full pines are `Pine_var10_LOD0.prefab` and
+`Pine_var11_LOD0.prefab`. Their combined renderer slots are `Pine_Needle`,
+`pine_bark`, and `Trunk_pine_var4`. The three current oak prefabs use
+`Bark_Mat`, `Bark_2_Mat`, and their family leaf material in one LOD0
+renderer. The builder recognizes the four bark/trunk material names and reads
+only their submesh indices. The complete renderer bounds remain a separate
+full-tree validation extent.
+
 ## 13. Terrain and collision contract
 
 Record the terrain origin, size, heightmap resolution, alphamap resolution,
@@ -370,10 +478,13 @@ Core validates and freezes packages
 -> Modded Operations creates private native-style mission UI
 -> user selects one immutable package operation
 -> framework binds package-owned board and infiltration data
--> framework loads verified dependency bundles in manifest order
+-> framework starts one selected-map bundle prefetch
+-> Confirm joins that request or uses the same-content cache
+-> framework verifies dependency bundles in manifest order
 -> framework verifies and loads the exact scene bundle and scene path
 -> companion verifies exact package, map, operation, scene, and build identity
--> companion reconstructs native materials, TerrainData, navigation, and interactives
+-> framework reconstructs manifest-declared TerrainData and validates walkable collision
+-> companion repairs exact-map materials, navigation, grounding, and interactives
 -> companion passes the strict world contract
 -> framework creates the native-compatible mode owner
 -> shipped all-players-loaded readiness completes
@@ -399,6 +510,29 @@ page through a global object-name search.
 Use the shipped infiltration selector with package-owned data. Do not call a
 retail setup method that requires a retail mission graph.
 
+The manifest field `maps[].previewImage` is the sole schema-version-1
+authority for the map photo. It names a verified package-relative JPEG or PNG
+outside the AssetBundles. The same decoded sprite appears on the preparation
+page, fullscreen map, and infiltration selector. The file MUST also occur
+exactly once in sorted `files[]` with its final byte count and lowercase
+SHA-256. A normal end user chooses among author-built package versions; the
+mission UI does not browse to an arbitrary local image. Replacing only the
+installed image correctly fails package integrity. See
+[`docs/03b-modded-operations-presentation.md`](docs/03b-modded-operations-presentation.md)
+for the exact file-to-consumer recipe.
+
+At Confirm, capture the exact player-owned `MissionLaptop` and its exact
+`PlayerNetworking` before asynchronous package I/O. Keep the private modal
+visible and non-interactable while content loads. If the same laptop releases
+only that field, restore the captured owned player. Close the modal and call
+`CerebusOpboard.Start_Operation` in the same final frame. Do not make the user
+leave and re-enter the laptop.
+
+A stable row selection can start one bounded selected-map bundle prefetch.
+Load dependencies in manifest order, then the scene bundle. Keep the content
+ID with the cache. Confirm MUST attach to the same request. Do not prefetch all
+maps. Log file bytes, per-bundle time, total time, and remaining Confirm wait.
+
 Test with physical pointer input. A direct UnityEvent call is diagnostic
 evidence only.
 
@@ -410,6 +544,93 @@ game path requires it.
 
 Wait for exact scene identity, world validation, mode ownership, the shipped
 readiness barrier, and the current-scene spawn list.
+
+On the current exact build, `PlayerMaster.SpawnPlayer()` and
+`SpawnPlayerServer()` both enter the Mirror command sender. The generated
+server implementation is
+`PlayerMaster.UserCode_CMDSpawnPlayer__NetworkIdentity`. Request 1 for an
+owned player and scene generation MUST call `SpawnPlayer()` so
+`ClientSpawnBS` runs. If an owned host still has no new
+`PlayerSpawnedObject` after 300 frames, the host can enter the exact generated
+body as one bounded repeat-generation recovery. Use that body on request 1
+only for an unowned server player. Record each request before native entry and
+stop an owned host after two requests, stop other routes after three requests,
+or stop any route after one object/alive proof. Require the shipped
+`GameManager.MovePlayerToSpawn` path after the owned object exists. This route
+is `PROVEN-STATIC` until the physical player, camera, movement, repeat-launch,
+and combat gates pass.
+
+A map companion that observes late player-object callbacks MUST own the same
+scene-generation boundary. On scene load, clear any prior local-player
+transform hold and keep the shared ready/applied flag false. Publish the exact
+destination only after the current `Terrain` and `TerrainCollider` share one
+non-null `TerrainData`. During one bounded initial window, a known local root
+at the old sky pose or more than `2 m` below the sampled marker surface can be
+repaired through the shipped move path with velocity clear and Smooth Sync
+notification. On scene unload, clear the held controller/transform, frames,
+counters, pre-map support, applied flag, destination scene, and local-move
+request before the persistent player returns to the armory. Never reuse this
+state in the next additive-scene generation.
+
+Runtime PVE and PVP mode owners MUST have a nonzero Mirror prefab identity on
+every peer. The current framework uses `0x4D4F5001` for PVE and `0x4D4F5002`
+for StandardPVP. Each peer collision-checks `NetworkClient.prefabs` and calls
+`NetworkClient.RegisterPrefab` before host spawn. The host calls the asset-ID
+`NetworkServer.Spawn` overload. A remote peer validates the received asset ID
+and component type before it adopts the clone. Release unregisters the
+operation template. Asset ID `0` is not remote-client proof.
+
+Scene unload can destroy that template before the release callback. Unity's
+managed wrapper then compares equal to null while
+`NetworkClient.prefabs[assetId]` still contains it. A repeat
+`NetworkClient.RegisterPrefab` can throw from `UnityEngine.Object.GetName` and
+leave the native `MAP LOADED !BUG!` Restart Operation prompt in a loop.
+Capture the deterministic asset ID before clearing operation state. Release
+MUST remove only that ID from `NetworkClient.prefabs` and call
+`NetworkClient.UnregisterSpawnHandler(assetId)` even when the object wrapper
+is fake-null. Registration MUST evict the same fake-null entry before it
+registers the new template. A different live object is a real collision and
+MUST fail closed. Do not call `NetworkClient.ClearSpawners()` because it also
+removes vanilla and other-mod registrations.
+
+Team PVP uses one-based native IDs on this exact build.
+`PvpGameode.StartNewRound()` writes `SpawnPoint.Team=1` for Team 1 and
+`SpawnPoint.Team=2` for Team 2. The player identity is
+`PlayerMaster.MyTeamIdentifier.TeamID`. The framework MUST keep these values
+as `1` and `2`. It MUST NOT convert them to `0` and `1` or use
+`TeamIdentifier.ToString()`. It MUST invalidate a cached marker after a team
+change when that marker does not match the current `TeamID`.
+
+This rule is `PROVEN-STATIC` for the fingerprinted build. The standalone PVP
+owner MUST derive from `PvpGameode`. It MUST call the shipped
+`PvpGameode.OnStartClient` and `PvpGameode.Server_AllPlayersLoaded` bodies.
+It MUST NOT replace `StartNewRound`, `PlayerDied`, `EndRound`,
+`RespawnPlayers`, score SyncVars, team-death checks, or freeze-time state.
+
+The map scene MUST own separate Team 1 and Team 2 coordinates. The generic
+framework MUST convert those markers to `SpawnPoint` objects and assign two
+non-empty `Il2CppSystem.Collections.Generic.List<SpawnPoint>` instances to
+`PvpGameode.Team1SpawnPoints` and `Team2SpawnPoints`.
+
+The current retail scalar seeds are `MaxRounds=13`, `RoundsToWin=7`, and
+`RoundTime=120`. The retail server replaces `MaxRounds` and `RoundTime` with
+the PVP lobby settings at the all-players-loaded barrier.
+
+The native score and result methods read more than spawn lists. The framework
+MUST supply two audio sources, all 16 non-empty clip arrays, `TeleType`, clock
+and score text, six result objects, two animators, `FadeOut` and `FadeIn`, and
+the win/lose/tie status text. Generic silent clips are permitted when retail
+audio cannot be distributed. They MUST preserve the shipped array lengths.
+
+After `nativePvpLifecycle=true`, the framework MUST stop its generic
+position-only loop. The shipped respawn coroutine owns player placement. On
+unload, clear `PvpGameode.instance` only when it still points to the
+operation-owned component.
+
+Require a host and client on different teams, first spawn, freeze release,
+death/respawn on both teams, score and round progression, correct
+opposite-side isolation, Restart Operation, and return-to-armory before
+support wording.
 
 For standalone PVE, a bare `GameMode` is insufficient. The generic framework
 MUST provide:
@@ -458,6 +679,12 @@ collision, and markers. The framework owns generic actor creation. Native AI
 systems own perception, movement, weapons, cover search, and off-mesh
 traversal.
 
+Create generic PVE actors through the shipped owner-aware
+`RaidManager.ServerSpawnAI(false)` path. Supply only registered prefabs with
+root `BrainAI`, root `NetworkIdentity`, enabled weapon spawning, and a
+non-empty weapon list. Do not use a one-argument manual network spawn. A
+working grenade does not prove a working firearm owner.
+
 Test representative routes. Record each start, goal, path result, path length,
 and failed segment.
 
@@ -466,12 +693,28 @@ boundaries. A visibility result does not prove projectile passage.
 
 ## 20. `DoorV2` contract
 
-An AssetRipper door shell is `PROVEN-STATIC` evidence only. The inspected
-exports can contain null `DoorV2` and `DoorHandleV2` fields. A child named
-`Door Pivot` does not bind `PivotTransform`.
+The OPERATOR developers confirmed that normal doors are already part of the
+map or building prefab. Do not create the normal door graph at run time. The
+official `_DoorV2_BASE.prefab` supplied on 2026-08-03 proves this contract.
+It is 260206 bytes, has SHA-256
+`BAB5287B2DE809143BBDE71B90F8D0BE454DD724B4DEC110FB4AF1FC0CF06FF6`,
+and uses meta GUID `803422c907641034e99a99778ef7d30b`.
 
-Prefer a complete compatible live native template. Clone the complete root
-while it is inactive.
+Import an authorized complete source prefab and its `.meta` file with every
+dependency resolved. Preserve the full graph and place a prefab instance in
+the map scene or map-owned building prefab. Let normal scene and Mirror
+lifecycle code initialize it.
+
+Before placement, copy
+[`templates/Editor/ValidateDoorV2Prefab.cs`](templates/Editor/ValidateDoorV2Prefab.cs)
+to `Assets/Editor`, set its `PrefabAssetPath`, and run **OPERATOR Map >
+Validate DoorV2 Prefab**. Require `SUMMARY errors=0` in
+`Builds/OperatorDoorValidation/doorv2-prefab-validation.txt`. The code checks
+the exact official GUID, component counts, serialized field names, internal
+reference ownership, reciprocal handles, pivot descendants, distinct A*
+links, sound arrays, destroyed-door rigid bodies, null runtime fields, and
+pinned official scalars. It does not replace the live interaction,
+navigation, damage, Mirror, late-join, restart, and unload tests.
 
 A complete door graph needs:
 
@@ -489,9 +732,27 @@ A complete door graph needs:
 - distinct verified walkable and openable `NodeLink2` relationships;
 - valid Mirror ownership and registration.
 
-Assign every required reference before activation. Let Unity and Mirror call
-their normal lifecycle methods. Do not call private lifecycle methods to
-repair an incomplete graph.
+The official file already binds every relationship above. It also serializes
+reciprocal handles, FinalIK pose objects, audio arrays, a destroyed-door root,
+30 destroyed-door rigid bodies, and distinct sibling link-source objects.
+`MyLocalPlayer` and `PlayerInteractionSystem` are correctly null because they
+are run-time state.
+
+Preserve current-code compatibility fields even when they are not read.
+`DoorModelParent`, `DoorMask`, `navCutOpenSize`, and `navCutCloseSize` occur
+only in commented-out code. `RivalDoorHandle` has no current reads,
+`GrabbedHandle` is write-only, and `raycastTransform` is an unused run-time
+allocation. Do not remove these public serialized fields. Latch and hinge
+colliders are live because `SlapChargeExplosive` reads them. `NavMeshCut`,
+`canBlowup`, and the dead-door block are also live.
+
+Some AssetRipper exports lose the custom serialized field values. Reject such
+an export as a functional source. A child named `Door Pivot` does not bind a
+null `PivotTransform`.
+
+Run-time cloning or component reconstruction is `EXPERIMENTAL`, not the
+normal map method. Do not call private lifecycle methods to repair an
+incomplete graph.
 
 Require front and back interaction, IK, latch, lock, collision, damage,
 breach, destruction, AI open, AI breach, host, client, late join, restart,
@@ -511,6 +772,13 @@ Do not add a second directional fill light.
 Apply only source-confirmed Volume overrides. Do not enable an inactive
 component because its serialized child fields contain values.
 
+The current 02:00 worked source is `sharedassets7.assets` profile path `435`,
+name `PVP map NIight VOLUME`. It uses ACES without the day external LUT.
+Exposure path `440` uses Automatic Histogram, compensation `1.16`, limits
+`5.065281867980957..9.348570823669434`, and speeds `3/3`.
+`GameManager.SetNVGColor(0)` selects white phosphor on this exact build.
+Capture and restore the old color across the operation lifecycle.
+
 Test materials, terrain, foliage, optics, lasers, exposure, bloom, and shadows
 through the normal player camera. An editor view or offscreen camera is not
 release evidence.
@@ -527,6 +795,12 @@ Before actor creation, require:
 - zero required proxy or error-shader renderers;
 - usable terrain and a matching `TerrainCollider` on the same object when
   declared, with both components bound to the same `TerrainData`;
+- inactive serialized terrain fallback after successful TerrainData bind;
+- complete-tree LOD0 bark/trunk submesh bounds and one renderer-free
+  family-aware datum aligned to live terrain after final rotation and scale,
+  with native trunk/root collision retained, the documented family reference
+  and contact X/Z preserved, the maximum correction satisfied, and at least
+  `0.75` of the complete rendered tree above terrain;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
 - every required marker tightly grounded and on the live graph;
@@ -550,9 +824,12 @@ Use reverse ownership order.
 ```text
 stop mode population
 -> invalidate the scene generation
--> clear current-scene spawn registration
+-> restore prior process-global spawn registration when the operation still owns it
 -> clear standalone mode singleton and timer ownership
--> companion removes its graph, materials, TerrainData, interactives, and callbacks
+-> restore captured NVG color and destroy operation-owned Volume profiles
+-> clear the companion's local-player transform hold, spawn-safety state, applied flag, and destination scene
+-> companion removes its graph, material instances, interactives, and callbacks
+-> framework releases its runtime TerrainData and TerrainLayer objects
 -> unload package scene
 -> release scene bundle
 -> release dependency bundles in reverse order
@@ -607,6 +884,24 @@ Do not include logs, captures, private flags, smoke drivers, forced-scene
 controls, auto-launch controls, extracted game assets without permission, or
 machine-local paths.
 
+Each public mod repository must contain the complete authored source and one
+hash-pinned decompiler snapshot for each final mod DLL. Record the DLL version,
+byte length, SHA-256, and decompiler version beside the snapshot. The authored
+tree is the edit source. The decompiled tree proves the compiled release
+surface.
+
+Represent each omitted large or authorized asset with an explicit bracketed
+record, for example `[PREFAB ASSET]`, `[PREVIEW IMAGE]`, `[TEXTURE SET]`,
+`[DEPENDENCY ASSETBUNDLE]`, or `[SCENE ASSETBUNDLE]`. The record must give the
+exact expected path, type, address, source evidence, and validation rule. Do
+not put placeholder bytes at a manifest-declared release filename.
+
+Do not describe generated IL2CPP interop wrappers as decompiled original game
+source. Publish the exact generated signature, serialized owner file and path
+ID, read-only native behavior evidence, and runtime acceptance result. Keep
+game binaries out of the mod repository unless the owner has authorized that
+exact redistribution.
+
 Verify each staged file, checksum file, ZIP entry, installed file, update,
 downgrade, removal, and rollback path.
 
@@ -624,7 +919,7 @@ Require these results for the exact release bytes.
 | Foliage | Complete close, middle, and far crown silhouettes |
 | Navigation | One playable-only graph; all mission marker classes inside, grounded, and on graph |
 | PVE | Count inside package range; actors stay inside walls; reciprocal combat |
-| PVP | Zero PVE actors; correct team spawn isolation |
+| PVP | Zero PVE actors; host and client first spawn and respawn on their authored opposite team sides; native IDs remain Team 1=`1` and Team 2=`2` |
 | Interactives | Complete applicable player, AI, network, restart, and unload matrix |
 | Lifecycle | Normal restart, respawn, KIA restart, and three clean generations |
 | Performance | Stable player-camera frame time at declared actor and foliage load |
@@ -638,16 +933,23 @@ retested.
 
 | Symptom | First responsible layer to test |
 | --- | --- |
-| Confirm does nothing | Private board data, selector priming, and same-laptop UI ownership |
+| First Confirm does nothing but a second laptop interaction works | The framework released `MissionLaptop.playerNetworking` during asynchronous package I/O; capture and restore the exact same-laptop owner before native start |
 | Exact scene is brown or flat | Portable material reconstruction, not scene selection |
 | Actor falls from the sky | Terrain collision, marker foot position, graph grounding, and readiness order |
+| Player camera is under terrain and movement does not work | `PlayerMaster.PlayerSpawnedObject`, host server spawn execution, and the shipped move-to-spawn path |
+| First spawn throws or armory player floats | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
+| First mission works but second launch has no player object | Request 1 did not create the new scene generation's `PlayerSpawnedObject`; verify the 300-frame bounded owned-host generated-server recovery and shipped move path |
+| 02:00 NVG is black outside ECOTI | Day exposure/LUT applied to the night source or white-phosphor state was not selected |
+| Trees on hills float or have buried trunks | A pivot, combined-renderer minimum, generic collider bottom, or root-center resample was used; verify the family-aware LOD0 datum, broad-oak bounded lower-root contact X/Z, and `0.75` complete-tree above-ground gate |
+| Pine lower trunk or branches are white | The complete raw bark/trunk state did not apply, a wrong submesh material is bound, or covering defaults remain active; require framework-owned verified raw-state asset loans and inspect both bark material slots |
+| Scene loads, then `MAP LOADED !BUG!` Restart Operation loops on the second launch | A destroyed scene-owned game-mode template remained in `NetworkClient.prefabs`; inspect the deterministic asset ID, fake-null eviction before registration, and release cleanup by asset ID plus `UnregisterSpawnHandler` |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |
 | Pine reads as a bare trunk | Tree-family crown silhouette failed despite static closure |
 | Door panel swings but interaction fails | `DoorV2` reference graph is incomplete |
 | KIA throws before Mission Failed UI | PVE mode owner, singleton, or `RaidTimer` is missing |
 | Restart duplicates state | Scene-generation invalidation or reverse teardown is incomplete |
-| Host works but client fails | Content agreement, authority, registration, or late-join path is not proved |
+| Host works but client fails | Content agreement, nonzero deterministic Mirror mode asset ID, peer prefab registration, clone adoption, authority, or late-join path is not proved |
 
 Use [Troubleshooting](docs/08-troubleshooting.md) for the complete
 symptom-to-layer table.

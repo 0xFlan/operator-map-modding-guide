@@ -97,6 +97,37 @@ Record:
 The proxy shader only transports data through the external project. It is not
 the final shader contract.
 
+## Dependency-bundle representation
+
+Put the complete portable asset closure in a dependency bundle that loads
+before the scene bundle. A correct source file is not sufficient when it is
+not a Unity dependency or an explicitly address-loaded asset in that bundle.
+
+For each model family, record this closure:
+
+```text
+complete prefab or mesh asset path
+-> submesh/material slot order
+-> raw material identity record
+-> portable proxy material
+-> base/alpha, normal, mask, and every special texture
+-> collider/pivot/LOD dependencies
+-> dependency bundle name
+-> emitted GetAllAssetNames() addresses for run-time loads
+```
+
+The scene can reference a prefab from the dependency bundle. Build the
+dependency and scene definitions in one Unity bundle-build operation so Unity
+does not embed a second private copy of the same dependency in the scene
+bundle. Explicitly include a payload that companion code loads by address even
+when no scene renderer references it.
+
+Keep the raw mission preview out of this closure. It is a verified package
+file decoded by the generic framework, not a Unity material texture. Keep a
+raw external `rgba-half` LUT outside the bundle when the manifest declares it
+through `externalTonemapLut`; a serialized `Texture3D` used by map code is a
+different asset and belongs in the dependency bundle.
+
 ## Exact-scene material rehydration
 
 Use this sequence:
@@ -172,6 +203,41 @@ boundary visibility, and performance budgets.
 
 Sample the final collision surface for each root. Use a bounded root embed that
 matches the tree family. Do not place all objects at one constant world Y.
+
+For a combined crown-and-trunk renderer, derive the ground datum from only the
+LOD0 bark/trunk submeshes. Do not use a whole-renderer bound. A low leaf card
+or branch can select a false minimum. Do not use the bottom of a native trunk
+collider: its hidden capsule can extend below the root mesh and raise the
+visible tree above a slope. The current full pine renderer contains
+`Pine_Needle`, `pine_bark`, and `Trunk_pine_var4` submeshes in one object. The
+current oak LOD0 renderer combines `Bark_Mat`, `Bark_2_Mat`, and one leaf
+material. Treat `pine_bark`, `Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat`
+as trunk slots. Read each selected submesh's indices and referenced vertices.
+
+Use a family-aware authoring equation:
+
+```text
+trunkMinY = minimum finite world Y of selected trunk vertices
+trunkMaxY = maximum finite world Y of selected trunk vertices
+referenceSpan = verified family reference from selected LOD0 trunk data
+datumY = trunkMinY + referenceSpan * buriedFraction + familyBias
+correctionY = sampledSurfaceYAtDatumXZ - datumY
+newRootY = oldRootY + correctionY
+aboveGroundFraction = (rendererBoundsMaxY + correctionY - sampledSurfaceY)
+                      / rendererBoundsHeight
+```
+
+Reject the placement if the valid rendered extent is `<= 0.25 m`, if
+`abs(correctionY) > 12 m`, or if
+`aboveGroundFraction < 0.75`. Run this check after final yaw and scale. The
+current Forest proof uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. Pines use one sixth of the full LOD0
+trunk at the center sample. Broad oaks use the oriented main-stem reference,
+`0.25 m` bias, and the lowest contact across a bounded `0.60 m` to `2.00 m`
+lower-root footprint. Store the selected contact X/Z in the child. After
+correction, require its world Y to match the sampled surface within `0.001 m`.
+Keep native colliders for gameplay. At run time, sample terrain at the
+packaged child marker instead of the tree center or IL2CPP mesh readback.
 
 Keep dense decorative foliage outside critical movement lanes. A decorative
 renderer can have no collider. A trunk that acts as cover needs a complete

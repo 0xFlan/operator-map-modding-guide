@@ -134,6 +134,58 @@ embedding rather than a constant world Y:
 - incomplete or one-sided rock meshes MUST be rejected from a multi-angle
   player-height review.
 
+Use LOD0 bark/trunk submesh vertices as the tree datum. Do not use the prefab
+pivot, the whole-renderer minimum, or the bottom of a trunk collider. A low
+leaf card or branch can corrupt the whole-renderer minimum. Some native
+capsules extend below the modeled roots. Apply this exact method after final
+position, rotation, and scale:
+
+```csharp
+LOD[] lods = tree.GetComponentInChildren<LODGroup>(true).GetLODs();
+Renderer[] renderers = lods[0].renderers;
+float trunkMinimumY = float.PositiveInfinity;
+float trunkMaximumY = float.NegativeInfinity;
+
+foreach (Renderer renderer in renderers)
+{
+    Mesh mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+    Vector3[] vertices = mesh.vertices;
+    Material[] materials = renderer.sharedMaterials;
+    for (int slot = 0; slot < materials.Length; slot++)
+    {
+        if (!IsRecognizedTrunkMaterial(materials[slot].name))
+            continue;
+        foreach (int index in mesh.GetIndices(slot))
+        {
+            float y = renderer.transform.TransformPoint(vertices[index]).y;
+            trunkMinimumY = Mathf.Min(trunkMinimumY, y);
+            trunkMaximumY = Mathf.Max(trunkMaximumY, y);
+        }
+    }
+}
+
+float referenceSpan = GetFamilyGroundingReferenceSpan(tree, trunkMinimumY, trunkMaximumY);
+Vector3 contact = FindFamilySurfaceContact(tree, sampleSurfaceY);
+float familyBias = IsBroadCrownOak(tree) ? 0.25f : 0f;
+float datumY = trunkMinimumY + referenceSpan * (1f / 6f) + familyBias;
+tree.transform.position += Vector3.up * (contact.y - datumY);
+```
+
+`IsRecognizedTrunkMaterial` must accept the shipped `pine_bark`,
+`Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat` slots. Define the reference and
+surface contact per family. The current Forest proof uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. Pines use a center sample and full
+trunk span. Broad oaks use an oriented main-stem span, `0.25 m` bias, and the
+lowest sample in a bounded `0.60 m` to `2.00 m` lower-root footprint. Store
+the contact X/Z in the child. Fail when its corrected world Y differs from
+terrain by more than `0.001 m`, when the full rendered-tree above fraction is
+below `0.75`, or when `abs(correction) > 12f`. Keep native colliders for
+gameplay, but do not use a generic collider bottom as the datum.
+
+Place the full tree batch first. Synchronize transforms once, apply the
+root-contact equation to every tree, and synchronize once more. Do not call
+`Physics.SyncTransforms()` once per tree against a large `TerrainCollider`.
+
 For rotated rigid cover, sample the final collision height at the complete
 mesh/collider center and all footprint corners after applying the cover's yaw.
 If the full footprint cannot sit naturally on the authored grade, relocate or
@@ -157,3 +209,25 @@ If official vegetation uses terrain detail or a BatchRendererGroup route, a
 direct GameObject fallback can match visible density but not automatically
 match interaction, culling, or performance. State that limitation until a
 normal player-camera test proves the native path.
+
+## Convert authoring outputs into package data
+
+Do not stop at a correct Unity scene. Classify each result for the standalone
+package:
+
+| Authoring result | Final location |
+| --- | --- |
+| complete map `.unity` scene and authored object graph | scene bundle |
+| complete models/prefabs and portable material/texture closure | dependency bundle |
+| address-loaded height/weight/lighting payloads | dependency bundle with exact emitted asset addresses |
+| map ID and spawn-set identity | inactive named metadata objects in the scene plus matching manifest fields |
+| 3D player/enemy/HVT/team points and facing | scene marker transforms |
+| mission name, area, SITREP, mode, player/AI limits | manifest operation record |
+| infiltration labels and 2D preview positions | manifest infiltration records |
+| raw briefing/infiltration image | package `media/` file outside bundles plus `previewImage` |
+| exact scene address and bundle load order | manifest map record |
+
+Build and validate this data with
+[AssetRipper to standalone scene bundles](03a-assetripper-to-bundle.md),
+[Modded Operations mission presentation and bundle data](03b-modded-operations-presentation.md),
+and [Standalone package format and loading](10-standalone-packages.md).

@@ -5,9 +5,10 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.5` package manifest, the current
-framework and companion source, and the emitted bundles. A new build can have
-different byte counts and SHA-256 values.
+status. The identities came from the version `0.3.17` package manifest and the
+current framework and companion source. The listed bundles predate the
+current `0.4.15` PVP-Woods lighting authoring update. Rebuild them before a
+release. A new build can have different byte counts and SHA-256 values.
 
 ## Path tokens
 
@@ -76,6 +77,9 @@ Use this table to find the code that implements each public authoring rule.
 | Validate PVE marker capacity | [`templates/Editor/ValidateStandaloneMapScene.cs`](../templates/Editor/ValidateStandaloneMapScene.cs) | `IsEnemyMarker`, `PackageOperation.minEnemies` |
 | Validate terrain collision | [`templates/Editor/ValidateStandaloneMapScene.cs`](../templates/Editor/ValidateStandaloneMapScene.cs) | `Terrain`, same-object `TerrainCollider`, shared `TerrainData` checks in `Validate` |
 | Validate world-space wall clearance | [`templates/Editor/ValidateStandaloneMapScene.cs`](../templates/Editor/ValidateStandaloneMapScene.cs) | `ContainsWithClearance` |
+| Validate the developer `DoorV2` graph | [`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs) | `Validate`, `ValidateGraph`, `ValidateHandle` |
+| Pin the official door source identity | [`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs) | `PrefabAssetPath`, `OfficialPrefabGuid`, `RequireOfficialSourceGuid` |
+| Reject null, external, shared, or nonreciprocal door references | [`templates/Editor/ValidateDoorV2Prefab.cs`](../templates/Editor/ValidateDoorV2Prefab.cs) | `RequireObjectReference`, `RequireNamedComponentReference`, `ValidateHandle` |
 | Validate package syntax | [`schemas/operator-map-package.schema.json`](../schemas/operator-map-package.schema.json) | JSON Schema draft 2020-12 root and `$defs` |
 
 Set these values in `BuildStandaloneMapBundles` before a build:
@@ -128,7 +132,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.5` value |
+| Field | Version `0.3.17` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -137,7 +141,7 @@ between IDs, file names, and Unity asset addresses.
 | `sceneBundle` | `content/operator_ukrainian_forest_scene` |
 | first `dependencyBundles[]` value | `content/operator_ukrainian_forest` |
 | `scenePath` | `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity` |
-| `previewImage` | `media/ukraine_forest_preview.png` |
+| `previewImage` | `media/ukraine_forest_preview.jpg` |
 | LUT path | `lighting/AgX_Powerful_RGBAHalf_32.bytes` |
 | LUT contract | dimension `32`, format `rgba-half`, `262144` bytes |
 | LUT SHA-256 | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
@@ -146,13 +150,15 @@ The exact emitted package files had these manifest records:
 
 | Package-relative path | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `content/operator_ukrainian_forest` | `630286065` | `05436ac4b474a54877a0d3bdaafe029e6c35edc2dbd30898e6e094f2a2138b32` |
-| `content/operator_ukrainian_forest_scene` | `17606767` | `6bdd50f61cbce1ca28f79f6c198db45d7fd752d96d2f5468c7b1dc5f5c1e94d1` |
+| `content/operator_ukrainian_forest` | `630271199` | `09679986bec2abd40a4fe45d2d4559e645a9c30183d6d2926d0709af18475138` |
+| `content/operator_ukrainian_forest_scene` | `17598605` | `eda200913a03f478c08d70c75d0cadd91d30bfac30d37525ca8e1f5efc40a6fe` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
-| `media/ukraine_forest_preview.png` | `1921917` | `8288f6ccbde19981a450bfb50a09b3d220df6c311047de9aeabb526220b0ad1e` |
+| `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.5` values into a different archive.
+these version `0.3.17` values into a different archive. The two bundle values
+above are the last emitted pre-`0.4.15` payload identities. They are not final
+release identities for the updated builder.
 
 ## Ukrainian Forest operation records
 
@@ -168,7 +174,7 @@ set markers.
 | `maxPlayers` | `16` | `8` |
 | `minEnemies` | not permitted | `10` |
 | `maxEnemies` | not permitted | `15` |
-| infiltration `id` | `south-forest-edge` | `south-forest-edge` |
+| infiltration `id` | `north-forest-edge` | `north-forest-edge` |
 | `defaultTimeCode` | `1100` | `1100` |
 
 The framework member `ChooseStandalonePveEnemyCount` selects a value from the
@@ -179,8 +185,9 @@ marker. Ukrainian Forest provides `PVE_EnemySpawn_00` through
 
 ## Ukrainian Forest scene objects
 
-The exact map root is `UkrainianForestMap`. The exact terrain object is
-`NATIVE_Ground_HillyTerrain`.
+The source prefab root is `UkrainianForestMap`. The standalone scene renames
+its instantiated root to `MOD_UkrainianForest_Runtime`. The exact terrain
+child is `NATIVE_Ground_HillyTerrain`.
 
 The scene contains these identity objects:
 
@@ -212,6 +219,19 @@ Team2_Backup_Spawn_
 PVP_Team1Spawn_
 PVP_Team2Spawn_
 ```
+
+The current scene contains ten Team 1 markers and ten Team 2 markers. Team 1
+uses the normal PVE-player side. Its authored local Z range is `5.4` through
+`13.2`. Team 2 uses the PVE-enemy side. Its authored local Z range is `82.4`
+through `90.2`. The scene builder enforces ten markers per side with
+`TeamSpawnCountPerSide`. It also enforces `Z <= 15` for Team 1 and `Z >= 80`
+for Team 2 in `VerifyBuiltStandaloneSceneContract`.
+
+The source locators are
+`BuildHillyUkrainianForestBundle.cs:184-186`, `:415-417`, and
+`:1535-1558`. The independent layout gate is
+`tools/validate_hilly_forest_layout.py`. The source line numbers identify the
+current private worked example. Recalculate them after a source rewrite.
 
 `GameplayBounds` MUST have one `BoxCollider`. Place every AI marker inside the
 box with the required wall clearance. If the `GameplayBounds` transform has a
@@ -300,6 +320,158 @@ native foliage surface when it is available in the installed build. Use
 state, normal-map import type, mask-map channel packing, render queue, and
 material slot order.
 
+## Exact Ukrainian Forest tree-grounding contract
+
+The bundle authoring source uses these exact members:
+
+| Member or constant | Current value or action |
+| --- | --- |
+| `CompleteTreeTrunkGroundDatumName` | `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH` |
+| `CompleteTreeBuriedTrunkFraction` | `1f / 6f` |
+| `CompleteTreeMinimumAboveGroundFraction` | `0.75f` |
+| `BroadCrownOakAdditionalTerrainEmbed` | `0.25f` |
+| `BroadCrownOakMinimumRootContactRadius` | `0.60f` |
+| `BroadCrownOakMaximumRootContactRadius` | `2.00f` |
+| `TryGetCompleteTreeTrunkBounds` | Selects the first `LODGroup` LOD, matches `pine_bark`, `trunk_pine`, `bark_mat`, or `bark_2_mat`, reads each matching mesh submesh index, transforms referenced vertices to world space, and returns finite trunk minimum/maximum Y. |
+| `FindCompleteTreeSurfaceContact` | Uses center contact for pines. For broad oaks, selects low LOD0 root-band points and two 16-direction rings, clamps the footprint to `0.60..2.00 m`, and returns its lowest sampled terrain contact. |
+| `AlignCompleteTreeRootContactToSurface` | Creates the renderer-free family-aware datum, stores the selected contact X/Z, moves it to sampled terrain, validates exact contact within `0.001 m`, and uses the complete renderer maximum as the separate full-tree gate. |
+| maximum authoring correction | `12 m`; a larger correction fails the build |
+
+The controlling calculation in
+`Assets/Editor/BuildHillyUkrainianForestBundle.cs` is:
+
+```csharp
+if (!TryGetCompleteTreeTrunkBounds(
+        instance,
+        out var trunkMinimumY,
+        out var trunkMaximumY))
+{
+    throw new InvalidOperationException(
+        "Complete tree has no readable LOD0 bark/trunk submesh bounds: " +
+        instance.name);
+}
+
+var trunkHeight = trunkMaximumY - trunkMinimumY;
+TryGetTreeGroundingReferenceSpan(
+    instance, trunkHeight, out var referenceSpan, out var referenceRule);
+var surfaceContact = FindCompleteTreeSurfaceContact(
+    instance, centerSurfaceY, sampleSurfaceY);
+var datumRoot = new GameObject(
+    "NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH");
+datumRoot.transform.SetParent(instance.transform, true);
+var oakAdditionalEmbed = IsBroadCrownOak(instance) ? 0.25f : 0f;
+datumRoot.transform.position = new Vector3(
+    surfaceContact.x,
+    trunkMinimumY + referenceSpan * (1f / 6f) + oakAdditionalEmbed,
+    surfaceContact.z);
+
+var correction = surfaceContact.y - datumRoot.transform.position.y;
+instance.transform.position += Vector3.up * correction;
+```
+
+`TryGetCompleteTreeTrunkBounds` gets `mesh.GetIndices(slot)`. It rejects an
+index outside `mesh.vertices`. It transforms each accepted vertex with
+`renderer.transform.TransformPoint(vertices[index])`. It then updates only
+the trunk minimum and maximum Y. The leaf material slot does not enter this
+calculation.
+
+The builder calls `AlignCompleteTreeRootContactToSurface` for each
+`NATIVE_TREE_*` root with `HeightAt(x,z)` and for each
+`NATIVE_PERIMETER_TREE_*` root with `HeightAtExterior(x,z)`.
+
+The current complete tree sources are:
+
+| Family | Exact prefab asset | Trunk-submesh evidence |
+| --- | --- | --- |
+| pine 10 | `Assets/OperatorNativeAssets/UkrainianPineCandidate/Prefabs/Pine_var10_LOD0.prefab` | root `CapsuleCollider`; combined renderer slots are `Pine_Needle`, `pine_bark`, and `Trunk_pine_var4` |
+| pine 11 | `Assets/OperatorNativeAssets/UkrainianPineCandidate/Prefabs/Pine_var11_LOD0.prefab` | native lower-trunk collider; same three combined-renderer material slots |
+| forest oak | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Forest.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Forest_Mat` |
+| field oak 4 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_4.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_4_Mat` |
+| field oak 5 | `Assets/OperatorNativeAssets/GameObject/Oak_White_Desktop_Field_5.prefab` | native lower-trunk collider children; combined LOD0 renderer uses `Bark_Mat`, `Bark_2_Mat`, and `Oak_White_Desktop_Field_5_Mat` |
+
+Do not use the bottom of the native trunk capsule or the combined-renderer
+minimum as the trunk datum. A collider can extend below the model. A low leaf
+card or branch can be below the root system. Keep collision shapes for
+gameplay, and use only the selected bark/trunk submesh vertices for placement.
+
+The map companion uses `AlignStandaloneAuthoredTreesToTerrain` after the
+reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight` at the
+packaged datum position, moves each root by `groundY - marker.position.y`,
+enforces the `0.75` complete-tree
+above-ground fraction and `12 m` limit, calls `Physics.SyncTransforms`, and
+logs aligned, missing-datum, rejected, minimum-fraction, and
+largest-correction values. Runtime repair processes only the 96
+collision-enabled `NATIVE_TREE_*` roots. The deterministic Unity build owns
+the 180 render-only `NATIVE_PERIMETER_TREE_*` roots because their colliders are
+disabled after authoring. Runtime child traversal uses
+`foliageRoot.GetChild(childIndex)`. Do not use `foreach (Transform child in
+parent)` in an IL2CPP repeat-launch path; a later additive-scene generation
+can expose an `Il2CppSystem.Object` enumerator item and throw an invalid cast.
+
+## Exact 11:00 presentation source
+
+The accepted comparable source is `sharedassets11.assets`, `PVP Woods
+Warehouse`:
+
+| Object | Path ID | Exact value |
+| --- | ---: | --- |
+| `Nice Sun` GameObject | `5150` | Static directional-light owner |
+| Transform | `14228` | quaternion `(0.115319036,0.019461127,0.118037127,0.986098409)` |
+| Light | `41512` | 30,000 lux, 5,500 K, bounce intensity 5 |
+| `Global Volume Profile 1` | `198` | Complete wooded-map post stack |
+
+The Volume component paths and active values are:
+
+| Component | Path ID | Exact applied values |
+| --- | ---: | --- |
+| Exposure | `190` | AutomaticHistogram, CenterWeighted, fixed 10, compensation 0, limits 8.5 to 11, adaptation 0.5/0.5 |
+| Bloom | `196` | quality 3, threshold 0.9, intensity 0.03, scatter 0.893 |
+| ScreenSpaceLensFlare | `186` | intensity 0.5, streak 1.55, length 0.022, orientation 0, chromatic aberration 0.6 |
+| Tonemapping | `191` | External, full ACES false, exact AgX Powerful LUT |
+| ColorAdjustments | `187` | post exposure -0.3, contrast 30, hue 0, saturation -15 |
+| WhiteBalance | `197` | temperature -3.6, tint -8.6 |
+| LiftGammaGain | `192` | lift W .00827304, gamma W -.09100296, gain W .09100296 |
+| HDShadow | `202` | maximum distance 125 |
+
+The rejected donor used 52,241.375 lux, 6,727 K, bloom 0.359, and lens-flare
+intensity 1. It produced the blinding-sun report. Copy the comparable wooded
+map's complete light and Volume contract. Do not adjust only lux.
+
+## Exact 02:00 presentation source
+
+The installed source is `sharedassets7.assets`, `VolumeProfile` path ID `435`,
+name `PVP map NIight VOLUME`. The exact applied component records are:
+
+| Component | Path ID | Exact applied values |
+| --- | ---: | --- |
+| `Exposure` | `440` | Automatic Histogram; metering `4`; fixed `8.32`; compensation `1.16`; min `5.065281867980957`; max `9.348570823669434`; speeds `3/3` |
+| `Tonemapping` | `432` | ACES; full ACES; no external LUT |
+| `Bloom` | `431` | quality `1`; threshold `0.9`; intensity `0.3`; scatter `0.2` |
+| `ColorAdjustments` | `433` | post exposure not overridden; contrast `17.3`; saturation `22` |
+| `IndirectLightingController` | `443` | diffuse `1`; reflection `1`; probe `1` |
+
+`GameManager.SetNVGColor`, exact-build RVA `0x00EEE5A0`, maps input `0` to
+`WhitePhosper` and input `1` to `GreenPhosper`. The framework captures the
+prior value, calls `SetNVGColor(0)` for 02:00, and restores the prior value on
+unload.
+
+Do not apply the day `AgX - Powerful` external LUT or the PVP-Woods day
+exposure limits `8.5..11` to this night source.
+
+The package selects `native-outdoor-v1`. Modded Operations `0.3.18` is the
+single process-global render owner. `ApplyStandaloneRenderContract` applies
+the day or night values, loads the package-verified LUT for day only, selects
+white phosphor for 02:00, logs every selected control, and restores its prior
+state during reverse teardown. Forest `0.4.15` owns scene reconstruction and
+the LUT payload. It does not install a competing global Volume.
+
+The exact accepted framework DLL is 151,552 bytes with SHA-256
+`71F21527FF959DBCF3C7AD1894937F56A9D931E0BF1A6B038C857249861A745C`.
+The mod repository publishes both its authored source and an ILSpy
+`10.1.1.8388` snapshot under `decompiled/release-0.3.18`. The archived
+`0.3.17` snapshot contains the rejected 52,241.375-lux day value and is not a
+current instruction source.
+
 ## Framework and companion source locators
 
 The generic framework assembly is `OperatorModdedOperations.dll`. Its current
@@ -309,13 +481,32 @@ standalone flow:
 | Member | Responsibility |
 | --- | --- |
 | `BuildPackageInfiltrationMapPrefab` | Build the native selector presentation for a package operation. |
+| `BeginSelectedMapPrefetch` | Start one bounded selected-map dependency and scene-bundle load after row selection. |
+| `BeginCatalogOperationLaunch` | Capture the selected operation and exact player-owned laptop before asynchronous package I/O. |
+| `ProcessPendingLaunch` | Load one verified bundle request at a time, reject role/scene violations, and continue a waiting Confirm automatically. |
+| `RestoreCapturedLaunchLaptop` | Restore only the captured `playerNetworking` field when the same laptop released it during loading. |
+| `SetNativeConfirmationLoadingState` | Keep the private modal visible and non-interactable until loading succeeds or fails. |
+| `LoadVerifiedMapDependencyAsset<T>` | Return one borrowed asset from the exact map's verified retained dependency bundles; keep unload ownership in the framework. |
 | `InfilSelectorDisplayer.SpawnMap` | Start the selected native map flow. |
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
+| `TryPrepareRuntimeTerrain` | Decode manifest-declared height and weights, create terrain layers, and bind one operation-owned `TerrainData` to rendering and collision. |
+| `ValidateWalkableGroundContract` | Require every compatible player marker to raycast to package collision and require shared runtime-terrain identity. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
+| `EnsureStandaloneBootstrapPrefabRegistered` | Register the inactive runtime PVE or PVP game-mode template on every peer with deterministic Mirror asset ID `0x4D4F5001` or `0x4D4F5002`; fail on an existing different prefab with the same ID. |
+| `TryAdoptNetworkSpawnedGameMode` | On a remote peer, validate the spawned asset ID and mode, then adopt the Mirror-created clone as the active operation game-mode owner. |
+| `ConfigureStandalonePlayerSpawnContract` | Capture prior process-global spawn state, convert only verified current-scene markers to `SpawnPoint`, install the operation-owned list/array, and set the first native index to `0`. |
+| `ConfigureStandalonePvpController` | Create separate one-based Team 1 and Team 2 lists, seed exact retail scalar defaults, and assign the shipped `PvpGameode` owner. |
+| `ConfigureStandalonePvpPresentation` | Supply the native PVP audio sources, 16 clip arrays, timer and score text, `TeleType`, result roots, animators, fade strings, and win/lose/tie text. |
+| `RestoreStandalonePlayerSpawnContract` | Restore the prior spawn list, fallback array, and index only when the current globals still equal this operation's owned objects; reject prior objects from unloaded scenes. |
+| `RequestStandalonePlayerSpawn` | On attempt 1, call native `PlayerMaster.SpawnPlayer()` for the owned player so its command and `ClientSpawnBS` route runs. If a repeat additive-scene host still has no new `PlayerSpawnedObject` 300 frames later, call the exact generated `UserCode_CMDSpawnPlayer__NetworkIdentity` server body as the bounded `owned-host-generated-server-recovery` route. Use the same server body directly for an unowned host-side player. |
+| `SpawnAndPositionStandalonePlayers` | Record frame and attempt count before native entry, limit an owned host to two attempts and all other routes to three, stop after a player object or alive state proves success, then use shipped `GameManager.MovePlayerToSpawn` for the owned object. |
+| `SelectPlayerMarker` | Select a current-scene marker for one `PlayerMaster`; reject PVP players without native team ID `1` or `2`. |
+| `PvpMarkerMatchesTeam` | Bind Team 1 prefixes to native ID `1` and Team 2 prefixes to native ID `2`. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
-| `TrySpawnStandalonePveEnemies` | Create PVE actors after world readiness. |
+| `TrySpawnStandalonePveEnemies` | Filter registered firearm-capable prefabs and call `RaidManager.ServerSpawnAI(false)` after world readiness. |
 | `ReleaseStandaloneGameMode` | Release the mode owner during lifecycle transitions. |
+| `ReleaseStandaloneRenderContract` | Restore the captured NVG color and destroy operation-owned run-time Volume profiles. |
 
 The Ukrainian Forest companion assembly is `OperatorUkrainianForest.dll`. Its
 current source file is `OperatorUkrainianForestPlugin.cs`. These exact members
@@ -324,7 +515,13 @@ own map-specific reconstruction:
 | Member | Responsibility |
 | --- | --- |
 | `ProcessStandalonePackageScene` | Gate processing to the exact Ukrainian Forest package scene. |
+| `ResetStandalonePlayerHandoffState` | Clear the old controller/transform hold, spawn-safety frames, diagnostics, local-move flag, redirects, pre-map support, applied flag, and destination scene at standalone load/unload boundaries. |
+| `HasReadyStandaloneTerrain` | Require the exact terrain root to contain one `Terrain` and one `TerrainCollider` with the same non-null `TerrainData` before the companion publishes the scene to shared spawn hooks. |
+| `GroundLateNetworkPlayerObjectInstance` | Resolve the current standalone root for a late owned player callback. If the exact terrain-ready gate does not pass, return without moving the player. Do not use the legacy Office pre-map fallback in a standalone package scene. |
+| `GroundAirbornePlayerControllers` | During the bounded initial handoff, repair a known local root at the old sky pose or more than `2 m` below the sampled live surface. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
+| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable trees by packaged `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH` after run-time TerrainData bind; sample its stored contact X/Z, keep native trunk collision, enforce the family-aware reference, 75-percent complete-rendered-height gate, 12 m correction limit, and typed child-index traversal. |
+| `LoadVerifiedRawPineMaterialAsset` | Rejected `0.4.12` experiment retained for forensic comparison. The active `0.4.15` pine path does not use it. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |
@@ -333,6 +530,39 @@ These members are implementation evidence. A map author MUST use the public
 schema and templates as the authoring interface. A different map companion
 MUST use a different exact scene gate and MUST own only its map-specific
 reconstruction.
+
+## Current-build native PVP team contract
+
+The current installed native build has these exact static relationships:
+
+| Native item | Exact locator | Proven behavior |
+| --- | --- | --- |
+| `GameManager.nextSpawnPosition(bool,int,int)` | RVA `0x00EF2CA0`; direct team comparison near RVA `0x00EF2F15` | Reads the current `Pnext` index before incrementing it; compares the input team ID directly with `SpawnPoint.Team` at native field offset `0x24`. The first index must be `0`, not `-1`. |
+| `TeamIdentifier.TeamID` | managed field offset `0x70` | Supplies the player's numeric team identity. |
+| `PlayerMaster.MyTeamIdentifier` | managed field offset `0x88` | Supplies the player's `TeamIdentifier`. |
+| `PvpGameode.StartNewRound()` | RVA `0x00F1C0E0`; Team 1 writes near `0x00F1C336`; Team 2 writes near `0x00F1C3F6` | Writes `CanSpawnPlayer=true`, then writes Team 1 as `1` and Team 2 as `2`. |
+
+`ConfigureStandalonePlayerSpawnContract` applies the `1/2` assignment.
+`SelectPlayerMarker` reads `TeamID`, invalidates a cached marker after a team
+mismatch, and filters markers by team.
+
+These addresses and offsets are exact-build `PROVEN-STATIC` evidence. They
+are not portable API promises. Reinspect them after an OPERATOR update.
+
+The current standalone bootstrap creates
+`StandalonePvpGameMode : PvpGameode`. It assigns two non-empty native spawn
+lists, uses `MaxRounds=13`, `RoundsToWin=7`, and `RoundTime=120` as the
+serialized seeds, and calls the shipped `OnStartClient` and
+`Server_AllPlayersLoaded` bodies. The shipped PVP body remains the owner of
+respawn, freeze time, deaths, score SyncVars, rounds, and the match end.
+
+The current runtime also creates every presentation reference that the native
+score and music methods read. It uses one non-null silent clip with the exact
+retail array lengths because base-game audio is not redistributed.
+
+This is still `PROVEN-STATIC` until a two-peer first-spawn, freeze, death,
+score, round-respawn, restart, and return-to-armory test passes. See
+[Native mode ownership, PVE, and StandardPVP](03c-native-mode-ownership-and-pvp.md).
 
 ## Exact load order
 
@@ -346,21 +576,34 @@ The loader MUST use this order:
 6. Reject an absolute path, a backslash, a drive prefix, or a traversal
    segment in a manifest path.
 7. Verify each declared byte count and SHA-256 value.
-8. Load `content/operator_ukrainian_forest` as the dependency bundle.
-9. Prove that the dependency bundle has zero scene paths.
-10. Load `content/operator_ukrainian_forest_scene` as the scene bundle.
-11. Prove that the scene bundle has exactly
+8. After stable row selection, start one selected-map bundle prefetch. Do not
+   prefetch all maps.
+9. Load `content/operator_ukrainian_forest` as the dependency bundle.
+10. Prove that the dependency bundle has zero scene paths.
+11. Load `content/operator_ukrainian_forest_scene` as the scene bundle.
+12. At Confirm, capture the exact player-owned `MissionLaptop` and its
+    `PlayerNetworking`. Attach them to the same in-flight request or use the
+    completed same-content cache.
+13. Keep the private Confirm modal in a disabled loading state when bundle
+    work remains.
+14. Prove that the scene bundle has exactly
     `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
-12. Load that exact scene.
-13. Run the exact-scene companion.
-14. Reconstruct `TerrainData`, terrain materials, native tree materials, and
-    the playable-only A* graph.
-15. Prove the map marker, selected spawn set, terrain collision, combat
+15. Restore only the captured laptop field when loading released it, then
+    close the modal and call `CerebusOpboard.Start_Operation` in one frame.
+16. Load that exact scene.
+17. Run the exact-scene companion.
+18. Reconstruct `TerrainData`, disable
+    `NATIVE_Ground_HillyTerrain_RenderFallback` after successful render and
+    collision bind, reconstruct terrain/tree materials, align complete-tree
+    visible bases, and build the playable-only A* graph.
+19. Prove the map marker, selected spawn set, terrain collision, combat
     bounds, and valid marker capacity.
-16. Release the generic mode owner only after the world-ready contract passes.
-17. Spawn the player and PVE actors.
+20. Create the generic mode owner only after the world-ready contract passes.
+21. Capture and install the current-scene native player-spawn globals with
+    first index `0`.
+22. Spawn the player and PVE actors through the shipped owner-aware path.
 
-Do not spawn actors before steps 13 through 15 finish. A brown flat terrain
+Do not spawn actors before steps 17 through 19 finish. A brown flat terrain
 with falling enemies is evidence that actor creation ran before the complete
 world-ready contract or that runtime reconstruction did not finish.
 
@@ -408,7 +651,7 @@ A release candidate needs separate proof for each row:
 
 | Gate | Required evidence |
 | --- | --- |
-| Selector | The mission row, preview, infiltration selector, and confirm action use the selected package operation. |
+| Selector | The mission row, preview, infiltration selector, and one physical first Confirm use the selected package operation without a second laptop interaction. |
 | Scene | The loaded scene path is the exact manifest `scenePath`. |
 | Terrain | `Terrain` and `TerrainCollider` exist on `NATIVE_Ground_HillyTerrain` and share one `TerrainData`. |
 | Materials | Terrain and tree materials use the expected installed shader and texture identities. |
@@ -418,6 +661,7 @@ A release candidate needs separate proof for each row:
 | Combat | The player and enemies can damage each other across valid lines of fire. |
 | Navigation | All selected AI markers ground to the playable-only A* graph. |
 | PVP isolation | The Ukrainian Forest PVP operation creates zero AI actors. |
+| PVP teams | A host and client on different teams spawn and respawn on their authored opposite sides; Team 1 uses native ID `1` and Team 2 uses native ID `2`. |
 | Lifecycle | Normal restart, death/KIA restart, scene unload, and a second launch do not keep stale map state. |
 | Multiplayer | Host and client load the same package identity and content hashes. |
 

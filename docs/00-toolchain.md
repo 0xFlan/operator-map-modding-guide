@@ -11,6 +11,7 @@ Do not use a nearby editor version for a release build.
 | AssetRipper | Create a local reference project for hierarchy, asset, material, and dependency inspection | [AssetRipper](https://github.com/AssetRipper/AssetRipper) |
 | BepInEx IL2CPP | Load the exact-build Core, generic framework, and optional map companion | [BepInEx IL2CPP guide](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html) |
 | .NET SDK | Build the exact-build BepInEx components against the local interop assemblies | [.NET downloads](https://dotnet.microsoft.com/download) |
+| ILSpy command-line tool | Decompile each final mod DLL into a hash-pinned, readable release snapshot | [ILSpy](https://github.com/icsharpcode/ILSpy) |
 | Unity AssetBundle tools | Build strict Windows bundles and inspect scene/asset addresses | [Unity AssetBundle guide](https://docs.unity.cn/Manual/AssetBundles-Building.html) |
 | SHA-256 tool | Create and compare source, staged, archive, and deployed file hashes | `Get-FileHash` is included with PowerShell |
 | ZIP reader | Inspect final archive entries without installing them | PowerShell and common archive tools are sufficient |
@@ -42,6 +43,8 @@ needs runtime reconstruction also needs its exact-scene companion.
 10. Add and validate native interactive objects.
 11. Run PVE, PVP, restart, teardown, and player-camera gates.
 12. Build final archives from a clean staging directory.
+13. Decompile each final mod DLL and compare its emitted method bodies with the
+    maintained source before publication.
 
 ## Templates in this repository
 
