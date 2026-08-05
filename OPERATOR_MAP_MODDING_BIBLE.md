@@ -46,9 +46,11 @@ contact, and local render transaction are `PROVEN-RUNTIME` for the tested
 single-player scope.
 The Forest-only `dense-forest-balanced-v1` behavior is also
 `PROVEN-RUNTIME` for one first launch and one same-process native restart. The
-two exact-package 120-second runs created 12 and 10 bots, preserved positive
-native wander delays, moved 12 and 9 bots, moved 4 and 4 bots toward insertion,
-and recorded authored vegetation sight obstruction.
+two exact-package 120-second runs with the final release bytes created 15 and
+14 bots, preserved positive native wander delays, moved every bot at least
+1 m, moved 6 and 4 bots at least 5 m toward insertion, and recorded authored
+vegetation sight obstruction. Maximum displacement was `51.19 m` and
+`49.34 m`.
 Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
 damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
 

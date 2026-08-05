@@ -630,6 +630,15 @@ Programmatic live-UI event invocation can prove unattended lifecycle and
 rendering. It does not replace a physical-pointer test when the click surface
 itself changed.
 
+For the final Forest `0.4.17` and Modded Operations `0.3.20` bytes, require a
+worked acceptance result with two complete windows. The first launch created
+15 grounded AI and the native restart created 14. The largest absolute
+AI-to-Terrain difference was `0.03 m`. At 120 seconds, all 15 and all 14 AI had
+moved at least 1 m. Six and four had moved at least 5 m toward insertion.
+Maximum displacement was `51.19 m` and `49.34 m`. Both generations recorded
+authored layer-18 vegetation hits. Require the machine result to report
+`passed` and no private driver after cleanup.
+
 ## Release layout
 
 Use this separation:

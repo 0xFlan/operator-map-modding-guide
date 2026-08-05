@@ -218,6 +218,17 @@ new `BrainAI` instances added by the package's native
 `idleWander` count, and communications state. It then reports movement and same-mask sight probes at
 0, 10, 30, 60, 90, and 120 seconds.
 
+The final release-byte stationary observer accepted both complete windows:
+
+| Generation | Live AI | Native delay | Moved at least 1 m at 120 s | Moved at least 5 m toward insertion | Mean displacement | Maximum displacement |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| First launch | 15 | `9.31..36.78 s` | 15 | 6 | `21.82 m` | `51.19 m` |
+| Native restart | 14 | `10.97..33.02 s` | 14 | 4 | `16.96 m` | `49.34 m` |
+
+Both generations recorded authored layer-18 vegetation first hits.
+`actualSeenTarget` stayed zero in all 12 snapshots. Keep the target-state
+limits below: this result is not a general firearm or acquisition proof.
+
 Require these two log prefixes:
 
 ```text
