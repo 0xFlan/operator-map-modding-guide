@@ -28,9 +28,12 @@ The current method has strong static and bounded runtime evidence. Forest
 `0.4.15` and Modded Operations `0.3.18` have accepted local first launch,
 one-click Confirm, 11:00 daylight, pine surface, tree contact, unload, Lone
 Wolf re-entry, repeat launch, above-terrain repeat spawn, and 02:00
-white-phosphor NVG results. Reciprocal firearm damage, KIA restart, and the
-two-peer PVP matrix remain open. Do not label the complete pair `SUPPORTED`
-until those gates pass. Re-test the complete matrix
+white-phosphor NVG results. The 2026-08-04 bounded runtime test also accepts
+same-process KIA restart through the shipped Mission Failed UI. It restored
+one owned playable player and grounded 14 of 14 active Forest `BrainAI`
+instances within 0.03 m of Terrain. Reciprocal firearm damage and the two-peer
+PVP matrix remain open. Do not label the complete pair `SUPPORTED` until those
+gates pass. Re-test the complete matrix
 after an OPERATOR, Unity, BepInEx, Il2CppInterop, A*, Core, or framework
 update.
 
@@ -38,8 +41,9 @@ The method does not yet prove general multiplayer content agreement, late
 join, or all possible maps. Treat these claims as separate gates.
 
 The current first-Confirm owner retention, repeat-launch player recovery,
-deterministic network game-mode identity, tree root contact, and local render
-transaction are `PROVEN-RUNTIME` for the tested single-player scope.
+same-process KIA restart, deterministic network game-mode identity, tree root
+contact, and local render transaction are `PROVEN-RUNTIME` for the tested
+single-player scope.
 Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
 damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
 

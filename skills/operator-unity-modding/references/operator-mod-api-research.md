@@ -21,6 +21,17 @@ owner plus synchronized `RaidTimer`; it does not prove a public installer,
 arbitrary map corpus, two-peer content agreement, late join, cosmetics,
 weapons, or a Creator SDK. Preserve those boundaries.
 
+The 2026-08-04 bounded retest used the normal Cerberus PVE launch. It applied
+lethal head damage through the current native `Health` command handler,
+observed the dead state, invoked the current `GameManagerNetwork`
+fail-operation RPC handler, and invoked the real
+`MissionFailedPopup/RestartOperation` control. The replacement Forest scene
+had a new scene handle, one owned playable player, and 14 active `BrainAI`
+instances. All 14 AI instances were grounded. The largest absolute
+AI-to-Terrain height difference was 0.03 m. This evidence proves only the
+same-process KIA restart path. It does not prove reciprocal firearm damage or
+a remote PVP peer.
+
 The package directory itself remains data-only. The complete map distribution
 may include its own companion under `BepInEx/plugins/<map-plugin>`; never put
 that DLL inside `BepInEx/OperatorMods`, the Core archive, or the generic
