@@ -46,7 +46,7 @@ above supersedes all incompatible statements in this section.
 
 - OPERATOR is a Unity IL2CPP game loaded through BepInEx IL2CPP.
 - The current inspected build uses Mirror.
-- Existing custom forest and grocery-store worlds are Office overlays. Loading
+- Existing custom prototype worlds are Office overlays. Loading
   custom geometry into Office does not prove a standalone map.
 - The current forest is an ordinary prefab AssetBundle, not a streamed scene
   AssetBundle.

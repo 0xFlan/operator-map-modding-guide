@@ -193,7 +193,7 @@ Keep 0200 on its separately audited night branch. Do not apply the day
 external LUT or exposure range to the night profile.
 
 Use one process-global render owner. In the current implementation, the map
-manifest selects `native-outdoor-v1`, Modded Operations `0.3.18` applies and
+manifest selects `native-outdoor-v1`, Modded Operations `0.3.22` applies and
 restores the sun, HDRP Volume, tonemapping, ambient, and NVG transaction, and
 the package owns the hash-verified LUT. The map companion must not install a
 second global Volume. The accepted 2026-08-04 repeat run logged the selected

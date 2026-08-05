@@ -17,13 +17,16 @@ OPERATOR, BepInEx, Il2CppInterop, or A* update.
 5. [Runtime A* graph construction](#runtime-a-graph-construction)
 6. [Mission-marker grounding](#mission-marker-grounding)
 7. [World contract](#world-contract)
-8. [Selected-map cold-load prefetch](#selected-map-cold-load-prefetch)
-9. [Host player-spawn boundary](#host-player-spawn-boundary)
-10. [PVP team-spawn identity](#pvp-team-spawn-identity)
-11. [Restart and teardown](#restart-and-teardown)
-12. [Release layout](#release-layout)
-13. [Validation sequence](#validation-sequence)
-14. [Rejected shortcuts](#rejected-shortcuts)
+8. [Fixed PVE AI profile and foliage sight](#fixed-pve-ai-profile-and-foliage-sight)
+9. [Native Standard PVE completion, extraction, and ATAK](#native-standard-pve-completion-extraction-and-atak)
+10. [Selected-map cold-load prefetch](#selected-map-cold-load-prefetch)
+11. [Host player-spawn boundary](#host-player-spawn-boundary)
+12. [PVP team-spawn identity](#pvp-team-spawn-identity)
+13. [Restart and teardown](#restart-and-teardown)
+14. [Stationary player-camera observer QA](#stationary-player-camera-observer-qa)
+15. [Release layout](#release-layout)
+16. [Validation sequence](#validation-sequence)
+17. [Rejected shortcuts](#rejected-shortcuts)
 
 ## Ownership model
 
@@ -32,9 +35,9 @@ Treat a standalone map as up to four coordinated owners:
 | Owner | Owns | Must not own |
 |---|---|---|
 | Core/catalog | package verification, immutable identity, deterministic catalog | map-specific Unity or game code |
-| OPERATOR: Modded Operations framework | native laptop/row/board clones, infiltration selector, exact dependency/scene load, readiness, vanilla-compatible mode ownership, package-declared PVE population range, generic player/population, shipped failure-UI handoff, restart | map names, map shaders, map graph dimensions, map marker coordinates/repair, cloned mission-failure UI |
-| data-only package | manifest, operations including PVE min/max population, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers | executable C# or BepInEx hooks |
-| optional map companion | exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work; teardown of its own graph/material/service state | official catalog mutation, generic terrain payload decoding, generic laptop flow, other maps |
+| OPERATOR: Modded Operations framework | native laptop/row/board clones, infiltration selector, exact dependency/scene load, readiness, vanilla-compatible mode ownership, package-declared PVE population range, generic player/population, native PVE extraction state and ATAK presentation, shipped failure/success-UI handoff, restart | map names, map shaders, map graph dimensions, map marker coordinates/repair, cloned mission-failure or mission-success UI |
+| data-only package | manifest, operations including PVE min/max population and optional schema-v2 fixed PVE AI values, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers, and one Standard-PVE extraction transform/trigger | executable C# or BepInEx hooks |
+| optional map companion | exact-scene material, grounding, lighting, navigation, authored foliage-sight activation, interactive, and diagnostic work; teardown of its own graph/material/service state | official catalog mutation, generic terrain payload decoding, generic laptop flow, other maps |
 
 The package directory is always data-only. “The package has no DLL” does not
 mean the complete map distribution can never have code. When runtime-only
@@ -170,6 +173,12 @@ after the batch. The builder owns render-only perimeter-tree grounding.
 A scene AssetBundle does not prove that the standalone session has a resident
 `AstarPath` service or a scanned graph. Navigation is live runtime state.
 
+The graph host also needs the native RVO service. Vanilla `level16` stores an
+enabled `Pathfinding.RVO.RVOSimulator` with `AstarPath` on `Astar Navmesh`.
+The shipped `BOT V2` uses `FollowerEntity` on its moving model child. A graph
+without an active RVO simulator can accept markers while every bot remains
+stationary.
+
 For the current installed A* IL2CPP surface, the validated shape is:
 
 1. Call `AstarPath.FindAstarPath()` and reuse a compatible target-scene service
@@ -188,6 +197,8 @@ For the current installed A* IL2CPP surface, the validated shape is:
    sampling, ground requirement, and capsule/obstacle collision from the map's
    measured traversal contract.
 7. Scan the specific graph with `astar.Scan(graph)`.
+8. Resolve or add an enabled `RVOSimulator` on the same host and require
+   `RVOSimulator.active` before actor readiness.
 
 When OPERATOR layers cannot be authored portably, a temporary scan layer is
 valid only as a scoped transaction:
@@ -268,11 +279,164 @@ root `NetworkIdentity`, `WeaponsAI.SpawnWeapon=true`, and a non-empty
 `RaidManager`. Call `RaidManager.ServerSpawnAI(false)`. Current-build native
 inspection shows that it uses owner-aware
 `NetworkServer.Spawn(bot, GameManager.instance.gameObject)` before it applies
-`BotSpawnDetails`. Keep this claim at `PROVEN-STATIC` until reciprocal firearm
-damage passes. A grenade result is not sufficient.
+`BotSpawnDetails`. The pinned single-player Forest scope has runtime proof for
+reciprocal firearm damage. A grenade result alone is not sufficient evidence
+for another map or game build.
+
+The shipped `BOT V2` prefab keeps `BrainAI` and `NetworkIdentity` on its
+network root. Its `SK_Insurgent_P8` child keeps `AgentController` and the
+enabled `FollowerEntity`. The root can remain stationary while the moving
+entity searches. Measure displacement with `brain.agent.position`, not
+`brain.transform.position`.
 
 Log actual/expected counts and fail closed. Do not reduce the contract to
 “sceneLoaded fired” or “there is a terrain somewhere.”
+
+## Fixed PVE AI profile and foliage sight
+
+Use schema version 2 only when a PVE operation needs fixed map-owned native
+AI values. The closed `pveAiProfile` owns detection range, FOV, the effective-
+range sentinel, integer wander radius, communications, and counter-
+suppression. Reject it in schema v1 and PVP. Keep it operation-local. Add no
+difficulty UI and make no process-global AI write.
+
+Measure the authoritative playable combat volume and every accepted player-
+to-enemy marker gap before selecting values. Do not measure the larger visual
+terrain apron. Keep initial detection below the intended start gap. Keep one
+wander radius below the distance that would cross the intended encounter
+midpoint.
+
+Apply the profile to each `BotSpawnDetails` before
+`RaidManager.ServerSpawnAI(false)`. Current native
+`RaidManager.ApplyBotSpawnSettings` transfers detection range, FOV,
+communications, counter-suppression, effective range except `-1`, and wander
+distance except `-1`. It also copies `BotSpawnDetails.idleState` to
+`BrainAI.idleStates`. A wander distance alone does not cause movement. Set
+the profiled PVE marker substate to `BrainAI.IdleStates.Wander`; native
+`BrainAI.UpdateStateMachine` calls `Wander(dt)` only for that substate. It
+does not consume marker `DetectionTimeMultiplier` or `HearingRange` on the
+pinned build. `BrainAI.Wander` preserves its prefab
+`WanderTimer * Patience` delay and then chooses around the current position;
+repeated choices can expand a search.
+
+For a profiled PVE operation, record the instance IDs already in
+`GameManager.allAI` before the native population call. Track only new IDs
+after it. Read the live `WanderTimer * Patience`, detection, FOV, wander, and
+communications values. Take bounded read-only snapshots at 0, 10, 30, 60,
+90, and 120 seconds. Record movement from spawn, movement toward the captured
+insertion, `CurrentSeenTarget`, `CurrentState`, and a linecast with the live
+`EyesAI.DetectionLayerMask`. Treat the linecast as geometry evidence. Do not
+use it alone as acquisition proof, and do not write an AI field for the test.
+`CurrentSeenTarget` can refer to any native target known to the bot. A
+non-zero count does not prove local-player detection. Correlate target state
+with the same-mask player probe, distance, AI state, and physical firearm
+behavior.
+
+Treat foliage sight as exact map content. Inspect the same installed vanilla
+prefab and the current `EyesAI` physics mask. Activate an authored inactive
+sight-collider child only when prefab evidence proves its name, layer,
+collider type, and trigger state. Require exact authored and active counts.
+Verify the collision matrix and bullet mask so the collider does not become a
+movement or projectile wall. Do not enable it globally.
+
+The Ukrainian Forest `PROVEN-RUNTIME` profile uses a 70 by 140 m playable
+volume, 78.87 m nearest solo enemy gap, 45 m detection, 90-degree FOV,
+native-prefab effective range, 38 m wander, communications on,
+counter-suppression off, and exactly 183 authored barberry triggers on layer
+18 `AI_VisionBlock`: 79 from 118 direct bushes and 104 from 156 perimeter
+bushes. The repeated prefab cycle is Barberry 2, Barberry 3, then Juniper.
+Only both barberry prefabs contain the native inactive `AI Collider` child;
+the 91 Juniper instances do not. Do not synthesize Juniper blockers. PVP omits
+the profile. First launch and same-process restart accept search timing,
+movement, movement toward insertion, and authored foliage obstruction.
+Reciprocal firearm behavior, native all-AI-dead completion, extraction, and
+success return passed for the pinned single-player Forest scope. Multiplayer
+replication remains a separate gate.
+
+## Native Standard PVE completion, extraction, and ATAK
+
+Treat extraction as a split authoring/runtime contract. A Standard-PVE map
+must author exactly one transform whose name starts with `PVE_ExfilZone_` and
+must attach one positive, enabled `BoxCollider` with `isTrigger=true`. The map
+owns the transform, rotation, layer, collider center, and collider size. Put
+the trigger at an intentionally reachable location. If extraction must return
+the player to insertion, author it at the same terrain-grounded player-spawn
+area and size it to include the complete accepted insertion set.
+
+The generic framework must validate that authoring record before gameplay. It
+then creates one scene-generation Standard-PVE owner with this exact graph:
+
+```text
+StandalonePveGameMode : InfiltrationManager
+|- one RaidManager
+|- one ExfilZone
+|- one copied BoxCollider trigger
+|- inactive locked marker
+`- inactive native-compatible ATAK Exfil Marker
+```
+
+The framework must initialize `RaidManager.exfilZones` with only that
+operation-owned `ExfilZone`, set `RaidManager.EXTRACT_TIMER=15`, and restore
+the same one-item list after `RaidManager.ServerSpawnAI(false)`. The shipped
+population method can repopulate the list from resident donor objects; keeping
+that foreign list is not standalone ownership.
+
+Initialize the locked state explicitly:
+
+```text
+ExfilZone.NetworkcanExtract = false
+GameManagerNetwork.NetworkcanExtract = false
+GameManagerNetwork.NetworkisExtracting = false
+GameManagerNetwork.NetworkextractionStartTime = 0
+GameManagerNetwork.ExfilTime = 15
+GameManagerNetwork.SuccessfulOperation = false
+```
+
+Do not implement a parallel kill counter. Preserve the shipped
+`StandardPVE.UpdateAICount` and `RaidManager` all-AI-dead path. It must observe
+the native AI collection reach zero, activate the available exfil marker, and
+set both the zone and global extraction permission. Prove that neither flag is
+true before the last AI dies.
+
+The ATAK marker is framework presentation, not map geometry. On the pinned
+build, reconstruct it from the resident vanilla assets and exact audited
+values:
+
+- GameObject `ATAK Exfil Marker`, layer `17`, initially inactive;
+- mesh `Marker`, four vertices and triangles `2,1,0,3,2,0`;
+- material `ExfilZone`, shader `HDRP/Unlit`, render queue `2501`;
+- resident texture `ExfilZone`, `512 x 512`, DXT5;
+- local rotation quaternion
+  `(-3.0159049e-7,-0.70710683,-0.70710677,3.2782552e-7)`;
+- uniform local scale `0.65`;
+- vertical texture offset `-0.22`.
+
+Use the exact mesh vertex and UV arrays from
+`CreateNativeAtakExfilMarker`; do not replace this marker with a map-authored
+icon, UI overlay, or unrelated texture. Re-inspect these values after a game
+update.
+
+Completion remains native. The player must physically enter the unlocked
+trigger. The shipped occupant sets must report the player, the shipped timer
+must run for 15 seconds, and the game must set
+`GameManagerNetwork.SuccessfulOperation=true`, unload the additive operation
+scene, and show its persistent Mission Successful result. During teardown,
+remove only operation-owned runtime assets and singleton references. Do not
+clear `SuccessfulOperation` on the success path because the Operation Room
+reads it after scene unload.
+
+For Ukrainian Forest package `0.3.21`, the authored root is
+`PVE_ExfilZone_00` at `(0.000,0.112,7.000)`. Its trigger center is
+`(1.3259258,2.066852,1.6703243)` and its size is
+`(25.236944,7.376298,15.531027)`. It covers the north Team-1/player insertion
+markers, including the backup marker near Z `12`. An automated stationary
+observer recorded 13 initial live AI, no premature unlock, native death to
+zero AI, both extraction flags, the exact ATAK layer/mesh/material/shader/
+texture, one physical trigger occupant, the 15-second timer, scene unload,
+and `SuccessfulOperation=true`. The private observer's forced native damage
+correctly produced a non-saving QA status. A subsequent physical user run
+confirmed the normal playable extraction flow. Keep the private driver and
+its logs out of every release archive.
 
 ## Selected-map cold-load prefetch
 
@@ -297,9 +461,35 @@ Unity does not expose a safe cancellation contract for an active
 `AssetBundleCreateRequest`. Finish the one bounded request. Do not start an
 unbounded speculative queue.
 
-This method moves cold I/O earlier. It does not remove the bytes. Treat it as
-`PROVEN-STATIC` until a physical row-to-Confirm run records the expected
-timings and launches once.
+This method moves cold I/O earlier. It does not remove the bytes. The generic
+contract remains `PROVEN-STATIC` for an untested package. Ukrainian Forest is
+`PROVEN-RUNTIME` for one physical Confirm, first launch, same-process restart,
+and the exact timings below.
+
+## Native loading presentation
+
+After the exact additive scene passes identity checks, call the shipped
+`GameManagerNetwork.ShowLoadingScreen()` before terrain or material repair.
+The supported build places this method at RVA `0x00916210`. Vanilla
+`OnAllPlayersLoaded(false)` uses the same path. The method activates the
+shipped loading canvas, freezes the current player body, clears velocity, and
+closes the infiltration UI. Leave the matching hide transition at RVA
+`0x0090E950` under native `GameManagerNetwork` ownership.
+
+This call closes the one-frame gap before the replacement `GameMode` can own
+the readiness barrier. Without it, the package's portable brown proxy can be
+visible while the companion rehydrates native shaders and live `TerrainData`.
+
+For a log probe, read `LoadingScreen.activeSelf` and `activeInHierarchy`. Do
+not use `LoadingScreenVisible` as the canvas state. Its supported-build getter
+at RVA `0x0091A840` returns `_hideLoadingScreenSoon` at offset `0x2A4`.
+
+The Forest dependency and scene bundles total `647869804` bytes. In the exact
+combined-package run, the dependency took `24.449 s`, the scene bundle took
+`0.833 s`, and verified registration took `25.347 s`. Confirm waited
+`23.442 s` for the remaining selected-map work. Vanilla content can already
+be resident. Keep verification and the native loading presentation instead
+of exposing the proxy.
 
 ## Host player-spawn boundary
 
@@ -504,6 +694,45 @@ manifest terrain reconstruction also belongs in Modded Operations. Exact-map
 material, grounding, lighting, navigation, and marker diagnostics remain
 map-companion work. No donor scene is required.
 
+## Stationary player-camera observer QA
+
+When no human can steer the player, use a private environment-gated observer
+that enters through the real Cerberus, Confirm, and infiltration-selector
+objects. Keep the owned player stationary. Require its real
+`PlayerSpawnedObject`, package spawn, declared Cinemachine camera, retail
+output camera, mode actors, and exact scene. A free camera or forced scene is
+not equivalent gameplay evidence.
+
+Select one exact immutable operation ID from the frozen catalog. Do not select
+only the first operation with a matching mode. Refuse an absent ID or a
+mode/ID mismatch. Bound the observation time. Use at least 122 seconds when
+the profiled AI snapshots through 120 seconds are required.
+
+The private launcher must refuse an already-running OPERATOR process. Record
+the executable path, process ID, and start time for every controlled process.
+On timeout, use a graceful close first and act only on an exact recorded
+process. Collect and hash the initial and restart screenshots, BepInEx logs,
+and observer trace. Remove the driver, control files, capture directory, and
+process settings after the run. Never include them in a release archive.
+
+Programmatic live-UI event invocation can prove unattended lifecycle and
+rendering. It does not replace a physical-pointer test when the click surface
+itself changed.
+
+For Forest `0.4.17` and Modded Operations `0.3.20`, the completed movement
+baseline used a worked acceptance result with two complete windows. The first
+launch created
+15 grounded AI and the native restart created 14. The largest absolute
+AI-to-Terrain difference was `0.03 m`. At 120 seconds, all 15 and all 14 AI had
+moved at least 1 m. Six and four had moved at least 5 m toward insertion.
+Maximum displacement was `51.19 m` and `49.34 m`. Both generations recorded
+authored layer-18 vegetation hits. The current Forest `0.4.19`, Modded
+Operations `0.3.22`, and map package `0.3.21` additionally passed the native
+completion/extraction evidence in the preceding section. Require the relevant
+machine result to report `passed`, or retain an explicitly named observer
+limitation beside separate physical acceptance. Require no private driver
+after cleanup.
+
 ## Release layout
 
 Use this separation:
@@ -535,7 +764,10 @@ private logs, and test control files. Validate staged checksums and ZIP entries.
    Confirm, shipped infiltration selector, exact scene.
 6. In PVE, prove player count, AI count, all required marker grounding/on-graph,
    playable-wall containment, reciprocal combat across representative routes,
-   package population range, visuals, collision, and normal restart.
+   package population range, visuals, collision, and normal restart. Also
+   prove one authored extraction trigger, initial lock, native last-AI unlock,
+   exact ATAK presentation, physical trigger occupation, the shipped timer,
+   Mission Successful, additive-scene unload, and Operation Room return.
 7. In PVP, place host and client on different teams. Prove Team 1 and Team 2
    first spawn on their authored sides, one death/respawn per team, correct
    facing, zero PVE AI, and the normal restart contract.
@@ -553,6 +785,12 @@ private logs, and test control files. Validate staged checksums and ZIP entries.
   ownership in the map bundle/companion.
 - Rebinding or cloning a complete retail Mission Failed popup when the missing
   state is the native game-mode owner.
+- Implementing a framework-only kill counter or auto-success path instead of
+  the shipped Standard-PVE all-AI-dead and physical extraction flow.
+- Putting the ATAK extraction marker mesh/material or extraction state machine
+  in each map companion.
+- Clearing `GameManagerNetwork.SuccessfulOperation` while tearing down a
+  successfully extracted standalone operation.
 - Calling the complete map distribution “data-only” when it needs a companion.
 - Putting a companion DLL beneath `BepInEx/OperatorMods`.
 - Treating a brown exact scene as proof that the selector loaded the wrong map.

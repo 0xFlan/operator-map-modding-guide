@@ -4,9 +4,9 @@ Status: `SUPPORTED` for a current-build map-owned A* `GridGraph` and generic
 native PVE actor flow. Re-check the installed A* and game interop after each
 update.
 
-The owner-retention and owner-aware firearm-population corrections described
-below are `PROVEN-STATIC` for the current candidate. Keep them below
-`SUPPORTED` until one physical first Confirm and reciprocal firearm test pass.
+The owner-retention path and Forest search profile are `PROVEN-RUNTIME` for
+the current single-player first launch and native restart. Reciprocal firearm
+damage remains a separate acceptance gate.
 
 ## Use the native AI stack
 
@@ -45,17 +45,24 @@ Use this current-build sequence:
 1. Call `AstarPath.FindAstarPath()`.
 2. Reuse a service only when exact-scene ownership is compatible.
 3. Otherwise create one map-scoped host and add `AstarPath`.
-4. Require `astar.data`.
-5. Remove only a previous graph that the companion owns.
-6. Add a graph with
+4. Resolve or add one enabled `Pathfinding.RVO.RVOSimulator` on the same
+   host. Require `RVOSimulator.active`.
+5. Require `astar.data`.
+6. Remove only a previous graph that the companion owns.
+7. Add a graph with
    `astar.data.AddGraph(Il2CppType.Of<GridGraph>())`.
-7. Convert the wrapper with `TryCast<GridGraph>()`.
-8. Set center, rotation, aspect, node size, width, and depth.
-9. Call `GridGraph.SetDimensions(width, depth, nodeSize)`.
-10. Configure slope, step, erosion, neighbors, corner policy, height sampling,
+8. Convert the wrapper with `TryCast<GridGraph>()`.
+9. Set center, rotation, aspect, node size, width, and depth.
+10. Call `GridGraph.SetDimensions(width, depth, nodeSize)`.
+11. Configure slope, step, erosion, neighbors, corner policy, height sampling,
     ground requirement, and obstacle collision.
-11. Call `astar.Scan(graph)` for the exact graph.
-12. Record graph ownership, center, dimensions, node size, and scan result.
+12. Call `astar.Scan(graph)` for the exact graph.
+13. Record A*, RVO, graph ownership, center, dimensions, node size, and scan
+    result.
+
+Vanilla `level16` stores `AstarPath` and an enabled `RVOSimulator` on its
+`Astar Navmesh` GameObject. The shipped `BOT V2` uses `FollowerEntity`, so a
+valid graph without RVO can still leave every bot stationary.
 
 Measure all values from the map traversal contract. Do not copy graph
 dimensions from a visually similar map.
@@ -129,6 +136,127 @@ one map.
 
 PVP operations omit enemy range fields. PVP MUST have zero PVE actors before
 and after restart.
+
+## Optional schema-v2 PVE AI profile
+
+A schema-v2 PVE operation can own one fixed `pveAiProfile`. Schema v1 rejects
+the object. PVP rejects it. The object has no UI and does not change another
+operation.
+
+```json
+"pveAiProfile": {
+  "id": "woodland-balanced-v1",
+  "detectionRangeMeters": 45.0,
+  "fieldOfViewDegrees": 90.0,
+  "maximumEffectiveRangeMeters": -1.0,
+  "wanderDistanceMeters": 38,
+  "useComms": true,
+  "counterSuppression": false
+}
+```
+
+Measure the authoritative playable rectangle and every accepted player-to-
+enemy marker gap. Report minimum, median, mean, maximum, and the selected solo
+spawn gap. Do not tune from the visual TerrainData apron. A good initial
+detection range is less than the minimum start gap and large enough to create
+contact inside intended routes. Validate the result in the physical camera;
+geometry is a tuning input, not final proof.
+
+The current `RaidManager.ApplyBotSpawnSettings` copies detection range, FOV,
+communications, counter-suppression, effective range except `-1`, wander
+distance except `-1`, and `BotSpawnDetails.idleState` to the native bot. The
+last field is essential: it writes marker offset `0x20` to
+`BrainAI.idleStates` offset `0x2D4`. Native `BrainAI.UpdateStateMachine` calls
+`Wander(dt)` only when `CurrentState` is `Idle` and `idleStates` is `Wander`.
+A nonzero radius with the default `Idle` substate produces no movement. Set
+the substate only for the profiled PVE operation. It does not consume marker
+`DetectionTimeMultiplier` or `HearingRange` in the pinned build. Use `-1` for
+maximum effective range when the map must preserve the selected native AI
+prefab's value.
+
+`BrainAI.Wander` waits for the prefab's `WanderTimer * Patience`. It then
+selects the equivalent of
+`RandomNavSphere(currentPosition, 5, WanderDistance)`. It resets the timer and
+later repeats from the new position. Preserve the timer and patience unless
+separate vanilla evidence requires a change. To create a gradual search, keep
+one wander radius below the distance that would cross the intended encounter
+midpoint from the nearest starting marker.
+
+## Foliage and native sight layers
+
+A shorter range does not make a bush opaque. Inspect how the same installed
+vanilla prefab participates in `EyesAI.TestIfCanSeeAtHeight`. In the pinned
+build, `EyesAI` uses a physics linecast. Its mask includes layer 18,
+`AI_VisionBlock`.
+
+If the original prefab contains an authored inactive `AI Collider` trigger on
+that layer, an exact-scene companion can activate that child. Require its
+exact name, layer, collider type, authored count, and active count. Keep it a
+trigger. Verify the collision matrix and bullet mask before use. Do not add an
+invisible movement or projectile wall. Do not enable the contract globally.
+
+Ukrainian Forest is the worked example. It contains 118 direct and 156
+perimeter bushes. Its deterministic Barberry 2, Barberry 3, Juniper cycle
+produces 79 direct plus 104 perimeter native barberry blockers, for 183 total.
+The remaining 91 Junipers have no native inactive `AI Collider` child. Do not
+add a synthetic blocker to them. Its playable volume is 70 by
+140 m. The nearest solo enemy gap is 78.87 m. Its 38 m wander radius is less
+than half of that gap, 39.44 m. Its fixed 45 m range and 90-degree FOV are a
+map-owned PVE profile. The PVP operation omits it.
+
+Log the profile ID and every applied value. Log authored and active sight-
+blocker counts and the exact layer. The first launch and same-process native
+restart are `PROVEN-RUNTIME` for search timing, displacement, movement toward
+insertion, and authored foliage obstruction. The current pinned single-player
+Forest scope also passed reciprocal firearm damage and the native
+all-AI-dead/extraction lifecycle. A two-peer combat run remains a separate
+gate.
+
+Modded Operations `0.3.22` starts one bounded read-only diagnostic when a PVE
+operation has `pveAiProfile`. It does not use a map ID. It records only the
+new `BrainAI` instances added by the package's native
+`RaidManager.ServerSpawnAI(false)` call. It reports the live
+`WanderTimer * Patience`, detection range, FOV, wander distance, the live
+`idleWander` count, and communications state. It then reports movement and same-mask sight probes at
+0, 10, 30, 60, 90, and 120 seconds.
+
+The final release-byte stationary observer accepted both complete windows:
+
+| Generation | Live AI | Native delay | Moved at least 1 m at 120 s | Moved at least 5 m toward insertion | Mean displacement | Maximum displacement |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| First launch | 15 | `9.31..36.78 s` | 15 | 6 | `21.82 m` | `51.19 m` |
+| Native restart | 14 | `10.97..33.02 s` | 14 | 4 | `16.96 m` | `49.34 m` |
+
+Both generations recorded authored layer-18 vegetation first hits.
+`actualSeenTarget` stayed zero in all 12 snapshots. Keep the target-state
+limits below: this result is not a general firearm or acquisition proof.
+
+Require these two log prefixes:
+
+```text
+Profiled PVE native AI contract:
+Profiled PVE AI snapshot:
+```
+
+The snapshot uses the live bot's `EyesAI.DetectionLayerMask`. A layer-18 first
+hit is vegetation geometry evidence. `actualSeenTarget` comes from
+`BrainAI.CurrentSeenTarget`. Do not treat the synthetic linecast by itself as
+proof that the bot acquired or forgot the player. Do not treat movement alone
+as proof of a believable route. Review the physical camera and test firearms
+in both directions.
+
+`CurrentSeenTarget` can refer to any native target known to the bot. A
+non-zero `actualSeenTarget` does not prove that the target is the local player.
+Correlate it with the bot-to-player same-mask probe, player distance, state,
+and physical reciprocal-firearm behavior. A strict zero-target assertion can
+reject a valid restart because it measures all native targets, not only the
+player.
+
+The shipped `BOT V2` hierarchy keeps `BrainAI` and `NetworkIdentity` on the
+network root. Its `SK_Insurgent_P8` child keeps `AgentController` and the
+enabled `FollowerEntity`. The root can remain still while the native entity
+moves. Measure displacement from `brain.agent.position`; do not use
+`brain.transform.position`.
 
 ## Route authoring
 

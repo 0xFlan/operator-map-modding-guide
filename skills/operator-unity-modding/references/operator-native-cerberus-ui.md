@@ -84,10 +84,12 @@ OPERATOR: Modded Operations owns generic catalog-to-UI and operation lifecycle b
 native-style tab/row/board clones, shipped infiltration selector priming, exact
 declared dependency/scene load, readiness, vanilla-compatible mode ownership,
 player lifecycle, PVE actor creation, a shipped `PvpGameode` round adapter,
-and normal/KIA same-scene Restart Operation. Standalone PVE must provide
+native Standard-PVE completion/extraction/ATAK state, and normal/KIA
+same-scene Restart Operation. Standalone PVE must provide
 `InfiltrationManager.instance` plus its synchronized `RaidTimer`; the shipped
-persistent `GameManagerNetwork` remains the owner of Mission Failed UI and its
-Restart control. Keep Modded Operations free of map names, private shader profiles,
+persistent `GameManagerNetwork` remains the owner of Mission Failed UI,
+Mission Successful UI, extraction timer state, and its Restart control. Keep
+Modded Operations free of map names, private shader profiles,
 Terrain dimensions, A* graph parameters, and map marker fixes.
 
 PVE population bounds are declarative operation data: the package supplies
@@ -95,6 +97,15 @@ PVE population bounds are declarative operation data: the package supplies
 deterministic host count from the valid sorted markers. PVP omits the fields.
 Keep Modded Operations free of per-map counts, coordinates, pocket names, and spatial
 bounds; those belong to the map scene and exact-scene companion.
+
+For Standard PVE, the package scene owns exactly one `PVE_ExfilZone_`
+transform and positive `BoxCollider` trigger. The framework copies that
+geometry into its operation-owned `ExfilZone`, creates the native-compatible
+ATAK marker from resident vanilla assets, starts locked, and preserves the
+shipped all-AI-dead unlock, physical occupancy, 15-second extraction, success,
+and return flow. The framework must not contain the map's extraction
+coordinates. The map companion must not implement a second extraction state
+machine or duplicate ATAK marker.
 
 If a portable map scene needs installed-shader, TerrainData, navigation, or
 marker reconstruction, ship a separate map-scoped companion. It must require
@@ -136,9 +147,10 @@ Package I/O can outlive the Confirm frame. Capture the exact player-owned
 `MissionLaptop` and its `PlayerNetworking` before I/O. Keep the private modal
 visible and disabled while content loads. If the same laptop released only
 that field, restore the captured owned player. Close the modal and call
-`CerebusOpboard.Start_Operation` in the same final frame. Keep this current
-candidate rule at `PROVEN-STATIC` until one physical first Confirm launches
-without a second laptop interaction.
+`CerebusOpboard.Start_Operation` in the same final frame. This rule is
+`PROVEN-RUNTIME` for the pinned single-player Forest scope: one physical first
+Confirm launches without a second laptop interaction. Re-test after a
+supported dependency or game build changes.
 
 ## Verification gate
 
@@ -162,6 +174,11 @@ without a second laptop interaction.
   Active Operations and Operation Simulation still show their official rows.
 - Prove PVE and PVP first load plus normal Restart separately; PVP must create
   zero PVE actors.
+- For Standard PVE, prove exactly one map-authored extraction trigger, initial
+  lock, native all-AI-dead unlock, exact ATAK marker, physical occupation, the
+  shipped 15-second timer, Mission Successful, scene unload, and Operation
+  Room return. Confirm that success teardown does not clear
+  `GameManagerNetwork.SuccessfulOperation` before the persistent UI reads it.
 - Record KIA/end-screen Restart separately. Prove native lethal damage, the
   shipped Mission Failed popup, its shipped Restart control, and a fresh
   playable exact scene. A normal alive restart alone is insufficient. Do not

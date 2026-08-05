@@ -18,9 +18,11 @@ drive-specific workspace, a private log, or a private test control.
 ## Generic framework
 
 - Assembly: `OperatorModdedOperations.dll`.
-- Current candidate version: `0.3.18`.
-- Current Release binary: 151,552 bytes; SHA-256
-  `71F21527FF959DBCF3C7AD1894937F56A9D931E0BF1A6B038C857249861A745C`.
+- Current version: `0.3.22`.
+- Accepted Release DLL: 173,568 bytes; SHA-256
+  `0B8BE9B55C36AFCA81BAB677C5D0720D89A3E2B0E5F25A60BD2FF81C4192349A`.
+- Build the exact Release binary from the current source. Verify its hash
+  against the release archive checksum file.
 - Current source file: `CerberusNativeTabFix.cs`.
 - Install directory:
   `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
@@ -33,6 +35,12 @@ drive-specific workspace, a private log, or a private test control.
 - Confirm capture: `BeginCatalogOperationLaunch` and `PendingMapLaunch`.
 - Confirm owner repair: `RestoreCapturedLaunchLaptop`.
 - Confirm loading state: `SetNativeConfirmationLoadingState`.
+- Additive-scene native loading gate:
+  `ShowNativeLoadingScreenForPackageScene` calls
+  `GameManagerNetwork.ShowLoadingScreen()` before runtime terrain/material
+  preparation. Verify `LoadingScreen.activeSelf` and `activeInHierarchy`.
+  `LoadingScreenVisible` returns `_hideLoadingScreenSoon` on the supported
+  build and is not the canvas-state probe.
 - Verified dependency-asset loan:
   `LoadVerifiedMapDependencyAsset<T>(mapId, assetPath)`. The framework keeps
   bundle ownership and unload responsibility. This generic cross-plugin path
@@ -70,6 +78,33 @@ drive-specific workspace, a private log, or a private test control.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
 - PVE creation: `TrySpawnStandalonePveEnemies` and
   `RaidManager.ServerSpawnAI(false)`.
+- Standard-PVE extraction authoring gate:
+  `ValidateStandaloneSceneContract` requires exactly one
+  `PVE_ExfilZone_` marker with a positive `BoxCollider` trigger.
+- Native extraction owner: `ConfigureStandalonePveController` creates the
+  operation-owned `RaidManager`, `ExfilZone`, copied trigger, locked marker,
+  and ATAK marker; `ResetStandalonePveExtractionState` establishes the locked
+  global state and 15-second timer.
+- Native ATAK reconstruction: `CreateNativeAtakExfilMarker` uses the resident
+  `ExfilZone` 512-by-512 texture, `HDRP/Unlit`, mesh `Marker`, layer `17`,
+  render queue `2501`, scale `0.65`, and the audited vanilla vertex/UV/
+  rotation/texture-offset values.
+- Success-preserving teardown: `ReleaseStandaloneGameMode` removes only
+  operation-owned PVE assets and singleton references and deliberately keeps
+  `GameManagerNetwork.SuccessfulOperation` when extraction succeeded.
+- Fixed PVE profile writer: `ConfigureStandaloneBotDetails`.
+- Fixed PVE profile diagnostic: `FormatPveAiProfile`.
+- Live profiled-PVE contract capture:
+  `StartProfiledPveAiDiagnostics`.
+- Bounded read-only snapshots: `ProcessProfiledPveAiDiagnostics` and
+  `LogProfiledPveAiSnapshot`; schedule `0, 10, 30, 60, 90, 120` seconds.
+- The snapshot reads live `WanderTimer * Patience`, movement, movement toward
+  insertion, `CurrentSeenTarget`, `CurrentState`, and
+  `EyesAI.DetectionLayerMask`. It writes no AI field.
+- Native bot movement probe: `GetProfiledPveNavigationPosition` reads
+  `BrainAI.agent.position` from the `AgentController` child. Do not read the
+  stationary `BrainAI` root transform.
+- Required Operator Mod API: `0.2.0-alpha.3`.
 - Lifecycle release: `ReleaseStandaloneSceneContracts` and
   `ReleaseStandaloneGameMode`; release captures `BootstrapAssetId` and removes
   its prefab/spawn-handler keys even when `BootstrapPrefabRoot` is fake-null.
@@ -85,14 +120,14 @@ that more than one package can select.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.17`.
+- Package: `community.ukrainian-forest`, version `0.3.21`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
-- Dependency bundle: 630,271,199 bytes; SHA-256
-  `09679986BEC2ABD40A4FE45D2D4559E645A9C30183D6D2926D0709AF18475138`.
-- Scene bundle: 17,598,605 bytes; SHA-256
-  `EDA200913A03F478C08D70C75D0CADD91D30BFAC30D37525CA8E1F5EFC40A6FE`.
+- Dependency bundle: 630,326,573 bytes; SHA-256
+  `B58BF6C4E4BC7DDF4AD753F7496E3CA9A116C2AEB685428FAEB8A83CC0C465A1`.
+- Scene bundle: 17,613,729 bytes; SHA-256
+  `0E67BEE91488C9F66F28454D15A177D0EDA2DEBF6A7944C625932B334F1712A8`.
 - Scene:
   `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
 - Preview: `media/ukraine_forest_preview.jpg`, 6,385,660 bytes, SHA-256
@@ -102,6 +137,12 @@ that more than one package can select.
   authoring change, and both in-editor gates plus the external validator passed.
 - PVE operation: `community.ukrainian-forest.pve`.
 - PVE population range: `10` through `15`, inclusive.
+- PVE profile: `dense-forest-balanced-v1`; range `45 m`; FOV `90` degrees;
+  native effective-range sentinel `-1`; wander `38 m`; communications on;
+  counter-suppression off.
+- Playable combat area: X `-35..35`, Z `-22..118`, or `70 by 140 m`.
+- Solo player-to-enemy distances: minimum `78.87 m`, median `91.60 m`,
+  mean `90.72 m`, maximum `101.79 m`.
 - PVP operation: `community.ukrainian-forest.pvp`.
 - PVP AI population: zero.
 - Scene marker:
@@ -111,14 +152,26 @@ that more than one package can select.
   Z range `5.4` through `13.2`.
 - Team 2 marker role: PVE-enemy side, ten markers, authored local Z range
   `82.4` through `90.2`.
+- Standard-PVE extraction marker: `PVE_ExfilZone_00` at authored root position
+  `(0.000,0.112,7.000)`. Its `BoxCollider` trigger center is
+  `(1.3259258,2.066852,1.6703243)` and size is
+  `(25.236944,7.376298,15.531027)`. This is the north player/Team-1 insertion
+  area, not the south enemy side.
 - Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
-- Companion candidate version: `0.4.15`.
-- Current companion Release binary: 296,960 bytes; SHA-256
-  `86F9FC38CC519A68B1AC3B0E506828519D7E064CA9FD0468886C7D183A9A7903`.
+- Companion version: `0.4.19`.
+- Accepted Release DLL: 298,496 bytes; SHA-256
+  `85FC1478A8E04FDA37CB2CBAD08D26231F3C4ECABD6A5F19899484948A763E74`.
+- Build the exact Release binary from the current source. Verify its hash
+  against the release archive checksum file.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
 - Exact-scene entry: `ProcessStandalonePackageScene`.
+- Forest sight activation: `ConfigureForestVegetationVisionBlockers`; exactly
+  79 direct plus 104 perimeter `AI Collider` triggers on layer 18
+  `AI_VisionBlock`, for 183 total. The source scene has 118 direct and 156
+  perimeter bushes, but 91 of them are Juniper instances without the native
+  blocker child. Never invent a blocker for those Junipers.
 - Navigation owner: `EnsureStandaloneNavigationGraph`.
 - Bounds gate: `IsInsideForestPlayableBounds`.
 - World audit: `LogStandaloneWorldContract`.
@@ -139,7 +192,7 @@ that more than one package can select.
   `Normal_vegetation`, and `mask_vegetation`. The opaque state uses exact
   hashed `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`, and
   `Vector1_813F3AD6` values plus `_Wetness_sm=0`, `_Vertex_AO_sm=0`, and
-  `_cutoff=.25`. The active `0.4.15` path does not depend on raw-TextAsset
+  `_cutoff=.25`. The active `0.4.19` path does not depend on raw-TextAsset
   borrowing.
 - Exact day donor: `sharedassets11.assets`, `PVP Woods Warehouse`, `Nice Sun`
   GameObject path `5150`, Transform path `14228`, Light path `41512`, and

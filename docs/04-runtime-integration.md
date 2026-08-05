@@ -145,6 +145,59 @@ prefetch all maps. It MUST log the file bytes, per-bundle time, total time, and
 remaining Confirm wait. Prefetch moves cold I/O earlier; it does not remove the
 bundle bytes.
 
+## Native loading presentation at the additive-scene boundary
+
+The supported OPERATOR build uses `GameManagerNetwork.ShowLoadingScreen` at
+RVA `0x00916210`. `GameManagerNetwork.OnAllPlayersLoaded(false)` enters this
+method for a vanilla operation. The method activates the shipped loading
+canvas, freezes the current player body, clears player velocity, and closes
+the infiltration UI. `GameManagerNetwork.HideLoadingScreen` is at RVA
+`0x0090E950`.
+
+An additive package scene has one extra boundary. The replacement `GameMode`
+does not own the scene-loaded callback until the next Unity frame. During this
+gap, the camera can show the package's portable brown proxy before native
+material and `TerrainData` reconstruction.
+
+Close the gap with the shipped method. Call it immediately after the exact
+package scene passes identity checks and before terrain or material work:
+
+```csharp
+private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+{
+    ActiveMapOperation operation = activeOperation;
+    if (!IsExactPackageScene(operation, scene))
+        return;
+
+    ReleaseStandaloneSceneContracts(operation);
+    GameManagerNetwork manager = GameManagerNetwork.instance;
+    if (manager == null || manager.LoadingScreen == null)
+        throw new InvalidOperationException("Native loading presentation is unavailable.");
+
+    manager.ShowLoadingScreen();
+    PrepareStandaloneScene(operation, scene);
+}
+```
+
+Do not clone a loading canvas. Do not hide it from the map companion. The
+persistent native `GameManagerNetwork` keeps ownership of the matching hide
+transition after the replacement mode reaches the shipped readiness barrier.
+
+For diagnosis, read `manager.LoadingScreen.activeSelf` and
+`activeInHierarchy`. Do not interpret `GameManagerNetwork.LoadingScreenVisible`
+as the canvas state on this build. Its getter at RVA `0x0091A840` returns the
+private `_hideLoadingScreenSoon` byte at offset `0x2A4`. The value can be
+`false` immediately after a successful `ShowLoadingScreen` call.
+
+Ukrainian Forest package `0.3.21` loads two verified files with a combined
+size of `647940302` bytes. In the accepted combined-package run, the
+`630326573`-byte dependency bundle took `23.270 s`, the scene bundle took
+`0.807 s`, and verified registration took `24.148 s` total. Confirm waited
+`22.119 s` for
+the remaining selected-map work. Vanilla missions can appear faster because
+their content is installed with the game and can already be resident. This
+timing difference is not evidence that the exact scene failed.
+
 ## Scene-bundle ownership
 
 The scene bundle MUST contain a real `.unity` scene. A prefab-only address is
@@ -286,15 +339,19 @@ Navigation is runtime state.
 When a companion owns graph construction, it MUST:
 
 1. Resolve or create one map-scoped `AstarPath` service.
-2. Add and configure the installed native graph type.
-3. Size the graph from the authoritative physics and bullet-interaction
+2. Resolve or add one enabled `Pathfinding.RVO.RVOSimulator` on the same host
+   as `AstarPath`. The shipped `BOT V2` movement child uses
+   `FollowerEntity`, which requires the native RVO service.
+3. Add and configure the installed native graph type.
+4. Size the graph from the authoritative physics and bullet-interaction
    volume.
-4. Exclude the render-only terrain and scenery apron.
-5. Restore any temporary scan layer in a `finally` block.
-6. Scan the exact graph.
-7. Reject outside markers before nearest-node lookup.
-8. Require tight grounding and `IsPointOnNavmesh` for each marker class.
-9. Remove only the map-owned graph or service on unload.
+5. Exclude the render-only terrain and scenery apron.
+6. Restore any temporary scan layer in a `finally` block.
+7. Scan the exact graph.
+8. Reject outside markers before nearest-node lookup.
+9. Require tight grounding and `IsPointOnNavmesh` for each marker class.
+10. Reject readiness when `RVOSimulator.active` is null or disabled.
+11. Remove only the map-owned graph, RVO service, or host on unload.
 
 Graph membership does not prove gameplay-wall containment.
 
@@ -418,6 +475,18 @@ selects one inclusive deterministic count from the valid sorted markers. It
 MUST NOT use Unity global random state for this selection. It MUST fail when
 fewer than `minEnemies` valid markers remain.
 
+Every StandardPVE scene MUST also contain exactly one inactive
+`PVE_ExfilZone_` marker with a positive trigger BoxCollider. The map owns its
+transform and collider. The generic framework copies that data to its
+Mirror-owned `InfiltrationManager` bootstrap and creates one shipped
+`RaidManager` plus one shipped `ExfilZone`.
+
+Start zone-level and global extraction locked. Use native AI `Health` deaths
+and `GameManager.allAI` as the shipped raid input. After native unlock, require
+physical player occupancy and the shipped extraction timer. Do not unload the
+map or show a custom success popup when the last enemy dies. Read
+[Native PVE completion, extraction, and ATAK](15-native-pve-completion-exfil-and-atak.md).
+
 ## Failure behavior
 
 Fail closed when a required condition is false. Keep the player in a safe
@@ -443,6 +512,7 @@ stop mode population
 -> invalidate the scene generation
 -> restore prior process-global spawn registration only when this operation still owns it
 -> unregister the operation-owned Mirror game-mode template
+-> destroy operation-owned ATAK mesh/material assets and clear exfil occupants when the operation was not successful
 -> clear standalone mode singleton, PvpGameode, and timer ownership
 -> restore captured NVG state and destroy run-time Volume profiles
 -> clear the companion's player transform/controller hold, spawn-safety window, counters, applied flag, and destination-scene reference
@@ -459,6 +529,10 @@ nothing when its generation is stale.
 Normal Restart Operation creates one new scene generation. It MUST NOT stack a
 second graph, callback set, door, actor list, or material set over the old
 generation.
+
+During a successful unload, do not clear
+`GameManagerNetwork.SuccessfulOperation`. The shipped Operation Room reads the
+result after the additive scene unloads.
 
 For a companion with late-player hooks, keep `applied=false` until the exact
 standalone `Terrain` and `TerrainCollider` share one non-null `TerrainData`.

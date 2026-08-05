@@ -109,6 +109,72 @@
 - each supported `DoorV2` passes front/back interaction, lock/latch, damage,
   breach, AI open/breach, host/client, late join, restart, and unload tests.
 
+## Use a private stationary observer when a tester cannot steer the player
+
+An unattended test can use the real owned player and the real retail output
+camera without sending movement, aim, or fire input. This gives stronger
+evidence than a free camera because the game must still complete player
+creation, camera ownership, spawn handoff, readiness, rendering, and restart.
+
+Keep the observer as a separate private BepInEx plug-in. Do not add it to the
+framework, map companion, package directory, or release archive. The observer
+must use this sequence:
+
+```text
+verify that OPERATOR is closed
+-> install the private driver with an exact operation ID
+-> launch the game and record the exact process path, ID, and start time
+-> enter Lone Wolf
+-> access the player-owned MissionLaptop
+-> open the real Cerberus window and MODDED OPS tab
+-> select the exact immutable operation row
+-> press Execute and Confirm
+-> confirm the shipped infiltration selector
+-> wait for exact scene identity and native readiness
+-> require the owned player and retail output camera at a declared spawn
+-> require the mode-correct grounded actor population
+-> capture the stationary player-camera view
+-> call the shipped Restart Operation path
+-> repeat the scene, player, camera, actor, and capture gates
+-> quit, hash evidence, and remove the private driver
+```
+
+Do not choose only the first operation with a matching PVE or PVP mode. Read
+an exact immutable operation ID from a private process setting or control file
+and refuse when it is absent from the frozen catalog. Bound each observation
+window. A profiled AI test that records snapshots through 120 seconds needs at
+least a 122-second hold. A short hold can prove launch, rendering, grounding,
+and restart only.
+
+Do not patch or call a quarantined operation-start method to bypass the UI.
+Do not convert this test to a synthetic free-camera scene load. Do not make the
+player invulnerable when the test is intended to measure combat. On timeout,
+close only a process whose executable path, process ID, and start time match
+the process created by the private launcher. Use a graceful close first.
+
+The result record must include the exact operation ID, mode, hold time, driver
+SHA-256, captured process identities, log and screenshot hashes, pass/fail
+state, and cleanup state. A passing run leaves no private driver, control file,
+capture directory, or environment flag in the normal game installation.
+
+The Forest `0.4.17` and Modded Operations `0.3.20` movement baseline passed
+this workflow. The first generation created 15 grounded PVE actors. The
+native restart created 14. Both generations kept the maximum absolute
+AI-to-Terrain difference at `0.03 m`. At 120 seconds, all actors had moved at
+least 1 m. The two maximum displacements were `51.19 m` and `49.34 m`.
+Authored vegetation blocked the same-mask sight probe in both generations.
+Both stationary retail-camera captures showed the complete forest. The
+launcher removed all private QA files after the game exited.
+
+The current completion runs also require and observe one shipped
+`RaidManager`, one shipped `ExfilZone`, locked initial extraction,
+`GameManager.allAI=0`, native zone/global unlock, the exact current-build ATAK
+exfil visual, positive physical occupant counts, the 15-second timer, and the
+Mission Successful After Action Report. For the Ukrainian Forest worked
+example, the extraction root is the northern insertion root
+`(0.000,0.112,7.000)`. See
+[Native PVE completion, extraction, and ATAK](15-native-pve-completion-exfil-and-atak.md).
+
 ## Deployment
 
 1. Verify the game is closed.

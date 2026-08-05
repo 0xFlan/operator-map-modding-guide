@@ -47,6 +47,8 @@ you make a release package.
 17. Trace every authored value through launch, terrain, player, AI, failure,
     restart, and teardown with the
     [end-to-end package lifecycle](docs/14-end-to-end-package-lifecycle.md).
+18. For PVE, implement and prove the
+    [native completion, extraction, and ATAK contract](docs/15-native-pve-completion-exfil-and-atak.md).
 
 ## Runtime paths
 
@@ -98,6 +100,9 @@ remains available for explicit local diagnostics. See the
   network player order, and test matrix.
 - [06 HDRP and fidelity](docs/06-hdrp-and-fidelity.md): sun/Volume ownership,
   terrain, foliage, and player-camera comparison.
+- [15 Native PVE completion](docs/15-native-pve-completion-exfil-and-atak.md):
+  exact extraction marker, native raid/exfil ownership, all-AI-dead unlock,
+  ATAK visual, success screen, restart cleanup, and runtime evidence.
 - [07 Validation and release](docs/07-validation-and-release.md): static,
   runtime, and in-game gates.
 - [08 Troubleshooting](docs/08-troubleshooting.md): symptom-to-layer guide.
@@ -107,7 +112,9 @@ remains available for explicit local diagnostics. See the
 - [10 Standalone packages](docs/10-standalone-packages.md): manifest fields,
   file closure, identity, markers, terrain payloads, and load validation.
 - [Package JSON Schema](schemas/operator-map-package.schema.json): closed
-  machine-readable pre-v1 manifest contract.
+  machine-readable schema-v1 manifest contract.
+- [Package JSON Schema v2](schemas/operator-map-package-v2.schema.json):
+  schema-v1 fields plus the closed PVE-only fixed AI profile.
 - [Package manifest template](templates/operator-map-package.example.json):
   complete PVE/PVP schema shape with explicit placeholder hashes; read the
   [template instructions](templates/README-package-template.md) before use.
@@ -115,7 +122,8 @@ remains available for explicit local diagnostics. See the
   developer-source GUID, component, serialized-reference, reciprocal-handle,
   pivot, sound-array, and destroyed-door graph checks.
 - [11 AI navigation and behavior](docs/11-ai-navigation-and-behavior.md):
-  playable-only A* graph, marker grounding, routes, cover, combat, and restart.
+  playable-only A* graph, marker grounding, fixed PVE profiles, native wander,
+  foliage sight blocking, routes, cover, combat, and restart.
 - [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,
   pivot, texture, material, foliage, tree-family, terrain, and runtime-audit
   requirements.
