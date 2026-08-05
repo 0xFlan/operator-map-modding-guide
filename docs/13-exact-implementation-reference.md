@@ -5,9 +5,10 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The values came from the version `0.3.11` package manifest, the current
-framework and companion source, and the emitted bundles. A new build can have
-different byte counts and SHA-256 values.
+status. The identities came from the version `0.3.17` package manifest and the
+current framework and companion source. The listed bundles predate the
+current `0.4.15` PVP-Woods lighting authoring update. Rebuild them before a
+release. A new build can have different byte counts and SHA-256 values.
 
 ## Path tokens
 
@@ -131,7 +132,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.11` value |
+| Field | Version `0.3.17` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -149,13 +150,15 @@ The exact emitted package files had these manifest records:
 
 | Package-relative path | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `content/operator_ukrainian_forest` | `630238479` | `8c93a6ecc80fbc6b387a9b14df9ae4550afc5278298499112e30d03b07dbe3cc` |
-| `content/operator_ukrainian_forest_scene` | `17589677` | `6586f96e932dc8184984c3ff2ec79e38f4b5c5be934fb4049e006af6e7843aee` |
+| `content/operator_ukrainian_forest` | `630271199` | `09679986bec2abd40a4fe45d2d4559e645a9c30183d6d2926d0709af18475138` |
+| `content/operator_ukrainian_forest_scene` | `17598605` | `eda200913a03f478c08d70c75d0cadd91d30bfac30d37525ca8e1f5efc40a6fe` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.11` values into a different archive.
+these version `0.3.17` values into a different archive. The two bundle values
+above are the last emitted pre-`0.4.15` payload identities. They are not final
+release identities for the updated builder.
 
 ## Ukrainian Forest operation records
 
@@ -323,11 +326,15 @@ The bundle authoring source uses these exact members:
 
 | Member or constant | Current value or action |
 | --- | --- |
-| `CompleteTreeTrunkGroundDatumName` | `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` |
-| `CompleteTreeBuriedTrunkFraction` | `0.25f` |
+| `CompleteTreeTrunkGroundDatumName` | `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH` |
+| `CompleteTreeBuriedTrunkFraction` | `1f / 6f` |
 | `CompleteTreeMinimumAboveGroundFraction` | `0.75f` |
+| `BroadCrownOakAdditionalTerrainEmbed` | `0.25f` |
+| `BroadCrownOakMinimumRootContactRadius` | `0.60f` |
+| `BroadCrownOakMaximumRootContactRadius` | `2.00f` |
 | `TryGetCompleteTreeTrunkBounds` | Selects the first `LODGroup` LOD, matches `pine_bark`, `trunk_pine`, `bark_mat`, or `bark_2_mat`, reads each matching mesh submesh index, transforms referenced vertices to world space, and returns finite trunk minimum/maximum Y. |
-| `AlignCompleteTreeRootContactToSurface` | Creates the renderer-free datum at 25 percent of the rendered trunk height, moves it to the sampled terrain, validates exact contact within `0.001 m`, and uses the complete renderer maximum as the separate full-tree gate. It does not use a pivot, whole-renderer minimum, or collider bottom. |
+| `FindCompleteTreeSurfaceContact` | Uses center contact for pines. For broad oaks, selects low LOD0 root-band points and two 16-direction rings, clamps the footprint to `0.60..2.00 m`, and returns its lowest sampled terrain contact. |
+| `AlignCompleteTreeRootContactToSurface` | Creates the renderer-free family-aware datum, stores the selected contact X/Z, moves it to sampled terrain, validates exact contact within `0.001 m`, and uses the complete renderer maximum as the separate full-tree gate. |
 | maximum authoring correction | `12 m`; a larger correction fails the build |
 
 The controlling calculation in
@@ -345,15 +352,20 @@ if (!TryGetCompleteTreeTrunkBounds(
 }
 
 var trunkHeight = trunkMaximumY - trunkMinimumY;
+TryGetTreeGroundingReferenceSpan(
+    instance, trunkHeight, out var referenceSpan, out var referenceRule);
+var surfaceContact = FindCompleteTreeSurfaceContact(
+    instance, centerSurfaceY, sampleSurfaceY);
 var datumRoot = new GameObject(
-    "NATIVE_TRUNK_GROUND_DATUM_25_PERCENT");
+    "NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH");
 datumRoot.transform.SetParent(instance.transform, true);
+var oakAdditionalEmbed = IsBroadCrownOak(instance) ? 0.25f : 0f;
 datumRoot.transform.position = new Vector3(
-    instance.transform.position.x,
-    trunkMinimumY + trunkHeight * 0.25f,
-    instance.transform.position.z);
+    surfaceContact.x,
+    trunkMinimumY + referenceSpan * (1f / 6f) + oakAdditionalEmbed,
+    surfaceContact.z);
 
-var correction = surfaceY - datumRoot.transform.position.y;
+var correction = surfaceContact.y - datumRoot.transform.position.y;
 instance.transform.position += Vector3.up * correction;
 ```
 
@@ -383,8 +395,9 @@ card or branch can be below the root system. Keep collision shapes for
 gameplay, and use only the selected bark/trunk submesh vertices for placement.
 
 The map companion uses `AlignStandaloneAuthoredTreesToTerrain` after the
-reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight`, moves
-each root by `groundY - marker.position.y`, enforces the `0.75` complete-tree
+reconstructed `TerrainData` is bound. It samples `Terrain.SampleHeight` at the
+packaged datum position, moves each root by `groundY - marker.position.y`,
+enforces the `0.75` complete-tree
 above-ground fraction and `12 m` limit, calls `Physics.SyncTransforms`, and
 logs aligned, missing-datum, rejected, minimum-fraction, and
 largest-correction values. Runtime repair processes only the 96
@@ -394,6 +407,35 @@ disabled after authoring. Runtime child traversal uses
 `foliageRoot.GetChild(childIndex)`. Do not use `foreach (Transform child in
 parent)` in an IL2CPP repeat-launch path; a later additive-scene generation
 can expose an `Il2CppSystem.Object` enumerator item and throw an invalid cast.
+
+## Exact 11:00 presentation source
+
+The accepted comparable source is `sharedassets11.assets`, `PVP Woods
+Warehouse`:
+
+| Object | Path ID | Exact value |
+| --- | ---: | --- |
+| `Nice Sun` GameObject | `5150` | Static directional-light owner |
+| Transform | `14228` | quaternion `(0.115319036,0.019461127,0.118037127,0.986098409)` |
+| Light | `41512` | 30,000 lux, 5,500 K, bounce intensity 5 |
+| `Global Volume Profile 1` | `198` | Complete wooded-map post stack |
+
+The Volume component paths and active values are:
+
+| Component | Path ID | Exact applied values |
+| --- | ---: | --- |
+| Exposure | `190` | AutomaticHistogram, CenterWeighted, fixed 10, compensation 0, limits 8.5 to 11, adaptation 0.5/0.5 |
+| Bloom | `196` | quality 3, threshold 0.9, intensity 0.03, scatter 0.893 |
+| ScreenSpaceLensFlare | `186` | intensity 0.5, streak 1.55, length 0.022, orientation 0, chromatic aberration 0.6 |
+| Tonemapping | `191` | External, full ACES false, exact AgX Powerful LUT |
+| ColorAdjustments | `187` | post exposure -0.3, contrast 30, hue 0, saturation -15 |
+| WhiteBalance | `197` | temperature -3.6, tint -8.6 |
+| LiftGammaGain | `192` | lift W .00827304, gamma W -.09100296, gain W .09100296 |
+| HDShadow | `202` | maximum distance 125 |
+
+The rejected donor used 52,241.375 lux, 6,727 K, bloom 0.359, and lens-flare
+intensity 1. It produced the blinding-sun report. Copy the comparable wooded
+map's complete light and Volume contract. Do not adjust only lux.
 
 ## Exact 02:00 presentation source
 
@@ -413,8 +455,22 @@ name `PVP map NIight VOLUME`. The exact applied component records are:
 prior value, calls `SetNVGColor(0)` for 02:00, and restores the prior value on
 unload.
 
-Do not apply the day `AgX - Powerful` external LUT or the day exposure limits
-`11.660274..12.358905` to this night source.
+Do not apply the day `AgX - Powerful` external LUT or the PVP-Woods day
+exposure limits `8.5..11` to this night source.
+
+The package selects `native-outdoor-v1`. Modded Operations `0.3.18` is the
+single process-global render owner. `ApplyStandaloneRenderContract` applies
+the day or night values, loads the package-verified LUT for day only, selects
+white phosphor for 02:00, logs every selected control, and restores its prior
+state during reverse teardown. Forest `0.4.15` owns scene reconstruction and
+the LUT payload. It does not install a competing global Volume.
+
+The exact accepted framework DLL is 151,552 bytes with SHA-256
+`71F21527FF959DBCF3C7AD1894937F56A9D931E0BF1A6B038C857249861A745C`.
+The mod repository publishes both its authored source and an ILSpy
+`10.1.1.8388` snapshot under `decompiled/release-0.3.18`. The archived
+`0.3.17` snapshot contains the rejected 52,241.375-lux day value and is not a
+current instruction source.
 
 ## Framework and companion source locators
 
@@ -427,11 +483,15 @@ standalone flow:
 | `BuildPackageInfiltrationMapPrefab` | Build the native selector presentation for a package operation. |
 | `BeginSelectedMapPrefetch` | Start one bounded selected-map dependency and scene-bundle load after row selection. |
 | `BeginCatalogOperationLaunch` | Capture the selected operation and exact player-owned laptop before asynchronous package I/O. |
+| `ProcessPendingLaunch` | Load one verified bundle request at a time, reject role/scene violations, and continue a waiting Confirm automatically. |
 | `RestoreCapturedLaunchLaptop` | Restore only the captured `playerNetworking` field when the same laptop released it during loading. |
 | `SetNativeConfirmationLoadingState` | Keep the private modal visible and non-interactable until loading succeeds or fails. |
+| `LoadVerifiedMapDependencyAsset<T>` | Return one borrowed asset from the exact map's verified retained dependency bundles; keep unload ownership in the framework. |
 | `InfilSelectorDisplayer.SpawnMap` | Start the selected native map flow. |
 | `CerebusOpboard.Start_Operation` | Start the selected operation through the native board. |
 | `ValidateStandaloneSceneContract` | Reject a loaded scene that does not match its declared map and spawn set. |
+| `TryPrepareRuntimeTerrain` | Decode manifest-declared height and weights, create terrain layers, and bind one operation-owned `TerrainData` to rendering and collision. |
+| `ValidateWalkableGroundContract` | Require every compatible player marker to raycast to package collision and require shared runtime-terrain identity. |
 | `CreateStandaloneGameplayBootstrap` | Create generic standalone gameplay state after the scene contract passes. |
 | `EnsureStandaloneBootstrapPrefabRegistered` | Register the inactive runtime PVE or PVP game-mode template on every peer with deterministic Mirror asset ID `0x4D4F5001` or `0x4D4F5002`; fail on an existing different prefab with the same ID. |
 | `TryAdoptNetworkSpawnedGameMode` | On a remote peer, validate the spawned asset ID and mode, then adopt the Mirror-created clone as the active operation game-mode owner. |
@@ -460,7 +520,8 @@ own map-specific reconstruction:
 | `GroundLateNetworkPlayerObjectInstance` | Resolve the current standalone root for a late owned player callback. If the exact terrain-ready gate does not pass, return without moving the player. Do not use the legacy Office pre-map fallback in a standalone package scene. |
 | `GroundAirbornePlayerControllers` | During the bounded initial handoff, repair a known local root at the old sky pose or more than `2 m` below the sampled live surface. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
-| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable trees by packaged `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` after run-time TerrainData bind; keep native trunk collision, enforce the 25-percent buried-trunk contract, 75-percent complete-rendered-height gate, 12 m correction limit, and typed child-index traversal. |
+| `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable trees by packaged `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH` after run-time TerrainData bind; sample its stored contact X/Z, keep native trunk collision, enforce the family-aware reference, 75-percent complete-rendered-height gate, 12 m correction limit, and typed child-index traversal. |
+| `LoadVerifiedRawPineMaterialAsset` | Rejected `0.4.12` experiment retained for forensic comparison. The active `0.4.15` pine path does not use it. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |

@@ -40,7 +40,8 @@ process starts
 -> framework verifies the exact scene path in the scene bundle
 -> framework loads the exact scene additively
 -> companion verifies package, map, operation, scene, and build identity
--> companion reconstructs materials, TerrainData, navigation, and interactives
+-> framework reconstructs manifest-declared TerrainData and validates collision
+-> companion repairs exact-map materials, navigation, grounding, and interactives
 -> companion validates the strict world contract
 -> framework creates the native-compatible mode owner
 -> shipped all-players-loaded readiness completes
@@ -191,6 +192,25 @@ The companion MUST NOT own catalog discovery, mission UI, selection, generic
 scene loading, player readiness, PVE actor creation, the `PvpGameode` round
 graph, failure UI, or generic mode ownership.
 
+### Borrow assets from a verified dependency
+
+The framework owns every verified dependency-bundle handle and its unload
+lifetime. A companion that needs an exact bundle asset must call:
+
+```csharp
+TextAsset state = CerberusNativeTabFix
+    .LoadVerifiedMapDependencyAsset<TextAsset>(mapId, assetPath);
+```
+
+This API searches only dependencies that Core verified and the framework
+retained for the exact `mapId`. The returned object is borrowed. The companion
+must not unload its bundle.
+
+Do not use `AssetBundle.GetAllLoadedAssetBundles()` to infer package ownership.
+Do not call `AssetBundle.LoadFromFile` again for the same large bundle. Global
+enumeration does not prove the package owner, and a second load creates a
+second memory and teardown path.
+
 ## Native material reconstruction
 
 An external Unity project usually cannot compile OPERATOR's private HDRP
@@ -238,10 +258,11 @@ If `TerrainData` does not survive the bundle boundary:
 Do not let an actor spawn because a visible fallback mesh exists.
 
 Do not use the source prefab pivot as the tree-base contract. Apply final yaw
-and scale first. Use the lowest finite child renderer bound, a small declared
-embed, and a bounded maximum correction. Author this correction into the
-bundle and repeat it after run-time TerrainData bind when compatibility with
-older content is required.
+and scale first. Use LOD0 bark/trunk submesh data and a visually proved
+family-aware reference. Store the selected surface-contact X/Z in a
+renderer-free child datum. At run time, sample the datum position instead of
+the tree-root center. Use a bounded maximum correction and a complete-rendered
+above-ground gate.
 
 ## Night presentation ownership
 

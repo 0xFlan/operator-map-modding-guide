@@ -7,6 +7,11 @@ Forest material identities. That reference uses privacy-safe path tokens. Do
 not put a private drive path or an operating-system account name in a public
 procedure.
 
+Use
+[`docs/14-end-to-end-package-lifecycle.md`](docs/14-end-to-end-package-lifecycle.md)
+for the complete authoring-data, Cerberus, bundle, terrain, player, PVE/PVP,
+failure, restart, and teardown chain.
+
 This document is the normative technical contract for a standalone OPERATOR
 map. It is written for human authors and automated engineering tools.
 
@@ -19,18 +24,24 @@ This document uses the language and evidence rules in
 
 ## 1. Scope and status
 
-The current standalone method is `SUPPORTED` for its tested current-build,
-local PVE and PVP scope. Re-test the complete matrix after an OPERATOR, Unity,
-BepInEx, Il2CppInterop, A*, Core, or framework update.
+The current method has strong static and bounded runtime evidence. Forest
+`0.4.15` and Modded Operations `0.3.18` have accepted local first launch,
+one-click Confirm, 11:00 daylight, pine surface, tree contact, unload, Lone
+Wolf re-entry, repeat launch, above-terrain repeat spawn, and 02:00
+white-phosphor NVG results. Reciprocal firearm damage, KIA restart, and the
+two-peer PVP matrix remain open. Do not label the complete pair `SUPPORTED`
+until those gates pass. Re-test the complete matrix
+after an OPERATOR, Unity, BepInEx, Il2CppInterop, A*, Core, or framework
+update.
 
 The method does not yet prove general multiplayer content agreement, late
 join, or all possible maps. Treat these claims as separate gates.
 
-The current first-Confirm owner-retention, owner-aware firearm population,
-repeat-launch player recovery, deterministic network game-mode identity, and
-tree root-contact corrections are `PROVEN-STATIC`. Do not label those
-corrections `SUPPORTED` until the physical first-launch, second-launch,
-reciprocal-firearm, slope-tree, and two-peer gates pass.
+The current first-Confirm owner retention, repeat-launch player recovery,
+deterministic network game-mode identity, tree root contact, and local render
+transaction are `PROVEN-RUNTIME` for the tested single-player scope.
+Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
+damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
 
 The old retail-scene prefab overlay is `RETIRED` for standalone mission
 parity. Keep it only for an explicit diagnostic test. See
@@ -85,6 +96,7 @@ change an identity to match a display name.
 | Briefing formatter | `FormatCatalogBriefing` |
 | Native launch calls | `InfilSelectorDisplayer.SpawnMap`, `CerebusOpboard.Start_Operation` |
 | Confirm owner retention | `BeginCatalogOperationLaunch`, `RestoreCapturedLaunchLaptop`, `SetNativeConfirmationLoadingState` |
+| Verified dependency-asset loan | `LoadVerifiedMapDependencyAsset<T>(mapId, assetPath)`; framework retains bundle ownership |
 | Scene contract gate | `ValidateStandaloneSceneContract` |
 | Repeat-launch player recovery | `RequestStandalonePlayerSpawn`, `InvokeGeneratedServerPlayerSpawnBody`, `SpawnAndPositionStandalonePlayers` |
 | Deterministic game-mode identity | PVE `0x4D4F5001`, PVP `0x4D4F5002`, `NetworkClient.RegisterPrefab`, `TryAdoptNetworkSpawnedGameMode` |
@@ -94,7 +106,7 @@ change an identity to match a display name.
 | Ukrainian Forest companion source file | `OperatorUkrainianForestPlugin.cs` |
 | Companion exact-scene entry | `ProcessStandalonePackageScene` |
 | Companion navigation owner | `EnsureStandaloneNavigationGraph` |
-| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`; packaged `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`; `0.25` of LOD0 bark/trunk height below terrain; `0.75` of trunk and complete tree above terrain |
+| Companion tree repair | `AlignStandaloneAuthoredTreesToTerrain`; packaged `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`; family-aware pine center and broad-oak bounded root-footprint contact; at least `0.75` of the complete tree above terrain |
 | Package ID | `community.ukrainian-forest` |
 | Map ID | `community.ukrainian-forest.ukrainian-forest` |
 | Dependency bundle | `content/operator_ukrainian_forest` |
@@ -111,7 +123,7 @@ and
 [`templates/Editor/ValidateStandaloneMapScene.cs`](templates/Editor/ValidateStandaloneMapScene.cs).
 The closed package contract is
 [`schemas/operator-map-package.schema.json`](schemas/operator-map-package.schema.json).
-The full version `0.3.11` file records, terrain payload addresses, material
+The full package version `0.3.17` file records, terrain payload addresses, material
 identities, marker families, and load sequence are in the
 [exact implementation reference](docs/13-exact-implementation-reference.md).
 
@@ -124,7 +136,7 @@ Keep these owners separate.
 | Core and catalog | Package verification, immutable identity, deterministic catalog | Map-specific Unity or game logic |
 | OPERATOR: Modded Operations | Private native-style mission UI, exact bundle and scene load, readiness, `InfiltrationManager`-compatible PVE bridge, shipped `PvpGameode` lifecycle, player creation, shipped failure-UI handoff, restart | Map names, shader profiles, terrain dimensions, graph dimensions, marker coordinates, tree repair |
 | Data-only map package and scene | Manifest, operations, bundles, preview, portable assets, world, collision, walls, lighting, markers, PVE population range | Executable code, generic mission UI, global game state |
-| Optional exact-scene companion | Native material and `TerrainData` reconstruction, map-owned A* graph, marker validation, map-specific interactive initialization, strict world validation, teardown | Catalog, generic mission UI, other maps, shipped failure UI |
+| Optional exact-scene companion | Native material repair after generic terrain bind, map-owned A* graph, marker diagnostics, map-specific interactive initialization, strict world diagnostics, teardown | Catalog, generic terrain payload decoding, generic mission UI, other maps, shipped failure UI |
 
 The package directory MUST remain data-only. Install a required map companion
 as a separate BepInEx plugin.
@@ -384,27 +396,24 @@ door clearance, sight lines, and performance limits.
 
 For a combined crown-and-trunk renderer, use only the highest-detail
 bark/trunk submesh vertices. Do not use the prefab pivot, the whole-renderer
-minimum, or the bottom of a lower-trunk collider. A low leaf card or branch can
-corrupt the whole-renderer minimum. A native capsule can extend below the
-modeled roots. Keep the collider for gameplay collision. Apply final position,
-yaw, and scale before you read vertices. The exact equation is:
+minimum, or a generic collider bottom. A low leaf card can corrupt the minimum.
+A broad-crown bark submesh can include high spreading branches. Keep native
+colliders for gameplay. Apply final position, yaw, and scale before you read
+vertices. Define and visually test a family-aware reference.
 
-```text
-trunkMinY = minimum world Y referenced by LOD0 bark/trunk submesh indices
-trunkMaxY = maximum world Y referenced by LOD0 bark/trunk submesh indices
-trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
-correction = surfaceY - trunkDatumY
-trunkAboveGroundFraction = 0.75
-aboveGroundFraction = (rendererBoundsMaxY + correction - surfaceY)
-                      / rendererBoundsHeight
-```
+The current Ukrainian Forest proof uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. A narrow pine uses one sixth of the full
+LOD0 trunk span and the center terrain sample. A broad oak uses the oriented
+main-stem reference, a `0.25 m` additional embed, and the lowest terrain
+contact across a bounded `0.60 m` through `2.00 m` lower-root footprint. Store
+that contact X/Z in the datum.
 
-Create renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at
-`trunkDatumY` before you move the tree. Require that child to reach terrain
-within `0.001 m`, fail when `abs(correction)>12 m`, require `0.75` of the trunk
-and at least `0.75` of the complete rendered tree above terrain, then
-synchronize physics once after the full corrected batch. The run-time
-companion uses the child marker; it does not need mesh readback.
+At run time, calculate `correction = sampledSurfaceYAtDatum - datum.position.y`.
+Do not sample the tree root center. Require the child to reach terrain within
+`0.001 m`, fail when `abs(correction)>12 m`, require at least `0.75` of the
+complete rendered tree above terrain, and synchronize physics once after the
+corrected batch. The run-time companion uses the child marker and does not
+need mesh readback.
 
 The full pines are `Pine_var10_LOD0.prefab` and
 `Pine_var11_LOD0.prefab`. Their combined renderer slots are `Pine_Needle`,
@@ -470,7 +479,8 @@ Core validates and freezes packages
 -> framework verifies dependency bundles in manifest order
 -> framework verifies and loads the exact scene bundle and scene path
 -> companion verifies exact package, map, operation, scene, and build identity
--> companion reconstructs native materials, TerrainData, navigation, and interactives
+-> framework reconstructs manifest-declared TerrainData and validates walkable collision
+-> companion repairs exact-map materials, navigation, grounding, and interactives
 -> companion passes the strict world contract
 -> framework creates the native-compatible mode owner
 -> shipped all-players-loaded readiness completes
@@ -783,9 +793,9 @@ Before actor creation, require:
   declared, with both components bound to the same `TerrainData`;
 - inactive serialized terrain fallback after successful TerrainData bind;
 - complete-tree LOD0 bark/trunk submesh bounds and one renderer-free
-  `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` aligned to live terrain after final
-  rotation and scale, with native trunk/root collision retained, `0.25` of
-  trunk height below terrain, the maximum correction satisfied, and at least
+  family-aware datum aligned to live terrain after final rotation and scale,
+  with native trunk/root collision retained, the documented family reference
+  and contact X/Z preserved, the maximum correction satisfied, and at least
   `0.75` of the complete rendered tree above terrain;
 - one intended map-owned A* graph and service relationship;
 - every mission marker inside the gameplay volume before graph lookup;
@@ -814,7 +824,8 @@ stop mode population
 -> clear standalone mode singleton and timer ownership
 -> restore captured NVG color and destroy operation-owned Volume profiles
 -> clear the companion's local-player transform hold, spawn-safety state, applied flag, and destination scene
--> companion removes its graph, materials, TerrainData, interactives, and callbacks
+-> companion removes its graph, material instances, interactives, and callbacks
+-> framework releases its runtime TerrainData and TerrainLayer objects
 -> unload package scene
 -> release scene bundle
 -> release dependency bundles in reverse order
@@ -869,6 +880,24 @@ Do not include logs, captures, private flags, smoke drivers, forced-scene
 controls, auto-launch controls, extracted game assets without permission, or
 machine-local paths.
 
+Each public mod repository must contain the complete authored source and one
+hash-pinned decompiler snapshot for each final mod DLL. Record the DLL version,
+byte length, SHA-256, and decompiler version beside the snapshot. The authored
+tree is the edit source. The decompiled tree proves the compiled release
+surface.
+
+Represent each omitted large or authorized asset with an explicit bracketed
+record, for example `[PREFAB ASSET]`, `[PREVIEW IMAGE]`, `[TEXTURE SET]`,
+`[DEPENDENCY ASSETBUNDLE]`, or `[SCENE ASSETBUNDLE]`. The record must give the
+exact expected path, type, address, source evidence, and validation rule. Do
+not put placeholder bytes at a manifest-declared release filename.
+
+Do not describe generated IL2CPP interop wrappers as decompiled original game
+source. Publish the exact generated signature, serialized owner file and path
+ID, read-only native behavior evidence, and runtime acceptance result. Keep
+game binaries out of the mod repository unless the owner has authorized that
+exact redistribution.
+
 Verify each staged file, checksum file, ZIP entry, installed file, update,
 downgrade, removal, and rollback path.
 
@@ -907,7 +936,8 @@ retested.
 | First spawn throws or armory player floats | Invalid first spawn index or package-scene objects retained in process-global `GameManager` spawn fields |
 | First mission works but second launch has no player object | Request 1 did not create the new scene generation's `PlayerSpawnedObject`; verify the 300-frame bounded owned-host generated-server recovery and shipped move path |
 | 02:00 NVG is black outside ECOTI | Day exposure/LUT applied to the night source or white-phosphor state was not selected |
-| Trees on hills float or have buried trunks | A pivot, combined-renderer minimum, or hidden collider bottom was used; verify LOD0 bark/trunk submesh bounds, `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, exact `0.25` buried trunk fraction, and `0.75` complete-tree above-ground gate |
+| Trees on hills float or have buried trunks | A pivot, combined-renderer minimum, generic collider bottom, or root-center resample was used; verify the family-aware LOD0 datum, broad-oak bounded lower-root contact X/Z, and `0.75` complete-tree above-ground gate |
+| Pine lower trunk or branches are white | The complete raw bark/trunk state did not apply, a wrong submesh material is bound, or covering defaults remain active; require framework-owned verified raw-state asset loans and inspect both bark material slots |
 | Scene loads, then `MAP LOADED !BUG!` Restart Operation loops on the second launch | A destroyed scene-owned game-mode template remained in `NetworkClient.prefabs`; inspect the deterministic asset ID, fake-null eviction before registration, and release cleanup by asset ID plus `UnregisterSpawnHandler` |
 | Actor is outside the wall | Marker containment and graph dimensions use the visual apron |
 | Player and AI cannot shoot through the boundary | Bullet-interaction wall or layer mask differs from route intent |

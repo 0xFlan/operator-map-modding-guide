@@ -39,15 +39,19 @@ you make a release package.
 16. Use the [exact implementation reference](docs/13-exact-implementation-reference.md)
     to locate current code, bundles, assets, object names, and verification
     commands.
+17. Trace every authored value through launch, terrain, player, AI, failure,
+    restart, and teardown with the
+    [end-to-end package lifecycle](docs/14-end-to-end-package-lifecycle.md).
 
 ## Runtime paths
 
 For a map selected from the mission laptop and loaded without a retail donor
 map, use the standalone architecture. Use a strict data-only package,
 **OPERATOR: Modded Operations**, and an optional exact-scene map companion for
-native material, `TerrainData`, navigation, or other runtime-only
-reconstruction. Map-specific reconstruction does not belong in the generic
-framework.
+native material repair, navigation, grounding, or other map-specific runtime
+work. The generic framework reconstructs manifest-declared `TerrainData` and
+binds shared render/collision state. Map equations and exact asset repairs do
+not belong in the generic framework.
 
 The scene/package owns marker coordinates, combat walls, tree families, and
 PVE `minEnemies`/`maxEnemies`. The exact-scene companion builds navigation
@@ -113,6 +117,9 @@ remains available for explicit local diagnostics. See the
 - [13 Exact implementation reference](docs/13-exact-implementation-reference.md):
   path tokens, source members, assembly names, bundle names, Ukrainian Forest
   asset addresses, scene objects, and exact load order.
+- [14 End-to-end package lifecycle](docs/14-end-to-end-package-lifecycle.md):
+  complete data-to-runtime flow, exact code members, Forest material and
+  lighting example, failure decisions, restart, teardown, and release proof.
 - [Archived methods](docs/archive/README.md): methods that MUST NOT be used as
   current standalone release proof.
 - [Codex skill](skills/operator-unity-modding/SKILL.md): reusable instructions

@@ -13,7 +13,8 @@
 | Flat or grey props | final shader, map bindings, tint precedence, bundle dependencies | material closure |
 | Low-detail trees | mesh topology, LODGroup state, game quality owner | authored asset/LOD policy |
 | Pine trees read as bare trunks | player-camera crown silhouette at close/mid/far range, source prefab family, leaf submeshes/materials | map-owned tree-family selection |
-| Trees float above slopes or have deeply buried trunks | sampled surface Y, LOD0 bark/trunk material slots, submesh indices and vertex Y bounds, `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, complete renderer height, 0.25 buried-trunk fraction, 0.75 above-ground fraction | authored trunk-datum placement contract |
+| Trees float above slopes or have deeply buried trunks | family, sampled contact X/Z/Y, LOD0 bark/trunk slots, submesh vertices, family-aware datum, complete renderer height, 0.75 above-ground fraction | authored family-aware datum and cross-slope contact contract |
+| Pine lower trunk or branches are white | raw `pine_bark` and `Trunk_pine_var4` TextAsset load result, complete-state application log, submesh material slots, covering/snow floats, base/normal/mask bindings | verified dependency-asset loan or pine material rehydration |
 | Second launch reaches `MAP LOADED !BUG!` and Restart Operation loops | deterministic PVE/PVP asset ID, fake-null value retained in `NetworkClient.prefabs`, cleanup by asset ID, `UnregisterSpawnHandler` call | generic game-mode prefab lifecycle |
 | Open or invisible boulder | mesh closure, matching material, multi-angle player view | source mesh/material choice |
 | Road-like terrain | terrain layer maps, normals, color space, mips, runtime material | terrain material |

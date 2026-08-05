@@ -221,7 +221,7 @@ phase predicates, and apply them across alternative bindings, accessors,
 runtime resolvers, shared native bodies, and thunk aliases. Also keep the
 quarantined synchronous
 `SceneManager.LoadScene(Int32)` call from
-`OperatorGroceryStorePlugin.OnSceneLoaded` denied while the active scene is
+`<LEGACY_MAP_PLUGIN>.OnSceneLoaded` denied while the active scene is
 exactly `ApplicationSplashScreen`; that route preceded a separate
 `UnityPlayer.dll` access violation. Do not generalize it into a claim that all
 later asynchronous scene probes are causal.

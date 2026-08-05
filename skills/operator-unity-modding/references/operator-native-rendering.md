@@ -130,6 +130,76 @@ these numbers as fingerprint-pinned evidence, not universal constants. The
 framework owns this generic time-code state and must destroy its runtime
 profile during teardown.
 
+## Exact Forest SeedMesh bark rule
+
+For the current full-crown Forest pines, read `sharedassets21.assets` and
+resolve external shader pointers in `globalgamemanagers.assets`:
+
+| Material | Material path ID | Shader path ID | Compiled shader |
+| --- | ---: | ---: | --- |
+| `Pine_Needle` | `11` | `242` | `Shader Graphs/BotD_Graph_Lit_TranslucentAlphaCutoff` |
+| `pine_bark` | `7` | `237` | `Shader Graphs/SeedMesh_Tree_Bark` |
+| `Trunk_pine_var4` | `14` | `237` | `Shader Graphs/SeedMesh_Tree_Bark` |
+
+The bark shader reads `_MainTex`, `Normal_vegetation`, and
+`mask_vegetation`. Copying only generic proxy names leaves active resident
+inputs null and can produce white geometry.
+
+Use the exact hashed scalar state:
+
+| Property | `pine_bark` | `Trunk_pine_var4` |
+| --- | ---: | ---: |
+| `Vector1_DDCDCAD2`, Smoothness Remap | `1` | `0` |
+| `Vector1_16F2F1E4`, AO Intensity | `.186` | `0` |
+| `Vector1_813F3AD6`, Thickness | `-1` | `0` |
+| `_Wetness_sm` | `0` | `0` |
+| `_Vertex_AO_sm` | `0` | `0` |
+| `_cutoff` | `.25` | `.25` |
+
+Use `_Color`, not `_BaseColor`. The shader does not declare
+`_Smoothness`, `_SmoothnessRemapMin`, or `_SmoothnessRemapMax`. A
+`HasProperty`-guarded write to an absent generic name has no effect.
+
+Keep `Pine_Needle` on the translucent alpha-cutout shader, double-sided, queue
+2450, cutoff .6, with its base/alpha, normal, and mask maps. Preserve alpha
+coverage in mips.
+
+## Comparable-biome daylight rule
+
+Do not select a donor only because it is bright or uses HDRP. Use a shipped map
+with a comparable biome and inspect both its light and active Volume stack.
+
+The current Forest day reference is `sharedassets11.assets` `PVP Woods
+Warehouse`:
+
+```text
+Nice Sun GameObject path 5150
+Transform path 14228
+Light path 41512
+30,000 lux
+5,500 K
+bounce intensity 5
+Global Volume Profile 1 path 198
+Bloom intensity .03
+ScreenSpaceLensFlare intensity .5
+```
+
+The rejected brighter PVP donor used 52,241.375 lux, 6,727 K, bloom .359, and
+lens flare 1. It produced a blinding sun. Correcting only lux is incomplete.
+Copy active exposure, tonemapping/LUT, bloom, lens flare, color adjustment,
+white balance, lift/gamma/gain, and shadow distance from the comparable map.
+
+Keep 0200 on its separately audited night branch. Do not apply the day
+external LUT or exposure range to the night profile.
+
+Use one process-global render owner. In the current implementation, the map
+manifest selects `native-outdoor-v1`, Modded Operations `0.3.18` applies and
+restores the sun, HDRP Volume, tonemapping, ambient, and NVG transaction, and
+the package owns the hash-verified LUT. The map companion must not install a
+second global Volume. The accepted 2026-08-04 repeat run logged the selected
+profile and showed white phosphor in all four GPNVG tubes with terrain visible
+outside the brighter ECOTI channel.
+
 ## TerrainData and TerrainBRG ownership rule
 
 Inspect the stock Terrain GameObject, TerrainData, and components before deciding how vegetation is drawn. Official OPERATOR outdoor maps can attach `TerrainSurface`, `TerrainQualitySwitch`, and `BRGInstancedRenderer.TerrainBRGRegisterer` while `Terrain.drawTreesAndFoliage` is false. In that configuration ordinary direct MeshRenderers are not a faithful equivalent of stock terrain detail/tree submission.
@@ -228,21 +298,22 @@ slope. Keep that collider for gameplay.
 
 After final rotation and scale, select the LOD0 renderer. Match the bark/trunk
 material slots. Use `Mesh.GetIndices(slot)` and the referenced vertices to
-calculate finite world-space `trunkMinY` and `trunkMaxY`. Ukrainian Forest
-uses:
+calculate finite world-space bounds. Define a family-aware reference because
+a broad-crown bark submesh can include high branches.
 
-```text
-trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
-correctionY = surfaceY - trunkDatumY
-```
+Ukrainian Forest uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. Narrow pines use one sixth of the full
+LOD0 trunk at the center sample. Broad oaks use the oriented main-stem span,
+add `0.25 m` embed, and select the lowest terrain contact across a bounded
+`0.60 m` to `2.00 m` LOD0 lower-root footprint. Store that contact X/Z in the
+datum. Move the tree by `surfaceY - datumY`, require marker-to-terrain error no
+greater than `0.001 m`, require at least `0.75` of the complete rendered tree
+above grade, and reject an absolute correction above `12 m`.
 
-Create renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at that
-datum. Move the tree, require marker-to-terrain error no greater than
-`0.001 m`, require `0.75` of the trunk and at least `0.75` of the complete
-rendered tree above grade, and reject an absolute correction above `12 m`.
-Place and synchronize the complete batch. At run time, use the packaged child
-after TerrainData reconstruction instead of mesh readback. Use typed index
-traversal in IL2CPP repeat-load paths and synchronize physics transforms.
+Place and synchronize the complete batch. At run time, sample terrain at the
+packaged datum position after TerrainData reconstruction. Do not resample the
+tree center. Use typed index traversal in IL2CPP repeat-load paths and
+synchronize physics transforms.
 
 When a native shader uses a texture property that a portable Standard proxy cannot serialize, carry that texture through a documented, otherwise-unused proxy slot only for the audited material identity. At runtime resolve the proxy back to its raw native name, move the texture from the cargo slot to the correct installed BotD/HDRP property, and verify the raw/proxy GUID equality plus the exact runtime restoration call. Never leave a transport slot functioning as its Standard meaning (for example, do not leave a thickness map as emission).
 

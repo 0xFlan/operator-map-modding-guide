@@ -164,21 +164,23 @@ foreach (Renderer renderer in renderers)
     }
 }
 
-float trunkHeight = trunkMaximumY - trunkMinimumY;
-float trunkDatumY = trunkMinimumY + trunkHeight * 0.25f;
-float correction = surfaceY - trunkDatumY;
-tree.transform.position += Vector3.up * correction;
+float referenceSpan = GetFamilyGroundingReferenceSpan(tree, trunkMinimumY, trunkMaximumY);
+Vector3 contact = FindFamilySurfaceContact(tree, sampleSurfaceY);
+float familyBias = IsBroadCrownOak(tree) ? 0.25f : 0f;
+float datumY = trunkMinimumY + referenceSpan * (1f / 6f) + familyBias;
+tree.transform.position += Vector3.up * (contact.y - datumY);
 ```
 
 `IsRecognizedTrunkMaterial` must accept the shipped `pine_bark`,
-`Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat` slots. Create renderer-free
-child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at `trunkDatumY` before moving
-the tree. Fail when its corrected world Y differs from terrain by more than
-`0.001 m`, when the trunk-above fraction differs from `0.75`, when the full
-rendered-tree above fraction is below `0.75`, or when
-`abs(correction) > 12f`. Reject an unreadable mesh, invalid submesh index,
-missing material, non-finite bound, or zero-height trunk. Keep the native
-lower-trunk collider for gameplay collision, but do not use it as the datum.
+`Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat` slots. Define the reference and
+surface contact per family. The current Forest proof uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. Pines use a center sample and full
+trunk span. Broad oaks use an oriented main-stem span, `0.25 m` bias, and the
+lowest sample in a bounded `0.60 m` to `2.00 m` lower-root footprint. Store
+the contact X/Z in the child. Fail when its corrected world Y differs from
+terrain by more than `0.001 m`, when the full rendered-tree above fraction is
+below `0.75`, or when `abs(correction) > 12f`. Keep native colliders for
+gameplay, but do not use a generic collider bottom as the datum.
 
 Place the full tree batch first. Synchronize transforms once, apply the
 root-contact equation to every tree, and synchronize once more. Do not call

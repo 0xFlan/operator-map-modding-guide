@@ -214,30 +214,30 @@ current oak LOD0 renderer combines `Bark_Mat`, `Bark_2_Mat`, and one leaf
 material. Treat `pine_bark`, `Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat`
 as trunk slots. Read each selected submesh's indices and referenced vertices.
 
-Use this exact authoring equation:
+Use a family-aware authoring equation:
 
 ```text
 trunkMinY = minimum finite world Y of selected trunk vertices
 trunkMaxY = maximum finite world Y of selected trunk vertices
-trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
-correctionY = sampledSurfaceY - trunkDatumY
+referenceSpan = verified family reference from selected LOD0 trunk data
+datumY = trunkMinY + referenceSpan * buriedFraction + familyBias
+correctionY = sampledSurfaceYAtDatumXZ - datumY
 newRootY = oldRootY + correctionY
-trunkAboveGroundFraction = 0.75
 aboveGroundFraction = (rendererBoundsMaxY + correctionY - sampledSurfaceY)
                       / rendererBoundsHeight
 ```
 
 Reject the placement if the valid rendered extent is `<= 0.25 m`, if
 `abs(correctionY) > 12 m`, or if
-`aboveGroundFraction < 0.75`. Run this check after final yaw and scale. Create
-renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at `trunkDatumY`.
-After correction, require its world Y to match the sampled surface within
-`0.001 m`. The result puts the lower quarter of the actual trunk below grade
-and keeps the upper three quarters above the slope. Keep the native
-lower-trunk collider for gameplay; do not use its bottom as the datum. Place
-the full batch, call `Physics.SyncTransforms()` once, correct all trees, then
-synchronize once more. At run time, read the packaged child marker instead of
-performing IL2CPP mesh readback.
+`aboveGroundFraction < 0.75`. Run this check after final yaw and scale. The
+current Forest proof uses renderer-free child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. Pines use one sixth of the full LOD0
+trunk at the center sample. Broad oaks use the oriented main-stem reference,
+`0.25 m` bias, and the lowest contact across a bounded `0.60 m` to `2.00 m`
+lower-root footprint. Store the selected contact X/Z in the child. After
+correction, require its world Y to match the sampled surface within `0.001 m`.
+Keep native colliders for gameplay. At run time, sample terrain at the
+packaged child marker instead of the tree center or IL2CPP mesh readback.
 
 Keep dense decorative foliage outside critical movement lanes. A decorative
 renderer can have no collider. A trunk that acts as cover needs a complete

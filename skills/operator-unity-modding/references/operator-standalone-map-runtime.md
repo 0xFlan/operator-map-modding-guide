@@ -34,7 +34,7 @@ Treat a standalone map as up to four coordinated owners:
 | Core/catalog | package verification, immutable identity, deterministic catalog | map-specific Unity or game code |
 | OPERATOR: Modded Operations framework | native laptop/row/board clones, infiltration selector, exact dependency/scene load, readiness, vanilla-compatible mode ownership, package-declared PVE population range, generic player/population, shipped failure-UI handoff, restart | map names, map shaders, map graph dimensions, map marker coordinates/repair, cloned mission-failure UI |
 | data-only package | manifest, operations including PVE min/max population, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers | executable C# or BepInEx hooks |
-| optional map companion | exact-scene runtime reconstruction, strict world validation, teardown of its own graph/material/service state | official catalog mutation, generic laptop flow, other maps |
+| optional map companion | exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work; teardown of its own graph/material/service state | official catalog mutation, generic terrain payload decoding, generic laptop flow, other maps |
 
 The package directory is always data-only. “The package has no DLL” does not
 mean the complete map distribution can never have code. When runtime-only
@@ -63,16 +63,19 @@ Core verifies/freezes package catalog
 -> Confirm captures the exact player-owned laptop and player
 -> Modded Operations loads declared dependencies and exact scene
 -> map companion verifies exact scene/package ownership
--> companion reconstructs materials/Terrain/navigation
--> companion validates strict world contract
+-> framework reconstructs manifest-declared TerrainData and validates collision
 -> Modded Operations creates the mode-compatible native owner and enters readiness
+-> companion repairs exact-map materials/navigation/grounding and logs its strict diagnostic
 -> Modded Operations enters generic mode population
 -> operation runs
 ```
 
-If the exact runtime ordering differs, measure it and put a readiness barrier
-between reconstruction and actor creation. Do not use arbitrary frame delays as
-the authoritative contract.
+The current framework creates its mode owner after the generic terrain and
+walkable-ground gates. The Forest companion waits for that shared TerrainData
+before tree grounding and A*. Its world check is an exact-map diagnostic, not
+the generic framework owner. PVE actors also wait for all players and a bounded
+post-ready delay. Record the real callback order. Do not describe an arbitrary
+frame delay as proof of an exact-map diagnostic.
 
 ## Portable material transport
 
@@ -99,6 +102,14 @@ Use portable materials as transport records:
 8. After several rendered frames, count active proxy/error shaders and fail if
    any required renderer remains unreconstructed.
 
+When a generic framework verifies and retains map dependency bundles, it is
+the only unload owner. Do not use global loaded-bundle enumeration as ownership
+proof. Do not load a second copy of the same bundle. A map-scoped borrower such
+as `LoadVerifiedMapDependencyAsset<T>(mapId, assetPath)` must pass a live probe
+for the exact asset type before release code depends on it. The `0.3.17` API
+returned null for Forest `0.4.12` raw pine `TextAsset` requests. Keep that path
+`PROVEN-STATIC` until an isolated live test succeeds.
+
 Never use `CopyPropertiesFromMaterial` with an `InternalErrorShader` source.
 Use the raw record as evidence and reconstruct a fresh live material.
 
@@ -107,7 +118,8 @@ Use the raw record as evidence and reconstruct a fresh live material.
 Treat managed Unity wrappers as potentially fake-null in IL2CPP. Use native-
 aware validity before accepting TerrainData, Terrain, or TerrainCollider.
 
-If TerrainData cannot travel safely:
+If TerrainData cannot travel safely, declare `runtimeTerrain` in the package.
+Modded Operations, not the companion, must:
 
 - package lossless height/alphamap payloads at exact resolution;
 - create fresh native TerrainData;
@@ -125,34 +137,33 @@ Keep the fallback active when reconstruction fails so the failure remains
 visible, but fail readiness and do not spawn actors.
 
 After the final TerrainData is live, align each collision-enabled playable
-tree by an authoring datum computed from its highest-detail bark/trunk
-submeshes. Do not use the root transform, the bottom of a native lower-trunk
-collider, or the minimum of the combined crown renderer. A hidden capsule can
-raise the visible trunk; a low branch or leaf card can also corrupt the
-combined-renderer minimum.
+tree by a family-aware authoring datum computed from its highest-detail
+bark/trunk submeshes. Do not use the root transform, the bottom of a generic
+collider, or the minimum of the combined crown renderer. A lower leaf card can
+corrupt the combined minimum. A broad-crown bark submesh can include high
+branches and corrupt the full bark span.
 
 In the exact-version Unity builder, select LOD0 renderers. For each material
 slot whose normalized name identifies bark or trunk, read that submesh's
-indices and transform the referenced vertices into world space. Compute
-`trunkMinY`, `trunkMaxY`, and:
+indices and transform the referenced vertices into world space. Define an
+explicit per-family reference span and buried fraction. Validate it in a
+downhill player-height view. Do not apply one percentage to every family.
 
-```text
-trunkDatumY = trunkMinY + (trunkMaxY - trunkMinY) * 0.25
-correctionY = sampledSurfaceY - trunkDatumY
-```
+The current Ukrainian Forest proof uses child
+`NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`. Narrow pines use one sixth of the full
+rendered LOD0 trunk span and a center terrain sample. Broad-crown
+`Oak_White_Desktop_*` trees use the oriented main-stem reference, a `0.25 m`
+additional embed, and the lowest terrain sample across a bounded `0.60 m` to
+`2.00 m` LOD0 lower-root footprint. Store that contact X/Z in the datum. This
+prevents runtime Terrain sampling from lifting a cross-slope oak back to its
+root-center height. Require at least `0.75` of the complete rendered tree
+above terrain and reject an absolute correction above `12 m`.
 
-Create renderer-free child `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT` at the
-datum before moving the tree. Move the root by `correctionY`, require the
-child to reach the sampled terrain within `0.001 m`, require `0.75` of the
-trunk and at least `0.75` of the complete rendered tree above terrain, and
-reject an absolute correction above `12 m`. Ukrainian Forest recognizes
-`pine_bark`, `Trunk_pine_var4`, `Bark_Mat`, and `Bark_2_Mat` as trunk slots.
-
-At run time, use the packaged child marker instead of reading mesh data. Move
-the direct tree by `groundY - marker.position.y`. Run this bounded correction
-after TerrainData bind, use typed `GetChild(index)` traversal in repeat-load
-IL2CPP paths, and call `Physics.SyncTransforms()` after the batch. The builder
-owns render-only perimeter-tree grounding.
+At run time, sample terrain at `marker.position` and move the direct tree by
+`groundY - marker.position.y`. Do not resample the root center. Run this
+bounded correction after TerrainData bind, use typed `GetChild(index)`
+traversal in repeat-load IL2CPP paths, and call `Physics.SyncTransforms()`
+after the batch. The builder owns render-only perimeter-tree grounding.
 
 ## Runtime A* graph construction
 
@@ -228,7 +239,9 @@ window, adjusted for the actual actor origin/collider.
 
 ## World contract
 
-Before generic mode population, require at least:
+Before generic mode creation, the framework requires the exact scene,
+manifest-declared terrain, walkable collision, and compatible marker set. In
+addition, the map-specific release diagnostic must require:
 
 - exact scene/package identity;
 - expected world root and nontrivial authored transform count;
@@ -433,7 +446,7 @@ fresh map runtime. The companion must:
 
 - remove its graph through the owning `astar.data.RemoveGraph` path;
 - destroy a map-scoped AstarPath host only when the companion created it;
-- destroy/restore its material and Terrain objects according to ownership;
+- destroy/restore its material objects according to ownership;
 - restore the previous process-global player-spawn list, array, and index when
   the current values are still the operation-owned values;
 - restore the previous NVG colour and remove only the operation-owned runtime
@@ -443,6 +456,10 @@ fresh map runtime. The companion must:
 - unsubscribe callbacks and clear scene-lifetime handles;
 - prevent stale async completions from mutating the new generation;
 - prove one graph/service and one callback generation after restart.
+
+The framework separately destroys its operation-owned runtime `TerrainData`
+and `TerrainLayer` objects after the companion scene generation releases its
+references.
 
 Keep lifecycle claims precise:
 
@@ -482,9 +499,10 @@ spawn but throws after native KIA. The validated generic bridge is:
    `FailOperation`, shipped Mission Failed popup, shipped Restart control, a
    new exact package-scene generation, playable player, and mode-correct AI.
 
-This bridge belongs in generic Modded Operations lifecycle code. Material, Terrain,
-navigation, and marker reconstruction remain map-companion work. No donor
-scene is required.
+This bridge belongs in generic Modded Operations lifecycle code. Generic
+manifest terrain reconstruction also belongs in Modded Operations. Exact-map
+material, grounding, lighting, navigation, and marker diagnostics remain
+map-companion work. No donor scene is required.
 
 ## Release layout
 

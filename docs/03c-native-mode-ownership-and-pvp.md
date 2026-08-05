@@ -55,7 +55,8 @@ The framework does not replace `StartNewRound`, `PlayerDied`, `EndRound`,
 | `PvpGameode` network component | no | yes | native method bodies |
 | PVP team-player caches | no | list initialization only | cache population from retail teams |
 | PVP scoring and rounds | no | no | yes |
-| map-only terrain/material reconstruction | optional companion | no | renderer and physics |
+| generic manifest terrain reconstruction | Modded Operations | yes | shared render/collision `TerrainData` before player spawn |
+| map-only terrain-material and prop correction | optional companion | no | exact-map renderer and placement state after generic bind |
 | process-global spawn list teardown | no | yes | prior retail owner after restore |
 
 This split is close to the retail scene contract. A retail map scene owns

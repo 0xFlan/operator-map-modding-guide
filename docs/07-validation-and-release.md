@@ -23,10 +23,9 @@
   their shared seam;
 - layout checks cover route, spawn, slope, root embedding, and prop footprint;
 - every complete tree has LOD0 bark/trunk submesh bounds, one renderer-free
-  `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, its native lower-trunk collision
-  shape, an absolute correction no greater than `12 m`, `0.25` of its trunk
-  below terrain, and at least `0.75` of its full rendered height above the
-  sampled surface;
+  family-aware datum with its selected contact X/Z, its native lower-trunk
+  collision shape, an absolute correction no greater than `12 m`, and at
+  least `0.75` of its full rendered height above the sampled surface;
 - each PVP spawn set has separate non-empty Team 1 and Team 2 marker groups;
   current-build team IDs are exactly `1` and `2`;
 - each interactive prefab has a complete field/reference closure or is marked
@@ -125,6 +124,8 @@
 Prefer a release that contains:
 
 - source code;
+- a decompiled snapshot of each final mod DLL, with the input DLL version,
+  byte length, SHA-256, and decompiler version;
 - build scripts;
 - documentation;
 - manifests and validators;
@@ -132,6 +133,25 @@ Prefer a release that contains:
 - known limitations;
 - file hashes;
 - a short installation and rollback procedure.
+
+The authored source is the edit source. The decompiled snapshot is release
+verification evidence. Regenerate it from the final DLL. Do not edit the
+snapshot and then treat it as the maintained implementation.
+
+When an authorized asset is too large or is not stored in normal Git history,
+commit an explicit placeholder manifest. Use labels such as `[PREVIEW IMAGE]`,
+`[PREFAB ASSET]`, `[TEXTURE SET]`, `[DEPENDENCY ASSETBUNDLE]`, and
+`[SCENE ASSETBUNDLE]`. For each label, state the exact expected install or
+Unity-project path, object type, bundle address, source record, and validation
+gate. Do not put a zero-byte file at the expected release filename. A strict
+package validator must fail until the real payload is present.
+
+Do not publish OPERATOR binaries as mod decompilation evidence. Generated
+interop assemblies expose signatures but do not contain the original IL2CPP
+method bodies. Publish exact signatures, owner files, asset path IDs,
+behavior summaries, and reproducible inspection steps. Keep the installed
+game binary and extracted first-party payload outside the mod repository
+unless its owner has explicitly authorized that exact redistribution.
 
 For a standalone map that needs runtime reconstruction, ship both removable
 parts with explicit ownership: the data-only package under

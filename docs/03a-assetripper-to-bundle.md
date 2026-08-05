@@ -89,7 +89,7 @@ Classify every final input before you build:
 | Real `.unity` map scene | Scene bundle | `maps[].scenePath` must match its exact emitted scene address |
 | Meshes and complete prefabs referenced by the scene | Dependency bundle | Load before the scene and preserve one shared asset instance |
 | Portable proxy materials and their complete texture closure | Dependency bundle | The exact-scene companion resolves the raw native identity and rehydrates installed shaders |
-| Runtime height and surface-weight payload textures | Dependency bundle | The companion loads them by exact `GetAllAssetNames()` address before it creates native `TerrainData` |
+| Runtime height and surface-weight payload textures | Dependency bundle | Modded Operations loads them from the Core-verified dependency path and creates native `TerrainData` before player spawn. |
 | Map lighting records or serialized LUT assets | Dependency bundle | They are Unity assets consumed by the exact-scene presentation path |
 | Raw briefing/infiltration preview JPEG or PNG | Package `media/` directory, outside bundles | The framework reads it with `File.ReadAllBytes` and `ImageConversion.LoadImage` |
 | Raw external `rgba-half` LUT bytes | Package `lighting/` directory, outside bundles | Core validates its exact dimensions and the runtime builds a `Texture3D` |

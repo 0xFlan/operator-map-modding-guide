@@ -32,10 +32,10 @@ Read [references/implementation-locators.md](references/implementation-locators.
 4. For every material, package the base-color, alpha, normal, mask, and authored property table. At runtime bind the exact installed shader family and recreate its native material state; never use a generic Standard/HDRP approximation as the final visual path. If an imported raw `.mat` is `Hidden/InternalErrorShader`, do **not** call `CopyPropertiesFromMaterial` on it: use it as serialized evidence, retain proxy texture bindings, and explicitly rehydrate the live family profile.
    - Resolve `NATIVE_PROXY_*`, library/template wrappers, and `MOD_*` names back to the original native material identity before selecting that profile. A proxy name must never decide whether a material is grass, leaf, bark, or a native special case.
 5. Treat foliage as a special case: validate alpha cutout, double-sided state, queue, material-type mask, shadow/depth passes, normal/map keywords, and native color values. Transparent image files alone do not make foliage transparent in HDRP.
-6. Treat spawn correction as a networked runtime behavior, not only a marker-placement task. For a standalone package, install only the current package scene's verified marker list after the companion world contract and before native player creation. On the current exact build, team PVP is one-based: assign `SpawnPoint.Team=1` to Team 1 markers and `SpawnPoint.Team=2` to Team 2 markers, and select them from `PlayerMaster.MyTeamIdentifier.TeamID`. Do not infer a team from `ToString()` or retain a cached marker after the player's team changes. For a legacy retail-scene overlay, patch the selected spawn and move path and keep a bounded late-player safety repair that targets the actual local-player hierarchy and Smooth Sync ownership. If that legacy path loads a large bundle after OPERATOR reads template markers, prime the original markers and invisible support pads before bundle loading. Inspect the mode owner too: Standard PVP (`PvpGameode`) and FFA (`FFA`) can run first-round or respawn paths outside `GameManager.MovePlayerToSpawn`. Audit exact installed signatures, then use an idempotent map-scoped handoff at the game scene callback and relevant game-mode spawn phases.
+6. Treat spawn correction as a networked runtime behavior, not only a marker-placement task. For a standalone package, install only the current package scene's verified marker list after the framework reconstructs declared terrain and passes its walkable-ground contract, and before native player creation. An exact-map companion can add a diagnostic after its material, grounding, and A* work; it does not own generic terrain decoding or generic player registration. On the current exact build, team PVP is one-based: assign `SpawnPoint.Team=1` to Team 1 markers and `SpawnPoint.Team=2` to Team 2 markers, and select them from `PlayerMaster.MyTeamIdentifier.TeamID`. Do not infer a team from `ToString()` or retain a cached marker after the player's team changes. For a legacy retail-scene overlay, patch the selected spawn and move path and keep a bounded late-player safety repair that targets the actual local-player hierarchy and Smooth Sync ownership. If that legacy path loads a large bundle after OPERATOR reads template markers, prime the original markers and invisible support pads before bundle loading. Inspect the mode owner too: Standard PVP (`PvpGameode`) and FFA (`FFA`) can run first-round or respawn paths outside `GameManager.MovePlayerToSpawn`. Audit exact installed signatures, then use an idempotent map-scoped handoff at the game scene callback and relevant game-mode spawn phases.
 7. Build, run static layout/material validators, deploy only while the game is closed, and test a real operation. A forced-scene screenshot is diagnostic evidence only; it is not proof that a player spawns on ground or that gameplay rendering is correct.
 8. Do not say the mod is ready while a user-reported visual, collision, spawn, or asset problem remains unverified.
-9. Keep standalone ownership explicit: Core/catalog and OPERATOR: Modded Operations stay map-independent; the package directory stays data-only; an optional separately installed map companion owns only exact-package/exact-scene runtime reconstruction and tears it down on unload. Do not put a companion DLL inside `BepInEx/OperatorMods` or put map-specific shader/navigation logic in the framework.
+9. Keep standalone ownership explicit: Core/catalog and OPERATOR: Modded Operations stay map-independent; the package directory stays data-only; Modded Operations owns generic manifest-declared runtime TerrainData reconstruction; an optional separately installed companion owns only exact-package/exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work and tears it down on unload. Do not put a companion DLL inside `BepInEx/OperatorMods` or put map-specific shader/navigation logic in the framework.
 10. Match the vanilla game-mode owner by operation mode. For standalone PVE,
     a bare `GameMode` is insufficient: the verified KIA path requires an
     `InfiltrationManager`-compatible component,
@@ -106,6 +106,42 @@ Read [references/implementation-locators.md](references/implementation-locators.
     round, and end-operation methods. Stop generic repeated movement after
     native PVP activates. Clear `PvpGameode.instance` during teardown only
     when the operation still owns it. Require a host and remote client test.
+17. Keep verified dependency-bundle ownership in the generic framework. A
+    companion must not call `AssetBundle.GetAllLoadedAssetBundles()` as an
+    ownership lookup and must not load a second copy of a large bundle. A
+    map-scoped borrower API can return an exact asset, but require a live probe
+    for the concrete asset type before a release depends on it. Modded
+    Operations `0.3.17` plus Forest `0.4.12` returned null for all three raw
+    pine `TextAsset` requests. Forest `0.4.15` instead resolves the exact
+    resident compiled shaders and binds portable proxy textures to the real
+    shader property names. Treat the generic borrower as `PROVEN-STATIC`, not
+    `SUPPORTED`, until the concrete requested type passes live. Only the
+    framework unloads its bundles.
+18. For `SeedMesh_Tree_Bark`, audit the installed shader property table. The
+    current Forest bark slots use `_MainTex`, `Normal_vegetation`,
+    `mask_vegetation`, `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`,
+    `Vector1_813F3AD6`, `_Wetness_sm`, `_Vertex_AO_sm`, and `_cutoff`.
+    Generic `_Smoothness` or `_BaseColor` writes do not prove this shader.
+19. Select lighting from a comparable vanilla biome and copy its complete
+    light plus active Volume contract. The current Forest day reference is
+    `sharedassets11.assets` PVP Woods Warehouse: 30,000 lux, 5,500 K, bounce
+    5, bloom `.03`, and lens-flare intensity `.5`. The rejected bright PVP
+    donor used 52,241.375 lux, bloom `.359`, and lens flare `1`.
+    Make one component the process-global render owner. In the current system,
+    the package selects `native-outdoor-v1`, Modded Operations `0.3.18`
+    applies and restores the sun/Volume/NVG transaction, the package owns the
+    verified LUT, and the map companion does not install a second global
+    Volume. At 02:00, require white phosphor across all tubes and visible world
+    detail outside the brighter ECOTI channel.
+20. For a public mod repository, publish the complete authored source and a
+    hash-pinned decompiler snapshot of each final mod DLL. Record the DLL
+    version, bytes, SHA-256, and decompiler version. Represent each omitted
+    authorized or large asset with an explicit bracketed record such as
+    `[PREFAB ASSET]`, `[PREVIEW IMAGE]`, `[TEXTURE SET]`, or
+    `[SCENE ASSETBUNDLE]`; include its expected path, type, address, source
+    evidence, and validation gate. Never use placeholder bytes at a filename
+    declared by a release manifest. Do not describe generated IL2CPP interop
+    wrappers as original game source.
 
 ## Native-art decision rules
 
@@ -119,16 +155,14 @@ Read [references/implementation-locators.md](references/implementation-locators.
 - Ground a combined crown-and-trunk tree from its actual highest-detail
   bark/trunk submesh vertices after final position, yaw, scale, and one
   batched `Physics.SyncTransforms()`. Do not use a pivot, the whole-renderer
-  minimum, or a trunk collider bottom. A low foliage card can corrupt the
-  whole-renderer minimum, and an invisible capsule overhang can raise the
-  visible trunk above a hill. Identify the bark/trunk material slots, read
-  only their submesh indices, and compute the finite world-space trunk Y
-  bounds. The Ukrainian Forest terrain intersects the trunk at exactly `0.25`
-  of that height. Store this point in renderer-free child
-  `NATIVE_TRUNK_GROUND_DATUM_25_PERCENT`, require `0.75` of the trunk and at
-  least `0.75` of the complete rendered tree above terrain, and reject an
-  absolute correction above `12 m`. Use the authored child at run time so an
-  IL2CPP player build does not need mesh readback.
+  minimum, or a generic collider bottom. Identify bark/trunk slots and define
+  a visual-QA-proven per-family reference. Ukrainian Forest uses renderer-free
+  child `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH`: pines use one sixth of the full
+  LOD0 trunk at the center sample; broad oaks use the oriented main stem, a
+  `0.25 m` embed, and the lowest contact in a bounded `0.60 m` to `2.00 m`
+  lower-root footprint. Store the selected contact X/Z in the datum. Require
+  at least `0.75` of the complete rendered tree above terrain, reject an
+  absolute correction above `12 m`, and sample the datum position at run time.
 - A one-sided/open mesh is not a boulder. Require a complete closed (or bottom-only-open) native LOD0 mesh, matching material, collider, and multi-angle QA.
 - For slope-bound cover, measure the full collider/mesh footprint. Reposition or remove a sandbag wall when its sampled terrain span exceeds the allowed contact tolerance; do not hide a floating wall with a vertical offset.
 - Avoid perfect rows. Use a deterministic but nonuniform layout with varied lateral position, longitudinal spacing, rotation, and compatible ground embedding; preserve deliberate lanes and spawn clearances.
@@ -163,6 +197,7 @@ Promote a finding into this skill's reference only after it is reproducible from
 | Runtime navigation | Exact playable physics/bullet bounds + pre-nav marker containment + one resident playable-only scanned graph + tight ground and `IsPointOnNavmesh` proof for every enemy/HVT/mission marker before and after restart |
 | Interactive doors | Complete reference graph + hinge-axis pivot + two-sided FinalIK interaction + latch/hinge damage + native A* open/breach traversal + host/client/late-join/restart teardown |
 | Mission UI/lifecycle | One physical first Confirm without a second laptop interaction + tab/Back/Cancel/selector flow + exact scene + PVE/PVP isolation + reciprocal firearm damage + normal Restart; separately prove native lethal damage -> shipped Mission Failed popup -> shipped Restart control -> fresh playable exact scene, with the mode singleton/timer reset |
+| Public repository | Complete authored source + final-DLL decompiler snapshot + DLL/tool hashes and versions + exact placeholders for all omitted payloads + zero private machine paths |
 | Deployment | Source/deployed hashes match while OPERATOR was closed |
 
 ## Safe execution
