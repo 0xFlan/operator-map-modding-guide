@@ -188,9 +188,11 @@ base game can already have retail content resident. Prefetch moves I/O to
 selection time. It does not remove the physical byte cost.
 
 For the reference Forest package, the declared dependency and scene bundles
-total `647869804` bytes. The `630271199`-byte dependency bundle measured about
-23 seconds on one cold load. Treat this as verified content I/O, not as a
-reason to show the scene's portable proxy.
+total `647869804` bytes. In the exact combined-package run, the dependency
+bundle took `24.449 s`, the scene bundle took `0.833 s`, and verified
+registration took `25.347 s` total. Confirm waited `23.442 s` for the
+remaining work. Treat this as verified content I/O, not as a reason to show
+the scene's portable proxy.
 
 ## 9. One-Confirm launch
 

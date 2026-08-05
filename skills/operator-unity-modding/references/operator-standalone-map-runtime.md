@@ -324,6 +324,10 @@ communications values. Take bounded read-only snapshots at 0, 10, 30, 60,
 insertion, `CurrentSeenTarget`, `CurrentState`, and a linecast with the live
 `EyesAI.DetectionLayerMask`. Treat the linecast as geometry evidence. Do not
 use it alone as acquisition proof, and do not write an AI field for the test.
+`CurrentSeenTarget` can refer to any native target known to the bot. A
+non-zero count does not prove local-player detection. Correlate target state
+with the same-mask player probe, distance, AI state, and physical firearm
+behavior.
 
 Treat foliage sight as exact map content. Inspect the same installed vanilla
 prefab and the current `EyesAI` physics mask. Activate an authored inactive
@@ -367,9 +371,10 @@ Unity does not expose a safe cancellation contract for an active
 `AssetBundleCreateRequest`. Finish the one bounded request. Do not start an
 unbounded speculative queue.
 
-This method moves cold I/O earlier. It does not remove the bytes. Treat it as
-`PROVEN-STATIC` until a physical row-to-Confirm run records the expected
-timings and launches once.
+This method moves cold I/O earlier. It does not remove the bytes. The generic
+contract remains `PROVEN-STATIC` for an untested package. Ukrainian Forest is
+`PROVEN-RUNTIME` for one physical Confirm, first launch, same-process restart,
+and the exact timings below.
 
 ## Native loading presentation
 
@@ -389,10 +394,12 @@ For a log probe, read `LoadingScreen.activeSelf` and `activeInHierarchy`. Do
 not use `LoadingScreenVisible` as the canvas state. Its supported-build getter
 at RVA `0x0091A840` returns `_hideLoadingScreenSoon` at offset `0x2A4`.
 
-The Forest dependency and scene bundles total `647869804` bytes. Its
-`630271199`-byte dependency measured about 23 seconds on one cold load.
-Vanilla content can already be resident. Keep verification and the native
-loading presentation instead of exposing the proxy.
+The Forest dependency and scene bundles total `647869804` bytes. In the exact
+combined-package run, the dependency took `24.449 s`, the scene bundle took
+`0.833 s`, and verified registration took `25.347 s`. Confirm waited
+`23.442 s` for the remaining selected-map work. Vanilla content can already
+be resident. Keep verification and the native loading presentation instead
+of exposing the proxy.
 
 ## Host player-spawn boundary
 

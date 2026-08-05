@@ -46,8 +46,8 @@ contact, and local render transaction are `PROVEN-RUNTIME` for the tested
 single-player scope.
 The Forest-only `dense-forest-balanced-v1` behavior is also
 `PROVEN-RUNTIME` for one first launch and one same-process native restart. The
-two accepted 120-second runs created 13 and 12 bots, preserved positive native
-wander delays, moved 12 bots in each run, moved 4 and 6 bots toward insertion,
+two exact-package 120-second runs created 12 and 10 bots, preserved positive
+native wander delays, moved 12 and 9 bots, moved 4 and 4 bots toward insertion,
 and recorded authored vegetation sight obstruction.
 Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
 damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
@@ -519,10 +519,12 @@ the portable brown proxy. Validate the actual canvas through
 RVA `0x0091A840` returns `_hideLoadingScreenSoon` at offset `0x2A4`.
 
 Large verified packages can remain slower than vanilla maps on a cold load.
-The Forest package reads `647869804` bytes across two bundles. Its
-`630271199`-byte dependency measured about 23 seconds on a cold read. Retail
-maps can use already resident installed content. Do not remove verification
-or show the proxy to hide this difference.
+The Forest package reads `647869804` bytes across two bundles. In the exact
+combined-package run, the dependency bundle took `24.449 s`, the scene bundle
+took `0.833 s`, and verified registration took `25.347 s` total. Confirm
+waited `23.442 s` for the remaining selected-map work. Retail maps can use
+already resident installed content. Do not remove verification or show the
+proxy to hide this difference.
 
 ## 16. Mission-laptop UI contract
 

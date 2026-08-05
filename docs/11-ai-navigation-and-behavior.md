@@ -232,6 +232,13 @@ proof that the bot acquired or forgot the player. Do not treat movement alone
 as proof of a believable route. Review the physical camera and test firearms
 in both directions.
 
+`CurrentSeenTarget` can refer to any native target known to the bot. A
+non-zero `actualSeenTarget` does not prove that the target is the local player.
+Correlate it with the bot-to-player same-mask probe, player distance, state,
+and physical reciprocal-firearm behavior. A strict zero-target assertion can
+reject a valid restart because it measures all native targets, not only the
+player.
+
 The shipped `BOT V2` hierarchy keeps `BrainAI` and `NetworkIdentity` on the
 network root. Its `SK_Insurgent_P8` child keeps `AgentController` and the
 enabled `FollowerEntity`. The root can remain still while the native entity

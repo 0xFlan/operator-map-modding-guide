@@ -190,10 +190,12 @@ private `_hideLoadingScreenSoon` byte at offset `0x2A4`. The value can be
 `false` immediately after a successful `ShowLoadingScreen` call.
 
 Ukrainian Forest loads two verified files with a combined size of
-`647869804` bytes. Its `630271199`-byte dependency bundle can take about 23
-seconds on a cold read. Vanilla missions can appear faster because their
-content is installed with the game and can already be resident. This timing
-difference is not evidence that the exact scene failed.
+`647869804` bytes. In the exact combined-package run, the `630271199`-byte
+dependency bundle took `24.449 s`, the scene bundle took `0.833 s`, and
+verified registration took `25.347 s` total. Confirm waited `23.442 s` for
+the remaining selected-map work. Vanilla missions can appear faster because
+their content is installed with the game and can already be resident. This
+timing difference is not evidence that the exact scene failed.
 
 ## Scene-bundle ownership
 
