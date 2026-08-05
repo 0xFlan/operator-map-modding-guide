@@ -1006,6 +1006,15 @@ counter-suppression off, and 274 authored barberry triggers on layer 18,
 are `PROVEN-STATIC`. Physical first-run and repeat-run AI behavior remains the
 acceptance gate.
 
+For each PVE operation that has a profile, Modded Operations tracks only the
+new `BrainAI` IDs created by its native population call. It records the live
+`WanderTimer * Patience` and profile destinations. It then records movement,
+movement toward insertion, native target/state fields, and same-mask sight
+probes at 0, 10, 30, 60, 90, and 120 seconds. The gate is the presence of the
+profile. It does not contain a worked-example map ID. These reports strengthen
+runtime evidence but do not replace physical search, occlusion, acquisition,
+and reciprocal firearm tests.
+
 Use [AI navigation, routes, and behavior](docs/11-ai-navigation-and-behavior.md)
 for the complete authoring, native-application, foliage, logging, and test
 procedure. Use

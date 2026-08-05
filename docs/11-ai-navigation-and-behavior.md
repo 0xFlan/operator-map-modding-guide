@@ -194,6 +194,28 @@ blocker counts and the exact layer. Keep the evidence `PROVEN-STATIC` until a
 first launch and same-process repeat launch prove search timing, foliage
 occlusion, believable acquisition, and reciprocal firearm damage.
 
+Modded Operations `0.3.19` starts one bounded read-only diagnostic when a PVE
+operation has `pveAiProfile`. It does not use a map ID. It records only the
+new `BrainAI` instances added by the package's native
+`RaidManager.ServerSpawnAI(false)` call. It reports the live
+`WanderTimer * Patience`, detection range, FOV, wander distance, and
+communications state. It then reports movement and same-mask sight probes at
+0, 10, 30, 60, 90, and 120 seconds.
+
+Require these two log prefixes:
+
+```text
+Profiled PVE native AI contract:
+Profiled PVE AI snapshot:
+```
+
+The snapshot uses the live bot's `EyesAI.DetectionLayerMask`. A layer-18 first
+hit is vegetation geometry evidence. `actualSeenTarget` comes from
+`BrainAI.CurrentSeenTarget`. Do not treat the synthetic linecast by itself as
+proof that the bot acquired or forgot the player. Do not treat movement alone
+as proof of a believable route. Review the physical camera and test firearms
+in both directions.
+
 ## Route authoring
 
 A walkable graph does not prove a good route. Author and test these elements:
