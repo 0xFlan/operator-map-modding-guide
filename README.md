@@ -5,6 +5,11 @@ OPERATOR maps. It uses the current standalone Modded Operations method. It
 assumes a Windows PC, a legal local OPERATOR installation, Unity, AssetRipper,
 and BepInEx IL2CPP.
 
+Worked public implementations:
+
+- [OPERATOR: Modded Operations framework](https://github.com/0xFlan/operator-modded-operations)
+- [Ukrainian Forest reference map](https://github.com/0xFlan/operator-ukrainian-forest)
+
 The framework in this manual is **OPERATOR: Modded Operations — Standalone Map
 Framework**. Read the
 [OPERATOR Standalone Map Modding BIBLE](OPERATOR_MAP_MODDING_BIBLE.md) before
