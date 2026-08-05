@@ -47,6 +47,8 @@ you make a release package.
 17. Trace every authored value through launch, terrain, player, AI, failure,
     restart, and teardown with the
     [end-to-end package lifecycle](docs/14-end-to-end-package-lifecycle.md).
+18. For PVE, implement and prove the
+    [native completion, extraction, and ATAK contract](docs/15-native-pve-completion-exfil-and-atak.md).
 
 ## Runtime paths
 
@@ -98,6 +100,9 @@ remains available for explicit local diagnostics. See the
   network player order, and test matrix.
 - [06 HDRP and fidelity](docs/06-hdrp-and-fidelity.md): sun/Volume ownership,
   terrain, foliage, and player-camera comparison.
+- [15 Native PVE completion](docs/15-native-pve-completion-exfil-and-atak.md):
+  exact extraction marker, native raid/exfil ownership, all-AI-dead unlock,
+  ATAK visual, success screen, restart cleanup, and runtime evidence.
 - [07 Validation and release](docs/07-validation-and-release.md): static,
   runtime, and in-game gates.
 - [08 Troubleshooting](docs/08-troubleshooting.md): symptom-to-layer guide.

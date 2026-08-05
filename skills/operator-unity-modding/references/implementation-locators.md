@@ -18,7 +18,9 @@ drive-specific workspace, a private log, or a private test control.
 ## Generic framework
 
 - Assembly: `OperatorModdedOperations.dll`.
-- Current version: `0.3.20`.
+- Current version: `0.3.22`.
+- Accepted Release DLL: 173,568 bytes; SHA-256
+  `0B8BE9B55C36AFCA81BAB677C5D0720D89A3E2B0E5F25A60BD2FF81C4192349A`.
 - Build the exact Release binary from the current source. Verify its hash
   against the release archive checksum file.
 - Current source file: `CerberusNativeTabFix.cs`.
@@ -76,6 +78,20 @@ drive-specific workspace, a private log, or a private test control.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
 - PVE creation: `TrySpawnStandalonePveEnemies` and
   `RaidManager.ServerSpawnAI(false)`.
+- Standard-PVE extraction authoring gate:
+  `ValidateStandaloneSceneContract` requires exactly one
+  `PVE_ExfilZone_` marker with a positive `BoxCollider` trigger.
+- Native extraction owner: `ConfigureStandalonePveController` creates the
+  operation-owned `RaidManager`, `ExfilZone`, copied trigger, locked marker,
+  and ATAK marker; `ResetStandalonePveExtractionState` establishes the locked
+  global state and 15-second timer.
+- Native ATAK reconstruction: `CreateNativeAtakExfilMarker` uses the resident
+  `ExfilZone` 512-by-512 texture, `HDRP/Unlit`, mesh `Marker`, layer `17`,
+  render queue `2501`, scale `0.65`, and the audited vanilla vertex/UV/
+  rotation/texture-offset values.
+- Success-preserving teardown: `ReleaseStandaloneGameMode` removes only
+  operation-owned PVE assets and singleton references and deliberately keeps
+  `GameManagerNetwork.SuccessfulOperation` when extraction succeeded.
 - Fixed PVE profile writer: `ConfigureStandaloneBotDetails`.
 - Fixed PVE profile diagnostic: `FormatPveAiProfile`.
 - Live profiled-PVE contract capture:
@@ -104,14 +120,14 @@ that more than one package can select.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.19`.
+- Package: `community.ukrainian-forest`, version `0.3.21`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
-- Dependency bundle: 630,271,199 bytes; SHA-256
-  `09679986BEC2ABD40A4FE45D2D4559E645A9C30183D6D2926D0709AF18475138`.
-- Scene bundle: 17,598,605 bytes; SHA-256
-  `EDA200913A03F478C08D70C75D0CADD91D30BFAC30D37525CA8E1F5EFC40A6FE`.
+- Dependency bundle: 630,326,573 bytes; SHA-256
+  `B58BF6C4E4BC7DDF4AD753F7496E3CA9A116C2AEB685428FAEB8A83CC0C465A1`.
+- Scene bundle: 17,613,729 bytes; SHA-256
+  `0E67BEE91488C9F66F28454D15A177D0EDA2DEBF6A7944C625932B334F1712A8`.
 - Scene:
   `Assets/Maps/UkrainianForest/Scenes/UkrainianForest.unity`.
 - Preview: `media/ukraine_forest_preview.jpg`, 6,385,660 bytes, SHA-256
@@ -136,10 +152,17 @@ that more than one package can select.
   Z range `5.4` through `13.2`.
 - Team 2 marker role: PVE-enemy side, ten markers, authored local Z range
   `82.4` through `90.2`.
+- Standard-PVE extraction marker: `PVE_ExfilZone_00` at authored root position
+  `(0.000,0.112,7.000)`. Its `BoxCollider` trigger center is
+  `(1.3259258,2.066852,1.6703243)` and size is
+  `(25.236944,7.376298,15.531027)`. This is the north player/Team-1 insertion
+  area, not the south enemy side.
 - Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
-- Companion version: `0.4.17`.
+- Companion version: `0.4.19`.
+- Accepted Release DLL: 298,496 bytes; SHA-256
+  `85FC1478A8E04FDA37CB2CBAD08D26231F3C4ECABD6A5F19899484948A763E74`.
 - Build the exact Release binary from the current source. Verify its hash
   against the release archive checksum file.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
@@ -169,7 +192,7 @@ that more than one package can select.
   `Normal_vegetation`, and `mask_vegetation`. The opaque state uses exact
   hashed `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`, and
   `Vector1_813F3AD6` values plus `_Wetness_sm=0`, `_Vertex_AO_sm=0`, and
-  `_cutoff=.25`. The active `0.4.17` path does not depend on raw-TextAsset
+  `_cutoff=.25`. The active `0.4.19` path does not depend on raw-TextAsset
   borrowing.
 - Exact day donor: `sharedassets11.assets`, `PVP Woods Warehouse`, `Nice Sun`
   GameObject path `5150`, Transform path `14228`, Light path `41512`, and

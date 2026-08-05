@@ -5,9 +5,9 @@ the Ukrainian Forest package as a worked reference. It does not make the
 Ukrainian Forest values universal requirements.
 
 The evidence status is `PROVEN-STATIC` unless a section gives a different
-status. The identities came from the version `0.3.19` package manifest and the
+status. The identities came from the version `0.3.21` package manifest and the
 current framework and companion source. The two bundles are the accepted
-Forest `0.4.17` payloads. Rebuild and rehash them after an authoring change.
+Forest `0.4.19` payloads. Rebuild and rehash them after an authoring change.
 
 ## Path tokens
 
@@ -131,7 +131,7 @@ AI markers.
 This section records one exact package. Use it to understand the relationship
 between IDs, file names, and Unity asset addresses.
 
-| Field | Version `0.3.19` value |
+| Field | Version `0.3.21` value |
 | --- | --- |
 | `packageId` | `community.ukrainian-forest` |
 | `displayName` | `Ukrainian Forest` |
@@ -149,14 +149,14 @@ The exact emitted package files had these manifest records:
 
 | Package-relative path | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `content/operator_ukrainian_forest` | `630271199` | `09679986bec2abd40a4fe45d2d4559e645a9c30183d6d2926d0709af18475138` |
-| `content/operator_ukrainian_forest_scene` | `17598605` | `eda200913a03f478c08d70c75d0cadd91d30bfac30d37525ca8e1f5efc40a6fe` |
+| `content/operator_ukrainian_forest` | `630326573` | `b58bf6c4e4bc7ddf4ad753f7496e3ca9a116c2aeb685428faeb8a83cc0c465a1` |
+| `content/operator_ukrainian_forest_scene` | `17613729` | `0e67bee91488c9f66f28454d15a177d0eda2debf6a7944c625932b334f1712a8` |
 | `lighting/AgX_Powerful_RGBAHalf_32.bytes` | `262144` | `71352890a0560d680be154567e5e01cbd9b41fa0eb5997029ec7cedb3a42795f` |
 | `media/ukraine_forest_preview.jpg` | `6385660` | `9d18a3abfa93b8b0f17a721f20731930a618b971f0b1cbd3fb97da3305ff4255` |
 
 Recalculate all byte counts and SHA-256 values after each build. Do not copy
-these version `0.3.19` values into a different archive. The current external
-validator and live Forest `0.4.17` world contract accept the two bundle values
+these version `0.3.21` values into a different archive. The current external
+validator and live Forest `0.4.19` world contract accept the two bundle values
 above.
 
 ## Ukrainian Forest operation records
@@ -203,6 +203,7 @@ Team1_Spawn_00
 Team2_Spawn_00
 PVE_EnemySpawn_00 through PVE_EnemySpawn_31
 PVE_HVTSpawn_00 through PVE_HVTSpawn_03
+PVE_ExfilZone_00
 ```
 
 Additional team markers can use the prefixes that
@@ -225,6 +226,12 @@ uses the normal PVE-player side. Its authored local Z range is `5.4` through
 through `90.2`. The scene builder enforces ten markers per side with
 `TeamSpawnCountPerSide`. It also enforces `Z <= 15` for Team 1 and `Z >= 80`
 for Team 2 in `VerifyBuiltStandaloneSceneContract`.
+
+`PVE_ExfilZone_00` is at local `(0.000,0.112,7.000)`. Its trigger center is
+`(1.3259258,2.066852,1.6703243)` and its trigger size is
+`(25.236944,7.376298,15.531027)`. It covers both northern Team 1/PVE insertion
+groups. It remains locked until the native live-AI population reaches zero.
+Read [Native PVE completion, extraction, and ATAK](15-native-pve-completion-exfil-and-atak.md).
 
 The source locators are
 `BuildHillyUkrainianForestBundle.cs:184-186`, `:415-417`, and
@@ -457,15 +464,15 @@ unload.
 Do not apply the day `AgX - Powerful` external LUT or the PVP-Woods day
 exposure limits `8.5..11` to this night source.
 
-The package selects `native-outdoor-v1`. Modded Operations `0.3.20` is the
+The package selects `native-outdoor-v1`. Modded Operations `0.3.22` is the
 single process-global render owner. `ApplyStandaloneRenderContract` applies
 the day or night values, loads the package-verified LUT for day only, selects
 white phosphor for 02:00, logs every selected control, and restores its prior
-state during reverse teardown. Forest `0.4.17` owns scene reconstruction and
+state during reverse teardown. Forest `0.4.19` owns scene reconstruction and
 the LUT payload. It does not install a competing global Volume.
 
 The mod repository publishes authored source and an ILSpy `10.1.1.8388`
-snapshot under `decompiled/release-0.3.20`. Read the matching release checksum
+snapshot under `decompiled/release-0.3.22`. Read the matching release checksum
 file for the exact DLL hash. Archived snapshots can contain rejected behavior
 and are not current instruction sources.
 
@@ -503,6 +510,9 @@ standalone flow:
 | `PvpMarkerMatchesTeam` | Bind Team 1 prefixes to native ID `1` and Team 2 prefixes to native ID `2`. |
 | `ChooseStandalonePveEnemyCount` | Select the inclusive package PVE population range. |
 | `TrySpawnStandalonePveEnemies` | Filter registered firearm-capable prefabs and call `RaidManager.ServerSpawnAI(false)` after world readiness. |
+| `ConfigureStandalonePveController` | Copy the one package-authored extraction transform/trigger to the Mirror PVE owner and create the shipped `RaidManager` plus `ExfilZone`. |
+| `CreateNativeAtakExfilMarker` | Reconstruct the current-build level16 layer-17 ATAK exfil mesh/material and bind the resident 512-by-512 `ExfilZone` texture. |
+| `ResetStandalonePveExtractionState` | Reset zone/global occupants, unlock, countdown, and success state for a new operation generation. |
 | `ReleaseStandaloneGameMode` | Release the mode owner during lifecycle transitions. |
 | `ReleaseStandaloneRenderContract` | Restore the captured NVG color and destroy operation-owned run-time Volume profiles. |
 
@@ -519,7 +529,7 @@ own map-specific reconstruction:
 | `GroundAirbornePlayerControllers` | During the bounded initial handoff, repair a known local root at the old sky pose or more than `2 m` below the sampled live surface. |
 | `EnsureStandaloneNavigationGraph` | Build or validate the map-owned playable A* graph. |
 | `AlignStandaloneAuthoredTreesToTerrain` | Align the 96 playable trees by packaged `NATIVE_TRUNK_GROUND_DATUM_ONE_SIXTH` after run-time TerrainData bind; sample its stored contact X/Z, keep native trunk collision, enforce the family-aware reference, 75-percent complete-rendered-height gate, 12 m correction limit, and typed child-index traversal. |
-| `LoadVerifiedRawPineMaterialAsset` | Rejected `0.4.12` experiment retained for forensic comparison. The active `0.4.17` pine path does not use it. |
+| `LoadVerifiedRawPineMaterialAsset` | Rejected `0.4.12` experiment retained for forensic comparison. The active `0.4.19` pine path does not use it. |
 | `IsInsideForestPlayableBounds` | Reject markers outside the authoritative forest combat volume. |
 | `LogStandaloneWorldContract` | Record terrain, collision, marker, and foliage contract evidence. |
 | `OnSceneUnloaded` | Remove map-owned runtime state when the package scene unloads. |
@@ -658,6 +668,7 @@ A release candidate needs separate proof for each row:
 | Bounds | All selected PVE markers and all spawned actors are inside the playable combat volume before graph lookup. |
 | Combat | The player and enemies can damage each other across valid lines of fire. |
 | Navigation | All selected AI markers ground to the playable-only A* graph. |
+| Completion | All native AI deaths unlock exactly one exfil; the ATAK marker activates; a living player physically occupies the zone for 15 seconds; the native success screen appears and Continue returns to the Operation Room. |
 | PVP isolation | The Ukrainian Forest PVP operation creates zero AI actors. |
 | PVP teams | A host and client on different teams spawn and respawn on their authored opposite sides; Team 1 uses native ID `1` and Team 2 uses native ID `2`. |
 | Lifecycle | Normal restart, death/KIA restart, scene unload, and a second launch do not keep stale map state. |

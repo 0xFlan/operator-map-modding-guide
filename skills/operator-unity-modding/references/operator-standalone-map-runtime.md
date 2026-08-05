@@ -18,14 +18,15 @@ OPERATOR, BepInEx, Il2CppInterop, or A* update.
 6. [Mission-marker grounding](#mission-marker-grounding)
 7. [World contract](#world-contract)
 8. [Fixed PVE AI profile and foliage sight](#fixed-pve-ai-profile-and-foliage-sight)
-9. [Selected-map cold-load prefetch](#selected-map-cold-load-prefetch)
-10. [Host player-spawn boundary](#host-player-spawn-boundary)
-11. [PVP team-spawn identity](#pvp-team-spawn-identity)
-12. [Restart and teardown](#restart-and-teardown)
-13. [Stationary player-camera observer QA](#stationary-player-camera-observer-qa)
-14. [Release layout](#release-layout)
-15. [Validation sequence](#validation-sequence)
-16. [Rejected shortcuts](#rejected-shortcuts)
+9. [Native Standard PVE completion, extraction, and ATAK](#native-standard-pve-completion-extraction-and-atak)
+10. [Selected-map cold-load prefetch](#selected-map-cold-load-prefetch)
+11. [Host player-spawn boundary](#host-player-spawn-boundary)
+12. [PVP team-spawn identity](#pvp-team-spawn-identity)
+13. [Restart and teardown](#restart-and-teardown)
+14. [Stationary player-camera observer QA](#stationary-player-camera-observer-qa)
+15. [Release layout](#release-layout)
+16. [Validation sequence](#validation-sequence)
+17. [Rejected shortcuts](#rejected-shortcuts)
 
 ## Ownership model
 
@@ -34,8 +35,8 @@ Treat a standalone map as up to four coordinated owners:
 | Owner | Owns | Must not own |
 |---|---|---|
 | Core/catalog | package verification, immutable identity, deterministic catalog | map-specific Unity or game code |
-| OPERATOR: Modded Operations framework | native laptop/row/board clones, infiltration selector, exact dependency/scene load, readiness, vanilla-compatible mode ownership, package-declared PVE population range, generic player/population, shipped failure-UI handoff, restart | map names, map shaders, map graph dimensions, map marker coordinates/repair, cloned mission-failure UI |
-| data-only package | manifest, operations including PVE min/max population and optional schema-v2 fixed PVE AI values, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers | executable C# or BepInEx hooks |
+| OPERATOR: Modded Operations framework | native laptop/row/board clones, infiltration selector, exact dependency/scene load, readiness, vanilla-compatible mode ownership, package-declared PVE population range, generic player/population, native PVE extraction state and ATAK presentation, shipped failure/success-UI handoff, restart | map names, map shaders, map graph dimensions, map marker coordinates/repair, cloned mission-failure or mission-success UI |
+| data-only package | manifest, operations including PVE min/max population and optional schema-v2 fixed PVE AI values, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers, and one Standard-PVE extraction transform/trigger | executable C# or BepInEx hooks |
 | optional map companion | exact-scene material, grounding, lighting, navigation, authored foliage-sight activation, interactive, and diagnostic work; teardown of its own graph/material/service state | official catalog mutation, generic terrain payload decoding, generic laptop flow, other maps |
 
 The package directory is always data-only. “The package has no DLL” does not
@@ -278,8 +279,9 @@ root `NetworkIdentity`, `WeaponsAI.SpawnWeapon=true`, and a non-empty
 `RaidManager`. Call `RaidManager.ServerSpawnAI(false)`. Current-build native
 inspection shows that it uses owner-aware
 `NetworkServer.Spawn(bot, GameManager.instance.gameObject)` before it applies
-`BotSpawnDetails`. Keep this claim at `PROVEN-STATIC` until reciprocal firearm
-damage passes. A grenade result is not sufficient.
+`BotSpawnDetails`. The pinned single-player Forest scope has runtime proof for
+reciprocal firearm damage. A grenade result alone is not sufficient evidence
+for another map or game build.
 
 The shipped `BOT V2` prefab keeps `BrainAI` and `NetworkIdentity` on its
 network root. Its `SK_Insurgent_P8` child keeps `AgentController` and the
@@ -347,7 +349,94 @@ Only both barberry prefabs contain the native inactive `AI Collider` child;
 the 91 Juniper instances do not. Do not synthesize Juniper blockers. PVP omits
 the profile. First launch and same-process restart accept search timing,
 movement, movement toward insertion, and authored foliage obstruction.
-Reciprocal firearm behavior remains a separate gate.
+Reciprocal firearm behavior, native all-AI-dead completion, extraction, and
+success return passed for the pinned single-player Forest scope. Multiplayer
+replication remains a separate gate.
+
+## Native Standard PVE completion, extraction, and ATAK
+
+Treat extraction as a split authoring/runtime contract. A Standard-PVE map
+must author exactly one transform whose name starts with `PVE_ExfilZone_` and
+must attach one positive, enabled `BoxCollider` with `isTrigger=true`. The map
+owns the transform, rotation, layer, collider center, and collider size. Put
+the trigger at an intentionally reachable location. If extraction must return
+the player to insertion, author it at the same terrain-grounded player-spawn
+area and size it to include the complete accepted insertion set.
+
+The generic framework must validate that authoring record before gameplay. It
+then creates one scene-generation Standard-PVE owner with this exact graph:
+
+```text
+StandalonePveGameMode : InfiltrationManager
+|- one RaidManager
+|- one ExfilZone
+|- one copied BoxCollider trigger
+|- inactive locked marker
+`- inactive native-compatible ATAK Exfil Marker
+```
+
+The framework must initialize `RaidManager.exfilZones` with only that
+operation-owned `ExfilZone`, set `RaidManager.EXTRACT_TIMER=15`, and restore
+the same one-item list after `RaidManager.ServerSpawnAI(false)`. The shipped
+population method can repopulate the list from resident donor objects; keeping
+that foreign list is not standalone ownership.
+
+Initialize the locked state explicitly:
+
+```text
+ExfilZone.NetworkcanExtract = false
+GameManagerNetwork.NetworkcanExtract = false
+GameManagerNetwork.NetworkisExtracting = false
+GameManagerNetwork.NetworkextractionStartTime = 0
+GameManagerNetwork.ExfilTime = 15
+GameManagerNetwork.SuccessfulOperation = false
+```
+
+Do not implement a parallel kill counter. Preserve the shipped
+`StandardPVE.UpdateAICount` and `RaidManager` all-AI-dead path. It must observe
+the native AI collection reach zero, activate the available exfil marker, and
+set both the zone and global extraction permission. Prove that neither flag is
+true before the last AI dies.
+
+The ATAK marker is framework presentation, not map geometry. On the pinned
+build, reconstruct it from the resident vanilla assets and exact audited
+values:
+
+- GameObject `ATAK Exfil Marker`, layer `17`, initially inactive;
+- mesh `Marker`, four vertices and triangles `2,1,0,3,2,0`;
+- material `ExfilZone`, shader `HDRP/Unlit`, render queue `2501`;
+- resident texture `ExfilZone`, `512 x 512`, DXT5;
+- local rotation quaternion
+  `(-3.0159049e-7,-0.70710683,-0.70710677,3.2782552e-7)`;
+- uniform local scale `0.65`;
+- vertical texture offset `-0.22`.
+
+Use the exact mesh vertex and UV arrays from
+`CreateNativeAtakExfilMarker`; do not replace this marker with a map-authored
+icon, UI overlay, or unrelated texture. Re-inspect these values after a game
+update.
+
+Completion remains native. The player must physically enter the unlocked
+trigger. The shipped occupant sets must report the player, the shipped timer
+must run for 15 seconds, and the game must set
+`GameManagerNetwork.SuccessfulOperation=true`, unload the additive operation
+scene, and show its persistent Mission Successful result. During teardown,
+remove only operation-owned runtime assets and singleton references. Do not
+clear `SuccessfulOperation` on the success path because the Operation Room
+reads it after scene unload.
+
+For Ukrainian Forest package `0.3.21`, the authored root is
+`PVE_ExfilZone_00` at `(0.000,0.112,7.000)`. Its trigger center is
+`(1.3259258,2.066852,1.6703243)` and its size is
+`(25.236944,7.376298,15.531027)`. It covers the north Team-1/player insertion
+markers, including the backup marker near Z `12`. An automated stationary
+observer recorded 13 initial live AI, no premature unlock, native death to
+zero AI, both extraction flags, the exact ATAK layer/mesh/material/shader/
+texture, one physical trigger occupant, the 15-second timer, scene unload,
+and `SuccessfulOperation=true`. The private observer's forced native damage
+correctly produced a non-saving QA status. A subsequent physical user run
+confirmed the normal playable extraction flow. Keep the private driver and
+its logs out of every release archive.
 
 ## Selected-map cold-load prefetch
 
@@ -630,14 +719,19 @@ Programmatic live-UI event invocation can prove unattended lifecycle and
 rendering. It does not replace a physical-pointer test when the click surface
 itself changed.
 
-For the final Forest `0.4.17` and Modded Operations `0.3.20` bytes, require a
-worked acceptance result with two complete windows. The first launch created
+For Forest `0.4.17` and Modded Operations `0.3.20`, the completed movement
+baseline used a worked acceptance result with two complete windows. The first
+launch created
 15 grounded AI and the native restart created 14. The largest absolute
 AI-to-Terrain difference was `0.03 m`. At 120 seconds, all 15 and all 14 AI had
 moved at least 1 m. Six and four had moved at least 5 m toward insertion.
 Maximum displacement was `51.19 m` and `49.34 m`. Both generations recorded
-authored layer-18 vegetation hits. Require the machine result to report
-`passed` and no private driver after cleanup.
+authored layer-18 vegetation hits. The current Forest `0.4.19`, Modded
+Operations `0.3.22`, and map package `0.3.21` additionally passed the native
+completion/extraction evidence in the preceding section. Require the relevant
+machine result to report `passed`, or retain an explicitly named observer
+limitation beside separate physical acceptance. Require no private driver
+after cleanup.
 
 ## Release layout
 
@@ -670,7 +764,10 @@ private logs, and test control files. Validate staged checksums and ZIP entries.
    Confirm, shipped infiltration selector, exact scene.
 6. In PVE, prove player count, AI count, all required marker grounding/on-graph,
    playable-wall containment, reciprocal combat across representative routes,
-   package population range, visuals, collision, and normal restart.
+   package population range, visuals, collision, and normal restart. Also
+   prove one authored extraction trigger, initial lock, native last-AI unlock,
+   exact ATAK presentation, physical trigger occupation, the shipped timer,
+   Mission Successful, additive-scene unload, and Operation Room return.
 7. In PVP, place host and client on different teams. Prove Team 1 and Team 2
    first spawn on their authored sides, one death/respawn per team, correct
    facing, zero PVE AI, and the normal restart contract.
@@ -688,6 +785,12 @@ private logs, and test control files. Validate staged checksums and ZIP entries.
   ownership in the map bundle/companion.
 - Rebinding or cloning a complete retail Mission Failed popup when the missing
   state is the native game-mode owner.
+- Implementing a framework-only kill counter or auto-success path instead of
+  the shipped Standard-PVE all-AI-dead and physical extraction flow.
+- Putting the ATAK extraction marker mesh/material or extraction state machine
+  in each map companion.
+- Clearing `GameManagerNetwork.SuccessfulOperation` while tearing down a
+  successfully extracted standalone operation.
 - Calling the complete map distribution “data-only” when it needs a companion.
 - Putting a companion DLL beneath `BepInEx/OperatorMods`.
 - Treating a brown exact scene as proof that the selector loaded the wrong map.

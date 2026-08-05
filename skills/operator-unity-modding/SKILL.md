@@ -52,9 +52,22 @@ Read [references/implementation-locators.md](references/implementation-locators.
     root `BrainAI`, root `NetworkIdentity`, enabled weapon spawning, and a
     non-empty weapon list. Create bots through
     `RaidManager.ServerSpawnAI(false)`, not a one-argument manual network spawn.
-    The current first Confirm path is `PROVEN-RUNTIME` for the pinned
-    single-player Forest scope. Reciprocal firearm behavior remains a separate
-    gate.
+    The current first Confirm path, reciprocal firearm behavior, native
+    all-enemies-dead completion, extraction, and success return are
+    `PROVEN-RUNTIME` for the pinned single-player Forest scope. Multiplayer
+    replication remains a separate gate.
+    For Standard PVE, require exactly one package-authored
+    `PVE_ExfilZone_` marker with a positive `BoxCollider` trigger. The map owns
+    its transform and trigger geometry. The generic framework owns one
+    scene-generation `RaidManager`, one `ExfilZone`, their native state, and
+    the ATAK marker. Start with `NetworkcanExtract=false`; preserve the shipped
+    `RaidManager.UpdateAICount` all-AI-dead transition; require physical entry
+    into the unlocked trigger; preserve the shipped 15-second extraction
+    timer and `GameManagerNetwork.SuccessfulOperation`; then unload only the
+    operation generation and let the persistent Operation Room read the
+    success result. Never unlock on spawn count, a framework-only kill count,
+    or an observer shortcut. Never clear `SuccessfulOperation` during success
+    teardown.
 12. Define navigation and AI markers from the authoritative playable physics
     and bullet-interaction volume, never a larger render-only terrain/scenery
     apron. The map/package owns marker coordinates; the exact-scene companion
@@ -126,7 +139,7 @@ Read [references/implementation-locators.md](references/implementation-locators.
     map-scoped borrower API can return an exact asset, but require a live probe
     for the concrete asset type before a release depends on it. Modded
     Operations `0.3.17` plus Forest `0.4.12` returned null for all three raw
-    pine `TextAsset` requests. Forest `0.4.17` instead resolves the exact
+    pine `TextAsset` requests. Forest `0.4.19` instead resolves the exact
     resident compiled shaders and binds portable proxy textures to the real
     shader property names. Treat the generic borrower as `PROVEN-STATIC`, not
     `SUPPORTED`, until the concrete requested type passes live. Only the
@@ -142,7 +155,7 @@ Read [references/implementation-locators.md](references/implementation-locators.
     5, bloom `.03`, and lens-flare intensity `.5`. The rejected bright PVP
     donor used 52,241.375 lux, bloom `.359`, and lens flare `1`.
     Make one component the process-global render owner. In the current system,
-    the package selects `native-outdoor-v1`, Modded Operations `0.3.20`
+    the package selects `native-outdoor-v1`, Modded Operations `0.3.22`
     applies and restores the sun/Volume/NVG transaction, the package owns the
     verified LUT, and the map companion does not install a second global
     Volume. At 02:00, require white phosphor across all tubes and visible world
@@ -217,7 +230,7 @@ Promote a finding into this skill's reference only after it is reproducible from
 | Standalone ownership | Exact package/map/scene gating + generic-adapter map-name isolation + companion refusal outside its scene + clean teardown |
 | Runtime navigation | Exact playable physics/bullet bounds + pre-nav marker containment + one resident playable-only scanned graph + tight ground and `IsPointOnNavmesh` proof for every enemy/HVT/mission marker before and after restart |
 | Interactive doors | Complete reference graph + hinge-axis pivot + two-sided FinalIK interaction + latch/hinge damage + native A* open/breach traversal + host/client/late-join/restart teardown |
-| Mission UI/lifecycle | One physical first Confirm without a second laptop interaction + tab/Back/Cancel/selector flow + exact scene + PVE/PVP isolation + reciprocal firearm damage + normal Restart; separately prove native lethal damage -> shipped Mission Failed popup -> shipped Restart control -> fresh playable exact scene, with the mode singleton/timer reset |
+| Mission UI/lifecycle | One physical first Confirm without a second laptop interaction + tab/Back/Cancel/selector flow + exact scene + PVE/PVP isolation + reciprocal firearm damage + normal Restart; for Standard PVE, exactly one package-authored extraction trigger + initial lock + shipped all-AI-dead unlock + native ATAK marker + physical 15-second extraction + shipped Mission Successful return; separately prove native lethal damage -> shipped Mission Failed popup -> shipped Restart control -> fresh playable exact scene, with the mode singleton/timer reset |
 | Public repository | Complete authored source + final-DLL decompiler snapshot + DLL/tool hashes and versions + exact placeholders for all omitted payloads + zero private machine paths |
 | Deployment | Source/deployed hashes match while OPERATOR was closed |
 

@@ -157,7 +157,7 @@ SHA-256, captured process identities, log and screenshot hashes, pass/fail
 state, and cleanup state. A passing run leaves no private driver, control file,
 capture directory, or environment flag in the normal game installation.
 
-The final Forest `0.4.17` and Modded Operations `0.3.20` release bytes passed
+The Forest `0.4.17` and Modded Operations `0.3.20` movement baseline passed
 this workflow. The first generation created 15 grounded PVE actors. The
 native restart created 14. Both generations kept the maximum absolute
 AI-to-Terrain difference at `0.03 m`. At 120 seconds, all actors had moved at
@@ -165,6 +165,15 @@ least 1 m. The two maximum displacements were `51.19 m` and `49.34 m`.
 Authored vegetation blocked the same-mask sight probe in both generations.
 Both stationary retail-camera captures showed the complete forest. The
 launcher removed all private QA files after the game exited.
+
+The current completion runs also require and observe one shipped
+`RaidManager`, one shipped `ExfilZone`, locked initial extraction,
+`GameManager.allAI=0`, native zone/global unlock, the exact current-build ATAK
+exfil visual, positive physical occupant counts, the 15-second timer, and the
+Mission Successful After Action Report. For the Ukrainian Forest worked
+example, the extraction root is the northern insertion root
+`(0.000,0.112,7.000)`. See
+[Native PVE completion, extraction, and ATAK](15-native-pve-completion-exfil-and-atak.md).
 
 ## Deployment
 

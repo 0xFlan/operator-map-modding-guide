@@ -12,6 +12,11 @@ Use
 for the complete authoring-data, Cerberus, bundle, terrain, player, PVE/PVP,
 failure, restart, and teardown chain.
 
+Use
+[`docs/15-native-pve-completion-exfil-and-atak.md`](docs/15-native-pve-completion-exfil-and-atak.md)
+for the exact StandardPVE enemy-clear, extraction, ATAK, success-screen, and
+restart contract.
+
 This document is the normative technical contract for a standalone OPERATOR
 map. It is written for human authors and automated engineering tools.
 
@@ -25,15 +30,17 @@ This document uses the language and evidence rules in
 ## 1. Scope and status
 
 The current method has strong static and bounded runtime evidence. Forest
-`0.4.17` and Modded Operations `0.3.20` have accepted local first launch,
+`0.4.19` and Modded Operations `0.3.22` have accepted local first launch,
 one-click Confirm, 11:00 daylight, pine surface, tree contact, unload, Lone
 Wolf re-entry, repeat launch, above-terrain repeat spawn, and 02:00
 white-phosphor NVG results. The 2026-08-04 bounded runtime test also accepts
 same-process KIA restart through the shipped Mission Failed UI. It restored
 one owned playable player and grounded 14 of 14 active Forest `BrainAI`
-instances within 0.03 m of Terrain. Reciprocal firearm damage and the two-peer
-PVP matrix remain open. Do not label the complete pair `SUPPORTED` until those
-gates pass. Re-test the complete matrix
+instances within 0.03 m of Terrain. The current single-player PVE evidence
+also accepts reciprocal firearm play, native all-enemies-dead extraction
+unlock, the exact ATAK exfil marker, a physical 15-second extraction, the
+Mission Successful After Action Report, and the insertion-area extraction
+placement. The two-peer PVP matrix remains open. Re-test the complete matrix
 after an OPERATOR, Unity, BepInEx, Il2CppInterop, A*, Core, or framework
 update.
 
@@ -1012,7 +1019,7 @@ and mark their status clearly.
 
 ## 29. Fixed PVE AI and foliage sight contract
 
-Operator Mod API `0.2.0-alpha.3` and Modded Operations `0.3.20` add schema
+Operator Mod API `0.2.0-alpha.3` and Modded Operations `0.3.22` add schema
 version 2. A schema-v2 PVE operation can declare one immutable
 `pveAiProfile`. Schema v1 and PVP reject it. The framework adds no difficulty
 UI and makes no global AI change.
@@ -1056,7 +1063,9 @@ movement toward insertion, native target/state fields, and same-mask sight
 probes at 0, 10, 30, 60, 90, and 120 seconds. The gate is the presence of the
 profile. It does not contain a worked-example map ID. These reports provide
 the accepted physical search and foliage-obstruction evidence for the tested
-Forest scope. Reciprocal firearm damage remains a separate gate.
+Forest scope. The current pinned single-player scope also passed reciprocal
+firearm damage and native completion/extraction. Two-peer combat remains a
+separate gate.
 
 Use [AI navigation, routes, and behavior](docs/11-ai-navigation-and-behavior.md)
 for the complete authoring, native-application, foliage, logging, and test

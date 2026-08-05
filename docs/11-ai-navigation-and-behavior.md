@@ -207,10 +207,12 @@ map-owned PVE profile. The PVP operation omits it.
 Log the profile ID and every applied value. Log authored and active sight-
 blocker counts and the exact layer. The first launch and same-process native
 restart are `PROVEN-RUNTIME` for search timing, displacement, movement toward
-insertion, and authored foliage obstruction. Reciprocal firearm damage remains
-a separate gate.
+insertion, and authored foliage obstruction. The current pinned single-player
+Forest scope also passed reciprocal firearm damage and the native
+all-AI-dead/extraction lifecycle. A two-peer combat run remains a separate
+gate.
 
-Modded Operations `0.3.20` starts one bounded read-only diagnostic when a PVE
+Modded Operations `0.3.22` starts one bounded read-only diagnostic when a PVE
 operation has `pveAiProfile`. It does not use a map ID. It records only the
 new `BrainAI` instances added by the package's native
 `RaidManager.ServerSpawnAI(false)` call. It reports the live

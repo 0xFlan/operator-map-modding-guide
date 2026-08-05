@@ -438,6 +438,12 @@ restore operation-owned spawn globals if identity still matches
 Keep verified map bundles resident for shipped restart. A full package release
 can unload them later. Never use `NetworkClient.ClearSpawners()`.
 
+For StandardPVE, teardown also destroys the operation-owned ATAK mesh and
+material. It clears zone/global extraction occupants when the operation was
+not successful. It preserves `GameManagerNetwork.SuccessfulOperation` during
+a successful map unload so the Operation Room can display and consume the
+native result.
+
 The stale Mirror ID caused the repeat `MAP LOADED !BUG!` loop. A stale spawn
 global caused the floating armory return. Identity-conditional reverse cleanup
 is required.
@@ -484,8 +490,11 @@ Use physical input and test:
 9. alive restart;
 10. Mission Failed restart;
 11. every time/NVG option;
-12. host and remote PVP sides, death, score, respawn, and end;
-13. map materials, lighting, trees, props, and interactives at player height.
+12. native all-enemies-dead extraction unlock;
+13. the exact current-build ATAK exfil marker;
+14. physical extraction, the native timer, Mission Successful, and Continue;
+15. host and remote PVP sides, death, score, respawn, and end;
+16. map materials, lighting, trees, props, and interactives at player height.
 
 A compile is `PROVEN-STATIC`. A controlled runtime event is
 `PROVEN-RUNTIME`. A capability is `SUPPORTED` only after all stated gates

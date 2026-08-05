@@ -189,10 +189,11 @@ as the canvas state on this build. Its getter at RVA `0x0091A840` returns the
 private `_hideLoadingScreenSoon` byte at offset `0x2A4`. The value can be
 `false` immediately after a successful `ShowLoadingScreen` call.
 
-Ukrainian Forest loads two verified files with a combined size of
-`647869804` bytes. In the exact combined-package run, the `630271199`-byte
-dependency bundle took `24.449 s`, the scene bundle took `0.833 s`, and
-verified registration took `25.347 s` total. Confirm waited `23.442 s` for
+Ukrainian Forest package `0.3.21` loads two verified files with a combined
+size of `647940302` bytes. In the accepted combined-package run, the
+`630326573`-byte dependency bundle took `23.270 s`, the scene bundle took
+`0.807 s`, and verified registration took `24.148 s` total. Confirm waited
+`22.119 s` for
 the remaining selected-map work. Vanilla missions can appear faster because
 their content is installed with the game and can already be resident. This
 timing difference is not evidence that the exact scene failed.
@@ -474,6 +475,18 @@ selects one inclusive deterministic count from the valid sorted markers. It
 MUST NOT use Unity global random state for this selection. It MUST fail when
 fewer than `minEnemies` valid markers remain.
 
+Every StandardPVE scene MUST also contain exactly one inactive
+`PVE_ExfilZone_` marker with a positive trigger BoxCollider. The map owns its
+transform and collider. The generic framework copies that data to its
+Mirror-owned `InfiltrationManager` bootstrap and creates one shipped
+`RaidManager` plus one shipped `ExfilZone`.
+
+Start zone-level and global extraction locked. Use native AI `Health` deaths
+and `GameManager.allAI` as the shipped raid input. After native unlock, require
+physical player occupancy and the shipped extraction timer. Do not unload the
+map or show a custom success popup when the last enemy dies. Read
+[Native PVE completion, extraction, and ATAK](15-native-pve-completion-exfil-and-atak.md).
+
 ## Failure behavior
 
 Fail closed when a required condition is false. Keep the player in a safe
@@ -499,6 +512,7 @@ stop mode population
 -> invalidate the scene generation
 -> restore prior process-global spawn registration only when this operation still owns it
 -> unregister the operation-owned Mirror game-mode template
+-> destroy operation-owned ATAK mesh/material assets and clear exfil occupants when the operation was not successful
 -> clear standalone mode singleton, PvpGameode, and timer ownership
 -> restore captured NVG state and destroy run-time Volume profiles
 -> clear the companion's player transform/controller hold, spawn-safety window, counters, applied flag, and destination-scene reference
@@ -515,6 +529,10 @@ nothing when its generation is stale.
 Normal Restart Operation creates one new scene generation. It MUST NOT stack a
 second graph, callback set, door, actor list, or material set over the old
 generation.
+
+During a successful unload, do not clear
+`GameManagerNetwork.SuccessfulOperation`. The shipped Operation Room reads the
+result after the additive scene unloads.
 
 For a companion with late-player hooks, keep `applied=false` until the exact
 standalone `Terrain` and `TerrainCollider` share one non-null `TerrainData`.
