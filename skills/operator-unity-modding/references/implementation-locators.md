@@ -19,8 +19,8 @@ drive-specific workspace, a private log, or a private test control.
 
 - Assembly: `OperatorModdedOperations.dll`.
 - Current candidate version: `0.3.19`.
-- Current Release binary: 152,576 bytes; SHA-256
-  `E98A6989717BAE78159159504AAE1A3571041935D72947A6EDBDE1641A99CC7A`.
+- Current Release binary: 159,232 bytes; SHA-256
+  `257F5449463BF2D2E2BD71CBC3AEA513A1788E882578CA98B631FB70E2EB1F25`.
 - Current source file: `CerberusNativeTabFix.cs`.
 - Install directory:
   `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
@@ -72,6 +72,13 @@ drive-specific workspace, a private log, or a private test control.
   `RaidManager.ServerSpawnAI(false)`.
 - Fixed PVE profile writer: `ConfigureStandaloneBotDetails`.
 - Fixed PVE profile diagnostic: `FormatPveAiProfile`.
+- Live profiled-PVE contract capture:
+  `StartProfiledPveAiDiagnostics`.
+- Bounded read-only snapshots: `ProcessProfiledPveAiDiagnostics` and
+  `LogProfiledPveAiSnapshot`; schedule `0, 10, 30, 60, 90, 120` seconds.
+- The snapshot reads live `WanderTimer * Patience`, movement, movement toward
+  insertion, `CurrentSeenTarget`, `CurrentState`, and
+  `EyesAI.DetectionLayerMask`. It writes no AI field.
 - Required Operator Mod API: `0.2.0-alpha.3`.
 - Lifecycle release: `ReleaseStandaloneSceneContracts` and
   `ReleaseStandaloneGameMode`; release captures `BootstrapAssetId` and removes

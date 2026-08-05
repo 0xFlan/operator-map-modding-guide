@@ -298,6 +298,15 @@ distance except `-1`. It does not consume marker `DetectionTimeMultiplier` or
 `WanderTimer * Patience` delay and then chooses around the current position;
 repeated choices can expand a search.
 
+For a profiled PVE operation, record the instance IDs already in
+`GameManager.allAI` before the native population call. Track only new IDs
+after it. Read the live `WanderTimer * Patience`, detection, FOV, wander, and
+communications values. Take bounded read-only snapshots at 0, 10, 30, 60,
+90, and 120 seconds. Record movement from spawn, movement toward the captured
+insertion, `CurrentSeenTarget`, `CurrentState`, and a linecast with the live
+`EyesAI.DetectionLayerMask`. Treat the linecast as geometry evidence. Do not
+use it alone as acquisition proof, and do not write an AI field for the test.
+
 Treat foliage sight as exact map content. Inspect the same installed vanilla
 prefab and the current `EyesAI` physics mask. Activate an authored inactive
 sight-collider child only when prefab evidence proves its name, layer,
