@@ -17,13 +17,14 @@ OPERATOR, BepInEx, Il2CppInterop, or A* update.
 5. [Runtime A* graph construction](#runtime-a-graph-construction)
 6. [Mission-marker grounding](#mission-marker-grounding)
 7. [World contract](#world-contract)
-8. [Selected-map cold-load prefetch](#selected-map-cold-load-prefetch)
-9. [Host player-spawn boundary](#host-player-spawn-boundary)
-10. [PVP team-spawn identity](#pvp-team-spawn-identity)
-11. [Restart and teardown](#restart-and-teardown)
-12. [Release layout](#release-layout)
-13. [Validation sequence](#validation-sequence)
-14. [Rejected shortcuts](#rejected-shortcuts)
+8. [Fixed PVE AI profile and foliage sight](#fixed-pve-ai-profile-and-foliage-sight)
+9. [Selected-map cold-load prefetch](#selected-map-cold-load-prefetch)
+10. [Host player-spawn boundary](#host-player-spawn-boundary)
+11. [PVP team-spawn identity](#pvp-team-spawn-identity)
+12. [Restart and teardown](#restart-and-teardown)
+13. [Release layout](#release-layout)
+14. [Validation sequence](#validation-sequence)
+15. [Rejected shortcuts](#rejected-shortcuts)
 
 ## Ownership model
 
@@ -33,8 +34,8 @@ Treat a standalone map as up to four coordinated owners:
 |---|---|---|
 | Core/catalog | package verification, immutable identity, deterministic catalog | map-specific Unity or game code |
 | OPERATOR: Modded Operations framework | native laptop/row/board clones, infiltration selector, exact dependency/scene load, readiness, vanilla-compatible mode ownership, package-declared PVE population range, generic player/population, shipped failure-UI handoff, restart | map names, map shaders, map graph dimensions, map marker coordinates/repair, cloned mission-failure UI |
-| data-only package | manifest, operations including PVE min/max population, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers | executable C# or BepInEx hooks |
-| optional map companion | exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work; teardown of its own graph/material/service state | official catalog mutation, generic terrain payload decoding, generic laptop flow, other maps |
+| data-only package | manifest, operations including PVE min/max population and optional schema-v2 fixed PVE AI values, scene/dependency bundles, preview, lighting payloads, authored world/collision/markers | executable C# or BepInEx hooks |
+| optional map companion | exact-scene material, grounding, lighting, navigation, authored foliage-sight activation, interactive, and diagnostic work; teardown of its own graph/material/service state | official catalog mutation, generic terrain payload decoding, generic laptop flow, other maps |
 
 The package directory is always data-only. “The package has no DLL” does not
 mean the complete map distribution can never have code. When runtime-only
@@ -273,6 +274,44 @@ damage passes. A grenade result is not sufficient.
 
 Log actual/expected counts and fail closed. Do not reduce the contract to
 “sceneLoaded fired” or “there is a terrain somewhere.”
+
+## Fixed PVE AI profile and foliage sight
+
+Use schema version 2 only when a PVE operation needs fixed map-owned native
+AI values. The closed `pveAiProfile` owns detection range, FOV, the effective-
+range sentinel, integer wander radius, communications, and counter-
+suppression. Reject it in schema v1 and PVP. Keep it operation-local. Add no
+difficulty UI and make no process-global AI write.
+
+Measure the authoritative playable combat volume and every accepted player-
+to-enemy marker gap before selecting values. Do not measure the larger visual
+terrain apron. Keep initial detection below the intended start gap. Keep one
+wander radius below the distance that would cross the intended encounter
+midpoint.
+
+Apply the profile to each `BotSpawnDetails` before
+`RaidManager.ServerSpawnAI(false)`. Current native
+`RaidManager.ApplyBotSpawnSettings` transfers detection range, FOV,
+communications, counter-suppression, effective range except `-1`, and wander
+distance except `-1`. It does not consume marker `DetectionTimeMultiplier` or
+`HearingRange` on the pinned build. `BrainAI.Wander` preserves its prefab
+`WanderTimer * Patience` delay and then chooses around the current position;
+repeated choices can expand a search.
+
+Treat foliage sight as exact map content. Inspect the same installed vanilla
+prefab and the current `EyesAI` physics mask. Activate an authored inactive
+sight-collider child only when prefab evidence proves its name, layer,
+collider type, and trigger state. Require exact authored and active counts.
+Verify the collision matrix and bullet mask so the collider does not become a
+movement or projectile wall. Do not enable it globally.
+
+The Ukrainian Forest `PROVEN-STATIC` candidate uses a 70 by 140 m playable
+volume, 78.87 m nearest solo enemy gap, 45 m detection, 90-degree FOV,
+native-prefab effective range, 38 m wander, communications on,
+counter-suppression off, and exactly 274 authored barberry triggers on layer
+18 `AI_VisionBlock`. PVP omits the profile. Require a physical first launch
+and same-process repeat launch for search timing, foliage occlusion,
+acquisition, and reciprocal firearm acceptance.
 
 ## Selected-map cold-load prefetch
 

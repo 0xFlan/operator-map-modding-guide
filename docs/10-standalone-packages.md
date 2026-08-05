@@ -6,8 +6,10 @@ change before version 1. Pin the exact Core and framework version.
 The framework in this document is **OPERATOR: Modded Operations — Standalone
 Map Framework**.
 
-The machine-readable contract is
-[`schemas/operator-map-package.schema.json`](../schemas/operator-map-package.schema.json).
+The machine-readable contracts are the legacy
+[`schema v1`](../schemas/operator-map-package.schema.json) and
+[`schema v2`](../schemas/operator-map-package-v2.schema.json). Use v2 only
+when a PVE operation requires a fixed `pveAiProfile`.
 Start from the annotated
 [`templates/operator-map-package.example.json`](../templates/operator-map-package.example.json)
 only after you read its
@@ -119,6 +121,7 @@ for the exact decoder, dimensions example, UI targets, and validation matrix.
 | `maxPlayers` | integer | 1 to 64 and not less than `minPlayers` |
 | `minEnemies` | integer | Required for PVE; 1 to 64 |
 | `maxEnemies` | integer | Required for PVE; not less than `minEnemies`; 1 to 64 |
+| `pveAiProfile` | closed object | Optional in schema v2 and PVE only; fixed operation-local native AI values |
 | `spawnSet` | token | Matches one scene `SPAWN_SET_...` marker |
 | `infiltrations` | array | 1 to 16 package-owned infiltration choices |
 | `timeCodes` | unique array | One or more `HHMM` 24-hour values |
@@ -141,6 +144,23 @@ For a 10-to-15 actor PVE operation, use:
 The scene MUST have at least ten valid enemy markers for this example. The
 server selects an inclusive deterministic count. The map scene owns the marker
 positions. The generic framework owns count selection and actor creation.
+
+An optional schema-v2 profile has these required fields:
+
+| Field | Contract |
+| --- | --- |
+| `id` | Local stable ID, maximum 64 characters |
+| `detectionRangeMeters` | `5..250` |
+| `fieldOfViewDegrees` | `30..180` |
+| `maximumEffectiveRangeMeters` | `-1`, or `5..300`; `-1` preserves the native prefab value |
+| `wanderDistanceMeters` | Integer `5..100` |
+| `useComms` | Boolean |
+| `counterSuppression` | Boolean |
+
+The object is fixed data. It does not create a difficulty control. Measure
+playable geometry and marker gaps before you choose the values. Read
+[AI navigation, routes, and behavior](11-ai-navigation-and-behavior.md) for
+the native write, wander-delay, and foliage sight contracts.
 
 ## Infiltration fields
 
@@ -192,6 +212,7 @@ store these UI values.
 | `sitrep` | briefing body |
 | `minPlayers`, `maxPlayers` | operation player contract |
 | `minEnemies`, `maxEnemies` | inclusive PVE server population range after world readiness |
+| `pveAiProfile` | optional schema-v2 PVE marker values applied before native population |
 | `spawnSet` | exact `SPAWN_SET_<spawnSet>` scene metadata and marker contract |
 | `infiltrations` | 2D native selector marker list |
 | `timeCodes` | native infiltration-time choices and target records |

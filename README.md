@@ -107,7 +107,9 @@ remains available for explicit local diagnostics. See the
 - [10 Standalone packages](docs/10-standalone-packages.md): manifest fields,
   file closure, identity, markers, terrain payloads, and load validation.
 - [Package JSON Schema](schemas/operator-map-package.schema.json): closed
-  machine-readable pre-v1 manifest contract.
+  machine-readable schema-v1 manifest contract.
+- [Package JSON Schema v2](schemas/operator-map-package-v2.schema.json):
+  schema-v1 fields plus the closed PVE-only fixed AI profile.
 - [Package manifest template](templates/operator-map-package.example.json):
   complete PVE/PVP schema shape with explicit placeholder hashes; read the
   [template instructions](templates/README-package-template.md) before use.
@@ -115,7 +117,8 @@ remains available for explicit local diagnostics. See the
   developer-source GUID, component, serialized-reference, reciprocal-handle,
   pivot, sound-array, and destroyed-door graph checks.
 - [11 AI navigation and behavior](docs/11-ai-navigation-and-behavior.md):
-  playable-only A* graph, marker grounding, routes, cover, combat, and restart.
+  playable-only A* graph, marker grounding, fixed PVE profiles, native wander,
+  foliage sight blocking, routes, cover, combat, and restart.
 - [12 Asset data contracts](docs/12-model-texture-material-terrain.md): model,
   pivot, texture, material, foliage, tree-family, terrain, and runtime-audit
   requirements.

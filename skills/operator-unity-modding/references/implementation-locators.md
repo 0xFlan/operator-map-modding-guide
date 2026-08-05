@@ -18,9 +18,9 @@ drive-specific workspace, a private log, or a private test control.
 ## Generic framework
 
 - Assembly: `OperatorModdedOperations.dll`.
-- Current candidate version: `0.3.18`.
-- Current Release binary: 151,552 bytes; SHA-256
-  `71F21527FF959DBCF3C7AD1894937F56A9D931E0BF1A6B038C857249861A745C`.
+- Current candidate version: `0.3.19`.
+- Current Release binary: 152,576 bytes; SHA-256
+  `E98A6989717BAE78159159504AAE1A3571041935D72947A6EDBDE1641A99CC7A`.
 - Current source file: `CerberusNativeTabFix.cs`.
 - Install directory:
   `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
@@ -70,6 +70,9 @@ drive-specific workspace, a private log, or a private test control.
 - PVE range selection: `ChooseStandalonePveEnemyCount`.
 - PVE creation: `TrySpawnStandalonePveEnemies` and
   `RaidManager.ServerSpawnAI(false)`.
+- Fixed PVE profile writer: `ConfigureStandaloneBotDetails`.
+- Fixed PVE profile diagnostic: `FormatPveAiProfile`.
+- Required Operator Mod API: `0.2.0-alpha.3`.
 - Lifecycle release: `ReleaseStandaloneSceneContracts` and
   `ReleaseStandaloneGameMode`; release captures `BootstrapAssetId` and removes
   its prefab/spawn-handler keys even when `BootstrapPrefabRoot` is fake-null.
@@ -85,7 +88,7 @@ that more than one package can select.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.17`.
+- Package: `community.ukrainian-forest`, version `0.3.18`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
@@ -102,6 +105,12 @@ that more than one package can select.
   authoring change, and both in-editor gates plus the external validator passed.
 - PVE operation: `community.ukrainian-forest.pve`.
 - PVE population range: `10` through `15`, inclusive.
+- PVE profile: `dense-forest-balanced-v1`; range `45 m`; FOV `90` degrees;
+  native effective-range sentinel `-1`; wander `38 m`; communications on;
+  counter-suppression off.
+- Playable combat area: X `-35..35`, Z `-22..118`, or `70 by 140 m`.
+- Solo player-to-enemy distances: minimum `78.87 m`, median `91.60 m`,
+  mean `90.72 m`, maximum `101.79 m`.
 - PVP operation: `community.ukrainian-forest.pvp`.
 - PVP AI population: zero.
 - Scene marker:
@@ -114,11 +123,14 @@ that more than one package can select.
 - Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
-- Companion candidate version: `0.4.15`.
-- Current companion Release binary: 296,960 bytes; SHA-256
-  `86F9FC38CC519A68B1AC3B0E506828519D7E064CA9FD0468886C7D183A9A7903`.
+- Companion candidate version: `0.4.16`.
+- Current companion Release binary: 297,472 bytes; SHA-256
+  `1B93F389137EEB003A37FF3DAB30B11DC21B159D0D4FD5A78E25BA6393407D7D`.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
 - Exact-scene entry: `ProcessStandalonePackageScene`.
+- Forest sight activation: `ConfigureForestVegetationVisionBlockers`; exactly
+  118 direct plus 156 perimeter `AI Collider` triggers on layer 18
+  `AI_VisionBlock`, for 274 total.
 - Navigation owner: `EnsureStandaloneNavigationGraph`.
 - Bounds gate: `IsInsideForestPlayableBounds`.
 - World audit: `LogStandaloneWorldContract`.

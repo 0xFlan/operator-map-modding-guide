@@ -60,6 +60,16 @@ Read [references/implementation-locators.md](references/implementation-locators.
     rejects or quarantines out-of-bounds markers before grounding/nav lookup and
     scans only the playable graph; OPERATOR: Modded Operations consumes the package's PVE
     `minEnemies`/`maxEnemies` without map names or coordinates.
+    For a fixed map-specific AI profile, use only the closed schema-v2
+    `pveAiProfile` on PVE. Measure every accepted player-to-enemy gap. Keep the
+    initial detection range below the intended start gap and one native wander
+    radius below the intended encounter midpoint. Preserve
+    `BrainAI.WanderTimer * Patience`; the current native method searches from
+    the bot's current position after that delay. Treat foliage sight as map
+    content: research the same installed vanilla prefab and `EyesAI` mask,
+    then activate only authored sight-collider children with exact layer,
+    trigger, count, collision-matrix, and bullet-mask evidence. Never make the
+    generic framework synthesize map-specific sight geometry or change PVP.
 13. Treat normal `DoorV2` objects as authored map/building prefab content. Import an authorized complete source prefab with its original `.meta` and all dependencies, preserve its pivot, physics sync, paired handles, FinalIK objects, damage parts, navigation cut, and both A* links, and let normal scene and Mirror lifecycle initialize it. Do not spawn the normal door graph from a companion. Some AssetRipper exports lose custom fields; reject those damaged exports. Keep run-time cloning or component reconstruction experimental. Preserve serialized dead fields unless the game developer migrates the existing prefab data.
     Run `templates/Editor/ValidateDoorV2Prefab.cs` before the map build. Its
     serialized graph checks are necessary but not sufficient: A* endpoint
@@ -128,7 +138,7 @@ Read [references/implementation-locators.md](references/implementation-locators.
     5, bloom `.03`, and lens-flare intensity `.5`. The rejected bright PVP
     donor used 52,241.375 lux, bloom `.359`, and lens flare `1`.
     Make one component the process-global render owner. In the current system,
-    the package selects `native-outdoor-v1`, Modded Operations `0.3.18`
+    the package selects `native-outdoor-v1`, Modded Operations `0.3.19`
     applies and restores the sun/Volume/NVG transaction, the package owns the
     verified LUT, and the map companion does not install a second global
     Volume. At 02:00, require white phosphor across all tubes and visible world

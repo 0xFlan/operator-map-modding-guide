@@ -969,3 +969,45 @@ raw evidence
 
 Do not promote an untested workaround. Keep historical methods in the archive
 and mark their status clearly.
+
+## 29. Fixed PVE AI and foliage sight contract
+
+Operator Mod API `0.2.0-alpha.3` and Modded Operations `0.3.19` add schema
+version 2. A schema-v2 PVE operation can declare one immutable
+`pveAiProfile`. Schema v1 and PVP reject it. The framework adds no difficulty
+UI and makes no global AI change.
+
+The profile contains a stable ID, detection range, field of view, maximum
+effective range, wander radius, communications flag, and counter-suppression
+flag. The generic framework applies the selected operation's values to native
+`BotSpawnDetails` immediately before the shipped
+`RaidManager.ServerSpawnAI(false)` owner-aware population path.
+
+Tune the profile from the authoritative combat volume, not from the visual
+terrain apron. Measure all accepted player-to-enemy marker gaps. Keep the
+initial detection range below the intended start gap. Keep one wander radius
+below the distance that would cross the intended encounter midpoint. The
+current native wander method preserves `WanderTimer * Patience`, then selects
+around the current bot position. Repeated choices can create a progressive
+search.
+
+Sight occlusion remains map content. Research the exact installed vanilla
+prefab and the current `EyesAI` physics mask. An exact-scene companion can
+activate an authored native sight-collider child only when the prefab evidence
+proves that contract. Require exact layer, collider type, authored count,
+active count, collision matrix, and bullet-mask evidence. Do not create an
+invisible movement or ballistic wall.
+
+The Ukrainian Forest worked candidate uses a 70 by 140 m playable volume,
+78.87 m nearest solo enemy gap, 45 m detection, 90-degree FOV, preserved
+native effective range, 38 m delayed native wander, communications on,
+counter-suppression off, and 274 authored barberry triggers on layer 18,
+`AI_VisionBlock`. PVP omits the profile. The implementation and static tests
+are `PROVEN-STATIC`. Physical first-run and repeat-run AI behavior remains the
+acceptance gate.
+
+Use [AI navigation, routes, and behavior](docs/11-ai-navigation-and-behavior.md)
+for the complete authoring, native-application, foliage, logging, and test
+procedure. Use
+[`operator-map-package-v2.schema.json`](schemas/operator-map-package-v2.schema.json)
+for the machine-readable contract.

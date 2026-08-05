@@ -130,6 +130,70 @@ one map.
 PVP operations omit enemy range fields. PVP MUST have zero PVE actors before
 and after restart.
 
+## Optional schema-v2 PVE AI profile
+
+A schema-v2 PVE operation can own one fixed `pveAiProfile`. Schema v1 rejects
+the object. PVP rejects it. The object has no UI and does not change another
+operation.
+
+```json
+"pveAiProfile": {
+  "id": "woodland-balanced-v1",
+  "detectionRangeMeters": 45.0,
+  "fieldOfViewDegrees": 90.0,
+  "maximumEffectiveRangeMeters": -1.0,
+  "wanderDistanceMeters": 38,
+  "useComms": true,
+  "counterSuppression": false
+}
+```
+
+Measure the authoritative playable rectangle and every accepted player-to-
+enemy marker gap. Report minimum, median, mean, maximum, and the selected solo
+spawn gap. Do not tune from the visual TerrainData apron. A good initial
+detection range is less than the minimum start gap and large enough to create
+contact inside intended routes. Validate the result in the physical camera;
+geometry is a tuning input, not final proof.
+
+The current `RaidManager.ApplyBotSpawnSettings` copies detection range, FOV,
+communications, counter-suppression, effective range except `-1`, and wander
+distance except `-1` to the native bot. It does not consume marker
+`DetectionTimeMultiplier` or `HearingRange` in the pinned build. Use `-1` for
+maximum effective range when the map must preserve the selected native AI
+prefab's value.
+
+`BrainAI.Wander` waits for the prefab's `WanderTimer * Patience`. It then
+selects the equivalent of
+`RandomNavSphere(currentPosition, 5, WanderDistance)`. It resets the timer and
+later repeats from the new position. Preserve the timer and patience unless
+separate vanilla evidence requires a change. To create a gradual search, keep
+one wander radius below the distance that would cross the intended encounter
+midpoint from the nearest starting marker.
+
+## Foliage and native sight layers
+
+A shorter range does not make a bush opaque. Inspect how the same installed
+vanilla prefab participates in `EyesAI.TestIfCanSeeAtHeight`. In the pinned
+build, `EyesAI` uses a physics linecast. Its mask includes layer 18,
+`AI_VisionBlock`.
+
+If the original prefab contains an authored inactive `AI Collider` trigger on
+that layer, an exact-scene companion can activate that child. Require its
+exact name, layer, collider type, authored count, and active count. Keep it a
+trigger. Verify the collision matrix and bullet mask before use. Do not add an
+invisible movement or projectile wall. Do not enable the contract globally.
+
+Ukrainian Forest is the worked example. It requires 118 direct plus 156
+perimeter barberry blockers, for 274 total. Its playable volume is 70 by
+140 m. The nearest solo enemy gap is 78.87 m. Its 38 m wander radius is less
+than half of that gap, 39.44 m. Its fixed 45 m range and 90-degree FOV are a
+map-owned PVE profile. The PVP operation omits it.
+
+Log the profile ID and every applied value. Log authored and active sight-
+blocker counts and the exact layer. Keep the evidence `PROVEN-STATIC` until a
+first launch and same-process repeat launch prove search timing, foliage
+occlusion, believable acquisition, and reciprocal firearm damage.
+
 ## Route authoring
 
 A walkable graph does not prove a good route. Author and test these elements:
