@@ -14,6 +14,7 @@
       ],
       "scenePath": "Assets/Maps/ExampleMap/Scenes/ExampleMap.unity",
       "previewImage": "media/example_map_preview.jpg",
+      "runtimeCompanion": null,
       "operations": [
         {
           "operationId": "author.example-map.main-pve",
@@ -32,6 +33,9 @@
             "fieldOfViewDegrees": 90.0,
             "maximumEffectiveRangeMeters": -1.0,
             "wanderDistanceMeters": 38,
+            "initialWanderDelayMaxSeconds": 6.0,
+            "reactionDisposition": "offensive",
+            "maximumReactionTimeSeconds": 0.25,
             "useComms": true,
             "counterSuppression": false
           },
@@ -59,7 +63,7 @@
           "areaOfOperation": "EXAMPLE REGION",
           "sitrep": "Two teams enter from opposite sides. Use the declared team spawn sets and remain inside the marked combat area.",
           "minPlayers": 2,
-          "maxPlayers": 16,
+          "maxPlayers": 12,
           "spawnSet": "main-pvp",
           "infiltrations": [
             {
@@ -67,7 +71,7 @@
               "displayName": "SOUTH ENTRY",
               "mapPositionX": 0.5,
               "mapPositionY": 0.2,
-              "maxPlayers": 16
+              "maxPlayers": 12
             }
           ],
           "timeCodes": [

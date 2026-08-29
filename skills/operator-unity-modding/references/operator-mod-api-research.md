@@ -3,7 +3,42 @@
 Use this reference for generalized additive modding and `OperatorModAPI` work.
 Keep private map-specific fixes in their project evidence log.
 
-## Current standalone package checkpoint (2026-08-03)
+## Current multiplayer/package checkpoint (2026-08-20)
+
+The current unshipped Modded Operations `0.3.30` and bundled OperatorModAPI
+`0.2.0-alpha.7` source use protocol v6 for PVP and online PVE. Agreement binds
+the exact selected-loader suite receipt and manifest sidecar, game fingerprint,
+protocol/capabilities, canonical package/content/operation/variant/scene
+identity, loader-neutral runtime-pair identity, and the host-confirmed PVE
+enemy count. A declared companion is a closed schema-v2
+contract and must emit its exact-scene ready marker only after its strict world
+gate; its failure marker remains authoritative after readiness.
+
+Content readiness precedes the native scene transition. Scene readiness waits
+for exact package-scene preparation, spawn-contract installation, companion
+readiness, and native template registration. A host-owned nonzero monotonic
+scene-generation epoch prevents Restart from reusing an old acknowledgement;
+the remote maps it to a separate monotonic local scene generation. Frozen
+connection-object identity, bounded retries/deadlines, and explicit abort paths
+fail closed on replacement, disconnect, malformed data, partial launch, native
+lifecycle failure, hot unload, or timeout. Current membership changes abort;
+late join is not supported.
+
+This is `PROVEN-STATIC`, not `SUPPORTED`. Build/tests and independent source
+review do not replace a real host plus separate Steam peer. PVP still requires
+movement, firearm-specific damage, health/death, score/round respawn, restart,
+and unload. PVE separately requires owner-local grounded placement, identical
+server-authored AI netIds/poses/movement/health on every peer, reciprocal
+combat, completion, extraction, Restart, and teardown. Do not infer either
+online claim from Mirror architecture or agreement tests.
+
+The preview API remains bundled inside the framework download. Do not publish
+a standalone API archive or duplicate API DLLs in a map archive until the API
+is a full stable public release. Multiplayer test-transfer ZIPs may be created
+only with explicit test-only/not-Nexus labeling, exact two-machine hashes, and
+the unfinished live gates; archive integrity is not runtime acceptance.
+
+## Prior standalone package checkpoint (2026-08-03)
 
 The generalized local architecture now has one bounded current-build proof.
 Core freezes strict data-only map packages. The map-independent **OPERATOR:
@@ -32,10 +67,11 @@ AI-to-Terrain height difference was 0.03 m. This evidence proves only the
 same-process KIA restart path. It does not prove reciprocal firearm damage or
 a remote PVP peer.
 
-The package directory itself remains data-only. The complete map distribution
-may include its own companion under `BepInEx/plugins/<map-plugin>`; never put
-that DLL inside `BepInEx/OperatorMods`, the Core archive, or the generic
-Modded Operations framework. See
+The package directory itself remains data-only beneath
+`<OPERATOR_INSTALL>/OperatorMods/<package-id>`. The complete map distribution
+may include a BepInEx companion under `BepInEx/plugins/<map-plugin>` or a
+MelonLoader companion under `Mods`; never put either DLL inside `OperatorMods`,
+the Core archive, or the generic Modded Operations framework. See
 [operator-standalone-map-runtime.md](operator-standalone-map-runtime.md).
 
 ## Historical overlay baseline (superseded)
@@ -286,9 +322,22 @@ entry, incompatible Unity/platform data, and forbidden components before a
 native Unity load.
 
 Version strings alone never establish multiplayer equality. Gameplay
-agreement must include package/content identity, exact hashes, protocol,
-game fingerprint, required capabilities, and a session nonce. The transport
-and readiness insertion point remain unproven until an OPERATOR two-peer test.
+agreement must include package/content identity, exact executing framework/API
+and declared companion hashes, protocol, game fingerprint, required
+capabilities, and a session nonce. For streamed scenes, distinguish verified
+content readiness from generation-scoped scene readiness. Bind the latter to
+a host-owned monotonic epoch and a strictly newer remote local scene generation
+so Restart cannot consume a stale acknowledgement. Freeze connection-object
+identity, not only numeric connection IDs. A declared runtime companion must
+pass its exact-scene ready/failure contract before scene readiness.
+
+The current PVP and PVE insertion points are statically implemented but remain
+unproven until real OPERATOR two-peer tests. PVE uses the same content/scene/
+owner/player barriers and adds a server-authored AI population receipt; it
+still needs separate AI movement, combat, extraction, Restart, and teardown
+acceptance. The private modded-PVE enemy selector must never modify Tier 1,
+vanilla operation arrays, vanilla enemy limits, or PVP. Do not describe a test-only archive as a
+Nexus release or a successful archive audit as online gameplay proof.
 
 ## Content proof order
 

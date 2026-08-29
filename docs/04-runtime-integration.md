@@ -60,7 +60,7 @@ signal.
 Core discovers packages only below this directory:
 
 ```text
-BepInEx/OperatorMods/<package-id>/
+OperatorMods/<package-id>/
 ```
 
 The directory name MUST equal `packageId`. The package MUST contain no DLL.
@@ -471,9 +471,10 @@ NOT create one native call on every frame. Treat this route as
 `PROVEN-STATIC` until physical player, camera, movement, and combat tests pass.
 
 For PVE, the package declares `minEnemies` and `maxEnemies`. The framework
-selects one inclusive deterministic count from the valid sorted markers. It
-MUST NOT use Unity global random state for this selection. It MUST fail when
-fewer than `minEnemies` valid markers remain.
+shows that closed range on the native briefing, captures the displayed integer
+on Confirm, and retains it across native restart. It MUST NOT replace the
+confirmed value with a hidden random reroll. It MUST fail when
+fewer than the confirmed number of active navigation-valid markers remain.
 
 Every StandardPVE scene MUST also contain exactly one inactive
 `PVE_ExfilZone_` marker with a positive trigger BoxCollider. The map owns its
@@ -518,6 +519,7 @@ stop mode population
 -> clear the companion's player transform/controller hold, spawn-safety window, counters, applied flag, and destination-scene reference
 -> companion removes its graph, materials, native data, objects, and callbacks
 -> unload package scene
+-> after the package-scene handle reaches zero, release the completed operation's transition owner
 -> release scene bundle
 -> release dependency bundles in reverse order
 -> clear active package selection when the operation ends
@@ -533,6 +535,13 @@ generation.
 During a successful unload, do not clear
 `GameManagerNetwork.SuccessfulOperation`. The shipped Operation Room reads the
 result after the additive scene unloads.
+
+Seeing Operation Room is not proof that teardown is finished because it remains
+the active Unity scene beneath additive package scenes. Before the next
+packaged-map Confirm, require the prior package-scene handle to be zero and the
+completed transition owner to be released. A stale owner can otherwise consume
+or veto the new Confirm and make a healthy Forest, Whiteout, or LOT 12 package
+appear unable to load.
 
 For a companion with late-player hooks, keep `applied=false` until the exact
 standalone `Terrain` and `TerrainCollider` share one non-null `TerrainData`.

@@ -17,15 +17,29 @@ drive-specific workspace, a private log, or a private test control.
 
 ## Generic framework
 
-- Assembly: `OperatorModdedOperations.dll`.
-- Current version: `0.3.22`.
-- Accepted Release DLL: 173,568 bytes; SHA-256
-  `0B8BE9B55C36AFCA81BAB677C5D0720D89A3E2B0E5F25A60BD2FF81C4192349A`.
-- Build the exact Release binary from the current source. Verify its hash
-  against the release archive checksum file.
-- Current source file: `CerberusNativeTabFix.cs`.
-- Install directory:
-  `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`.
+- Assemblies: BepInEx `OperatorModdedOperations.dll`; MelonLoader
+  `OperatorModdedOperations.MelonLoader.dll`.
+- Current unshipped multiplayer-test candidate: `0.3.30`. BepInEx is 632,832
+  bytes / SHA-256
+  `772D9FC1470DCC115B22F8C232C4A3B90D0FC727C5B1D27A0F54ED95E5D1AE86`;
+  MelonLoader is 634,368 bytes / SHA-256
+  `2C2D11C28BD2D470ABAC83F2FC558476384DA8D79302FA4B1ADD6F845A113F83`.
+- Required bundled preview API: `0.2.0-alpha.7`. Core is 204,800 bytes /
+  SHA-256
+  `5B74AC25B4047D9AB8E9929D136C53B7543DA52B621FAF3D4AF42719D276E21E`;
+  BepInEx host is 15,872 bytes /
+  `6223553C5406AD3586F23EA2B5F05C6F4626FA62A03E0598667E09A5486E1E3B`;
+  MelonLoader host is 24,576 bytes /
+  `1CC745AB57A18848F15A47C80FCE5399C4006FE3ADE2C94B449792CFBABFF7FA`.
+- This candidate is `PROVEN-STATIC`, not a promoted public release. The public
+  decompiler/source-state record remains `0.3.28` with API alpha.5 until a
+  release promotion regenerates those artifacts. Do not mix the candidate
+  DLL with that prior publication identity.
+- Current source includes `CerberusNativeTabFix.cs`, the peer-agreement/runtime
+  partials, `PveEnemyCountSelection.cs`, and `FrameworkEvidence.cs`.
+- Install directories: BepInEx
+  `<OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations`; MelonLoader
+  `<OPERATOR_INSTALL>\Mods`. Install/activate exactly one loader.
 - Native selector builder: `BuildPackageInfiltrationMapPrefab`.
 - Briefing formatter: `FormatCatalogBriefing`.
 - Preview decoder/cache: `GetOrLoadPreviewSprite`.
@@ -65,7 +79,8 @@ drive-specific workspace, a private log, or a private test control.
 - Deterministic network prefab asset IDs:
   `StandalonePveGameModeAssetId = 0x4D4F5001` and
   `StandalonePvpGameModeAssetId = 0x4D4F5002`.
-- Per-peer prefab registration: `NetworkClient.RegisterPrefab`.
+- Per-peer prefab registration uses an exact custom spawn/unspawn handler that
+  initializes and validates every dynamic clone before Mirror deserialization.
 - Repeat-generation stale-entry repair:
   `EnsureStandaloneBootstrapPrefabRegistered` removes only a fake-null entry
   from `NetworkClient.prefabs` by the deterministic asset ID and calls
@@ -75,7 +90,9 @@ drive-specific workspace, a private log, or a private test control.
 - Remote game-mode adoption: `TryAdoptNetworkSpawnedGameMode`.
 - Native PVP list/default wiring: `ConfigureStandalonePvpController`.
 - Native PVP required-reference wiring: `ConfigureStandalonePvpPresentation`.
-- PVE range selection: `ChooseStandalonePveEnemyCount`.
+- PVE range selection: private native-briefing clone plus
+  `PveEnemyCountSelection`; the confirmed count is host-authoritative and must
+  not modify Tier 1, vanilla operation arrays/ranges, or PVP.
 - PVE creation: `TrySpawnStandalonePveEnemies` and
   `RaidManager.ServerSpawnAI(false)`.
 - Standard-PVE extraction authoring gate:
@@ -94,17 +111,23 @@ drive-specific workspace, a private log, or a private test control.
   `GameManagerNetwork.SuccessfulOperation` when extraction succeeded.
 - Fixed PVE profile writer: `ConfigureStandaloneBotDetails`.
 - Fixed PVE profile diagnostic: `FormatPveAiProfile`.
+- Optional first-wander cap:
+  `TryApplyProfiledPveInitialWanderDelayCap`; it is server-only, new-brain-only,
+  and writes only the first `BrainAI.wanderTime` clock when the package field
+  is present.
 - Live profiled-PVE contract capture:
   `StartProfiledPveAiDiagnostics`.
 - Bounded read-only snapshots: `ProcessProfiledPveAiDiagnostics` and
   `LogProfiledPveAiSnapshot`; schedule `0, 10, 30, 60, 90, 120` seconds.
-- The snapshot reads live `WanderTimer * Patience`, movement, movement toward
+- The contract reads live `WanderTimer * Patience` and remaining first delay;
+  the snapshots read movement, movement toward
   insertion, `CurrentSeenTarget`, `CurrentState`, and
   `EyesAI.DetectionLayerMask`. It writes no AI field.
 - Native bot movement probe: `GetProfiledPveNavigationPosition` reads
   `BrainAI.agent.position` from the `AgentController` child. Do not read the
   stationary `BrainAI` root transform.
-- Required Operator Mod API: `0.2.0-alpha.3`.
+- Required Operator Mod API for the current candidate: `0.2.0-alpha.7`.
+  The reaction disposition/time-cap profile remains optional and closed.
 - Lifecycle release: `ReleaseStandaloneSceneContracts` and
   `ReleaseStandaloneGameMode`; release captures `BootstrapAssetId` and removes
   its prefab/spawn-handler keys even when `BootstrapPrefabRoot` is fake-null.

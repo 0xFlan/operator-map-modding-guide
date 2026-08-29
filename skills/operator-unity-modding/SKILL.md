@@ -35,7 +35,18 @@ Read [references/implementation-locators.md](references/implementation-locators.
 6. Treat spawn correction as a networked runtime behavior, not only a marker-placement task. For a standalone package, install only the current package scene's verified marker list after the framework reconstructs declared terrain and passes its walkable-ground contract, and before native player creation. An exact-map companion can add a diagnostic after its material, grounding, and A* work; it does not own generic terrain decoding or generic player registration. On the current exact build, team PVP is one-based: assign `SpawnPoint.Team=1` to Team 1 markers and `SpawnPoint.Team=2` to Team 2 markers, and select them from `PlayerMaster.MyTeamIdentifier.TeamID`. Do not infer a team from `ToString()` or retain a cached marker after the player's team changes. For a legacy retail-scene overlay, patch the selected spawn and move path and keep a bounded late-player safety repair that targets the actual local-player hierarchy and Smooth Sync ownership. If that legacy path loads a large bundle after OPERATOR reads template markers, prime the original markers and invisible support pads before bundle loading. Inspect the mode owner too: Standard PVP (`PvpGameode`) and FFA (`FFA`) can run first-round or respawn paths outside `GameManager.MovePlayerToSpawn`. Audit exact installed signatures, then use an idempotent map-scoped handoff at the game scene callback and relevant game-mode spawn phases.
 7. Build, run static layout/material validators, deploy only while the game is closed, and test a real operation. A forced-scene screenshot is diagnostic evidence only; it is not proof that a player spawns on ground or that gameplay rendering is correct.
 8. Do not say the mod is ready while a user-reported visual, collision, spawn, or asset problem remains unverified.
-9. Keep standalone ownership explicit: Core/catalog and OPERATOR: Modded Operations stay map-independent; the package directory stays data-only; Modded Operations owns generic manifest-declared runtime TerrainData reconstruction; an optional separately installed companion owns only exact-package/exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work and tears it down on unload. Do not put a companion DLL inside `BepInEx/OperatorMods` or put map-specific shader/navigation logic in the framework.
+9. Keep standalone ownership explicit: Core/catalog and OPERATOR: Modded Operations stay map-independent; the package directory stays data-only; Modded Operations owns generic manifest-declared runtime TerrainData reconstruction; an optional separately installed companion owns only exact-package/exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work and tears it down on unload. Install data packages beneath `<OPERATOR_INSTALL>/OperatorMods`, put BepInEx companions beneath `BepInEx/plugins`, and put MelonLoader companions beneath `Mods`. Do not put a companion DLL inside `OperatorMods` or put map-specific shader/navigation logic in the framework.
+   For manifest scene variants, only `SceneVariants.Count > 1` opts in. A
+   fresh Operation Room Confirm advances a persistent per-package-and-map
+   shuffle bag; alive and KIA Restart retain the active scene. Single-scene
+   maps bypass selector state, RNG, and logs. Validate a shared variant bundle
+   against the exact declared union, and never move selection into a companion
+   through `ScenePath` mutation or a Harmony validator patch.
+   Gate authored variation separately from selection: compare every scene pair
+   from actual transforms and connection evidence after removing names and
+   canonicalizing translation, 90-degree rotation, and reflection. Reject exact
+   unlabeled graph/spatial duplicates and require several independent layout
+   differences; unique IDs, motif labels, or screenshots alone are insufficient.
 10. Match the vanilla game-mode owner by operation mode. For standalone PVE,
     a bare `GameMode` is insufficient: the verified KIA path requires an
     `InfiltrationManager`-compatible component,
@@ -79,15 +90,36 @@ Read [references/implementation-locators.md](references/implementation-locators.
     initial detection range below the intended start gap and one native wander
     radius below the intended encounter midpoint. Preserve
     `BrainAI.WanderTimer * Patience`; the current native method searches from
-    the bot's current position after that delay. Treat foliage sight as map
-    content: research the same installed vanilla prefab and `EyesAI` mask,
+    the bot's current position after that delay. If a package needs a faster
+    native response, use only the optional closed profile disposition and
+    maximum-reaction-time cap. Apply disposition through `BotSpawnDetails`
+    before the shipped spawn, and cap both native base and current reaction
+    time once after spawn without raising a faster prefab value. Never mix AI
+    donor teams: select one proven hostile native team cohort, exclude the live
+    player team, and validate the shipped team/reference/target-pool closure.
+    Do not patch damage or directly edit friendly/enemy/target lists.
+    For indoor tactical encounters,
+    validate every possible enemy marker against a clear standing capsule, the
+    playable graph, a plausible
+    ingress-facing direction, and a nearby non-trigger collider under an
+    audited native cover asset; repeat the contract after runtime marker snap.
+    Prove movement and cover with the native
+    `BrainAI.agent.Agent.position` (`FollowerEntity.position`), `_currentCover`,
+    state, target, and actor rotation rather than marker names. Treat foliage
+    sight as map content: research the same installed vanilla prefab and `EyesAI` mask,
     then activate only authored sight-collider children with exact layer,
     trigger, count, collision-matrix, and bullet-mask evidence. Never make the
     generic framework synthesize map-specific sight geometry or change PVP.
     Require one enabled `Pathfinding.RVO.RVOSimulator` with the map-scoped
-    `AstarPath`. Measure BOT V2 displacement through `BrainAI.agent.position`,
+    `AstarPath`. Measure BOT V2 displacement through
+    `BrainAI.agent.Agent.position`,
     not the stationary root `BrainAI.transform.position`.
-13. Treat normal `DoorV2` objects as authored map/building prefab content. Import an authorized complete source prefab with its original `.meta` and all dependencies, preserve its pivot, physics sync, paired handles, FinalIK objects, damage parts, navigation cut, and both A* links, and let normal scene and Mirror lifecycle initialize it. Do not spawn the normal door graph from a companion. Some AssetRipper exports lose custom fields; reject those damaged exports. Keep run-time cloning or component reconstruction experimental. Preserve serialized dead fields unless the game developer migrates the existing prefab data.
+13. Treat normal `DoorV2` objects as authored map/building prefab content. Import an authorized complete source prefab with its original `.meta` and all dependencies, preserve its pivot, physics sync, paired handles, FinalIK objects, damage parts, navigation cut, and both A* links, and let normal scene and Mirror lifecycle initialize it. Some AssetRipper exports lose custom fields; reject those damaged exports. When complete authorized dependencies are unavailable and the user explicitly requests exact-build recovery, follow the fail-closed experimental reconstruction procedure in the interactive-prefab reference; do not promote or generalize it until the complete live matrix passes. Preserve serialized dead fields unless the game developer migrates the existing prefab data.
+    Validate clearance against the instantiated socket/aperture transform, not
+    only the design-plan boundary. If endpoint geometry can differ, test both
+    the raw endpoint and measured socket centre; do not apply the door-owner's
+    tangent offset blindly to an opposite open-corridor endpoint or confuse the
+    aperture offset with the door-leaf hinge pivot.
     Run `templates/Editor/ValidateDoorV2Prefab.cs` before the map build. Its
     serialized graph checks are necessary but not sufficient: A* endpoint
     attachment, interaction, damage, replication, late join, restart, and
@@ -106,6 +138,13 @@ Read [references/implementation-locators.md](references/implementation-locators.
     run-time PVE/PVP game-mode template on every peer with a deterministic,
     collision-checked nonzero Mirror asset ID before host spawn; validate and
     adopt the expected clone on remote peers and unregister on release.
+    For a ClassInjector-created `NetworkBehaviour` subtype, verify the native
+    constructor baseline before registration and spawn. On the pinned build,
+    the `IntPtr` wrapper can leave `syncObjects=null`; initialize only that
+    missing field to Mirror's exact empty IL2CPP list baseline, hard-gate every
+    root behaviour, permit one recorded native spawn attempt, and unspawn then
+    unregister then destroy. Never retry a partially entered spawn, restore a
+    null list, or clear global Mirror spawners.
     If a map companion holds a local player transform during initial
     grounding, publish its ready/applied state only after the exact current
     `Terrain` and `TerrainCollider` share one `TerrainData`. Clear the held
@@ -133,6 +172,28 @@ Read [references/implementation-locators.md](references/implementation-locators.
     round, and end-operation methods. Stop generic repeated movement after
     native PVP activates. Clear `PvpGameode.instance` during teardown only
     when the operation still owns it. Require a host and remote client test.
+    Before the native scene transition, require the protocol-v6 PVP or PVE peer
+    agreement. It binds the exact selected-loader suite receipt and sidecar,
+    game/build capabilities, complete package identity, loader-neutral runtime
+    pair, and host-confirmed PVE count. A declared companion must publish its
+    exact-scene ready marker only after its strict world gate; its failure
+    marker wins before and after readiness. Do not send scene-ready early.
+    Bind every initial load and retained-content Restart to a host-issued,
+    nonzero monotonic scene-generation epoch and a strictly newer remote local
+    scene generation. Reject stale/future acknowledgements, connection-object
+    replacement, membership changes, missing identities, and bounded timeout;
+    never reuse unversioned readiness from the prior scene. Discover PVE and
+    PVP markers separately and require at least `ceil(maxPlayers/2)` markers
+    per PVP team; the pinned retail ceiling of 12 therefore requires six per
+    side. The current agreement intentionally rejects late join. Never promote
+    either mode from static/build evidence alone. Test separate host and remote
+    processes. PVP requires reciprocal firearm hits, movement,
+    death/score/round respawn, restart epochs, natural return, abort, and exact
+    teardown. PVE separately requires the host count, identical authoritative
+    AI netIds/poses/movement/health on every peer, reciprocal combat,
+    completion, extraction, Restart on both peers, and exact teardown. Expose
+    an enemy-count control only on the private modded-PVE operation clone; do
+    not mutate Tier 1, shipped operation arrays, vanilla enemy ranges, or PVP.
 17. Keep verified dependency-bundle ownership in the generic framework. A
     companion must not call `AssetBundle.GetAllLoadedAssetBundles()` as an
     ownership lookup and must not load a second copy of a large bundle. A
@@ -143,7 +204,18 @@ Read [references/implementation-locators.md](references/implementation-locators.
     resident compiled shaders and binds portable proxy textures to the real
     shader property names. Treat the generic borrower as `PROVEN-STATIC`, not
     `SUPPORTED`, until the concrete requested type passes live. Only the
-    framework unloads its bundles.
+    framework unloads its bundles. Bound a multi-map framework cache at a
+    proven Operation Room boundary: retain the active/restart map and any
+    in-flight selected-map prefetch; after fresh launch transfers ownership,
+    evict prior distinct maps with `Unload(false)`. The Operation Room remains
+    Unity's active scene underneath an additive package scene, so also require
+    a zero active package-scene handle and compare every candidate scene
+    bundle's declared paths with all loaded scenes. Never unload a bundle
+    referenced by a loaded scene or same-map Restart. Runtime QA must prove the
+    exact framework-owned current-map cache entry and its non-null dependency
+    and scene bundle handles. Treat `AssetBundle.GetAllLoadedAssetBundles()`
+    only as a process diagnostic; a zero result is not ownership evidence and
+    must not override the framework's verified cache.
 18. For `SeedMesh_Tree_Bark`, audit the installed shader property table. The
     current Forest bark slots use `_MainTex`, `Normal_vegetation`,
     `mask_vegetation`, `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`,
@@ -154,12 +226,13 @@ Read [references/implementation-locators.md](references/implementation-locators.
     `sharedassets11.assets` PVP Woods Warehouse: 30,000 lux, 5,500 K, bounce
     5, bloom `.03`, and lens-flare intensity `.5`. The rejected bright PVP
     donor used 52,241.375 lux, bloom `.359`, and lens flare `1`.
-    Make one component the process-global render owner. In the current system,
-    the package selects `native-outdoor-v1`, Modded Operations `0.3.22`
-    applies and restores the sun/Volume/NVG transaction, the package owns the
-    verified LUT, and the map companion does not install a second global
-    Volume. At 02:00, require white phosphor across all tubes and visible world
-    detail outside the brighter ECOTI channel.
+    Make one component the process-global render owner. In the version-pinned
+    accepted Forest `0.3.22` runtime evidence, the package selects
+    `native-outdoor-v1`, Modded Operations applies and restores the
+    sun/Volume/NVG transaction, the package owns the verified LUT, and the map
+    companion does not install a second global Volume. Revalidate this owner on
+    a newer framework. At 02:00, require white phosphor across all tubes and
+    visible world detail outside the brighter ECOTI channel.
 20. At the exact additive-scene boundary, call the shipped
     `GameManagerNetwork.ShowLoadingScreen()` before terrain or material
     preparation. On the supported build, the method is at RVA `0x00916210`
@@ -180,6 +253,13 @@ Read [references/implementation-locators.md](references/implementation-locators.
 ## Native-art decision rules
 
 - Use the game's own textures and materials. Generated art can supplement only when the user explicitly permits it and it is compatible with the native shader contract.
+- For indoor furniture, prove ordered renderer material slots, shader identity,
+  the export-axis conversion, local front/back markers, and the complete active
+  renderer/collider child subtree from the installed donor. Never flatten a
+  furniture assembly or infer its facing from its imported bounds.
+- If a visible child or assembly dependency cannot be transported exactly,
+  exclude that furniture family fail-closed. A correctly named mesh with a
+  plausible texture is not a native-prefab proof.
 - Use highest authored LOD for every directly placed object. Do not make a low LOD the "high quality" version.
   A deliberate LOD0-only root is acceptable, but every placement/repair utility must treat its MeshFilter/MeshRenderer hierarchy as occupied even without an LODGroup.
 - A tree is not accepted from structural closure alone. Require a complete
@@ -198,6 +278,35 @@ Read [references/implementation-locators.md](references/implementation-locators.
   at least `0.75` of the complete rendered tree above terrain, reject an
   absolute correction above `12 m`, and sample the datum position at run time.
 - A one-sided/open mesh is not a boulder. Require a complete closed (or bottom-only-open) native LOD0 mesh, matching material, collider, and multi-angle QA.
+- Treat biome clusters as complete compositions. Require multiple grounded
+  high-detail plants plus appropriately feathered understory/stone/ground
+  elements, then inspect internal spacing and crown overlap from inside and
+  outside the cluster. A single tree is not a biome package, and a scene-wide
+  count does not excuse implausibly condensed knots or empty spawn/center
+  areas.
+- Give every lived-in prop an environmental owner. Keep loose ammunition and
+  supplies organized near positions that use them; keep garbage, pallets,
+  barrels, food, and shelter debris attached to trenches, camps, walls,
+  wrecks, or deliberate tree shelters. Reject isolated open-field clutter,
+  unsupported upright pallets, repeated-prop intersections, and low local
+  density hidden by a high global count.
+- For a native ragdoll-derived fixture, accept the natural death pose first,
+  preserve its skeleton/root rotation exactly, and apply only a measured
+  vertical contact correction. Renderer bounds and logged terrain gaps are
+  diagnostics, not acceptance: require the visible skinned mesh to contact or
+  sit slightly inside the final surface in low-angle player-camera views.
+- Keep fire, smoke, atmospheric fog, and ground scorch as separate visual
+  contracts. Fire remains source-local and emissive; smoke rises, expands,
+  rolls coherently, and fades into fog; scorch conforms to the ground with no
+  halo, hard edge, clipping, flicker, or through-fog visibility. Reject obvious
+  independent puff tiles or billboard squares even when particle/material
+  counts pass.
+- Before replacing a legacy smoke system with VFX Graph, fingerprint the
+  retail VFX/HDRP runtime and prove one exact-version bundle spike. Evaluate
+  six-way-lit baked smoke, curl-noise turbulence, drag, soft particles, camera
+  fade, motion-blended flipbooks, sorting, and fog integration. Treat this as
+  an experimental candidate until player-camera and performance gates pass;
+  never promote the workflow solely from editor or documentation evidence.
 - For slope-bound cover, measure the full collider/mesh footprint. Reposition or remove a sandbag wall when its sampled terrain span exceeds the allowed contact tolerance; do not hide a floating wall with a vertical offset.
 - Avoid perfect rows. Use a deterministic but nonuniform layout with varied lateral position, longitudinal spacing, rotation, and compatible ground embedding; preserve deliberate lanes and spawn clearances.
 - For outdoor ground, inspect the shipped Terrain component chain before treating direct MeshRenderers as equivalent. A Terrain with `TerrainBRGRegisterer` and `drawTreesAndFoliage=False` is a BRG/detail-data path; stage any custom detail injection behind a private flag, preserve a direct-native fallback, and do not claim parity or foliage interaction before a player-camera test.
@@ -205,6 +314,35 @@ Read [references/implementation-locators.md](references/implementation-locators.
 - Inspect a matching shipped HDRP Volume and `HDAdditionalLightData` before recreating exposure, tone mapping, bloom, or light units. Do not copy a weather effect (for example, a desert dust volume) into an unrelated biome, and do not call a profile from another map an exact match unless its live overrides were recorded. Preserve the selected native light, assign `RenderSettings.sun`, remove/disable competing mod/template directional lights, and never add a directional fill beside it. Create one explicitly logged fallback only when no verified target-scene sun exists, then validate source ownership and a live one-shadow-direction result.
 - When a shipped HDRP `Volume.sharedProfile` uses `TonemappingMode.External`, resolve the profile PPtr and its `Texture3D` LUT from the installed asset data. Package the exact raw LUT as a linear, one-mip half-float Texture3D; load it through the native IL2CPP AssetBundle path; validate its dimensions/format in the emitted bundle; and use an explicitly logged safe fallback if it cannot load. Only describe the full Volume as exact after every applied override is directly decoded or live-audited.
 - Treat red-dot and laser appearance as a rendering-stack question before changing optic materials: compare the live HDRP exposure/tonemap/bloom/camera contract at matched settings first.
+- For the pinned OPERATOR holographic/reflex path, inspect the live shader before
+  writing a generic HDRP emissive property. `HWSReticleBrightness` using
+  `Ultimate Scope Shaders/HolographicSight` applies the selected
+  `reticleSettings[CurrentBrightnessSetting]` through
+  `_Reticle_Brightness`; preserve the optic-specific `_Reticle_Color` and the
+  shipped UpArrow/DownArrow `SetReticleSetting` path. `_EmissiveIntensity` is
+  absent on this shader and a guarded write to it is a no-op. Its exact size
+  float is misspelled `_Retical_Size`; larger values enlarge the centred sample
+  while tiling/offset and aim centre stay fixed. Prove the matched indoor
+  exposure/Bloom stack first. If the user then requests a correction, treat
+  normal/NVG renderers independently, scale brightness arrays only from exact
+  snapshots, clone/deduplicate eligible size materials by renderer identity,
+  and restore original arrays/material references on weapon change, restart,
+  unload, or failure. The pinned accepted CompM4 proof used normal/NVG
+  brightness 2.0x/1.0x and normal/NVG size 13.5/16.5; these are exact-build
+  project evidence, not universal optic defaults.
+- Preserve weapon-local flashlight and laser graphs during indoor isolation.
+  Audit the equipped `WeaponV3.Flashlights` and `WeaponV3.Lasers` selections,
+  their active hierarchy, exact `HDAdditionalLightData`, layers, and native
+  materials. On the pinned PEQ visible-laser branch, the active layer-0 Light
+  is the visible-dot emitter while the HDRP/Unlit line renderer remains
+  disabled; preserve that enabled state. Apply any requested indoor boost once
+  from captured native baselines, deduplicate controller-owned Lights, and
+  exclude layer-16/`IRonly` objects. Restore original values/materials before
+  clearing ownership sets. The pinned accepted kill-house proof used 6x for
+  the visible flashlight/light emitter and 4x for an owned visible-beam
+  material; treat those as project-specific. Prove the visible flashlight
+  branch after cycling past IR illuminators rather than treating any active
+  flashlight-list entry as a visible white light.
 
 ## Evidence and self-improvement loop
 
@@ -243,6 +381,9 @@ Promote a finding into this skill's reference only after it is reproducible from
 - A QA game instance launched by the agent may be closed only after its executable path, PID, and start time are verified. Use a graceful close first; never force-close a user's game.
 - Keep private QA switches environment-gated and out of normal release behavior.
 - Remove every private force-scene, capture, material-audit, and auto-launch flag after QA. A normal session must not load a source map, start an operation, disable player cameras, or retain invisible diagnostic support.
+- Accept only QA screenshots/logs created after the recorded run start and by
+  the captured process identity. Do not move or hash a pre-existing familiar
+  filename into a new run as if it were current visual evidence.
 - Use tokens such as `<OPERATOR_INSTALL>`, `<AUTHOR_WORKSPACE>`,
   `<PROJECT_EVIDENCE_LOG>`, and `<USER_PROFILE>` in reusable documentation.
   Do not publish a private drive path or an operating-system account name.

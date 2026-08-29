@@ -130,6 +130,106 @@ these numbers as fingerprint-pinned evidence, not universal constants. The
 framework owns this generic time-code state and must destroy its runtime
 profile during teardown.
 
+## Additive indoor warehouse light-isolation rule
+
+An additive standalone scene can pass a map-root light audit and still inherit
+sun, sky, ambient, or reflection state from the persistent loader scene. For a
+closed indoor/warehouse contract, audit loaded-scene state process-wide rather
+than counting only `Light` components beneath the map root.
+
+Assign exactly one render owner. When no generic framework render profile owns
+the indoor environment and the exact map companion is the declared owner, use
+a reversible scene-lifetime transaction:
+
+1. Capture the current skybox, ambient mode/color/intensity, reflection
+   intensity, and every loaded external directional Light's enabled/intensity/
+   shadow state.
+2. Set no skybox, flat black ambient at zero intensity, and zero reflection
+   intensity. Disable only loaded external directional lights.
+3. Preserve player/weapon-local lights. Never implement an indoor blackout by
+   disabling every Light in Resources; that also removes flashlights, lasers,
+   and optic illumination.
+4. Require each authored local light to be paired with a visible native fixture
+   and a named lit/dim/dark owner. Validate spot type, physical light unit,
+   intensity, range, temperature, fixture height, shadows, and visual emissive
+   state. A disabled dark fixture must not retain a bright emissive tube.
+5. Gate all loaded directionals, not merely the map sentinel. Restore every
+   captured value and external directional state on scene unload, failure, or
+   plugin unload.
+
+The pinned 2026-08 kill-house proof used one disabled package sentinel, zero
+enabled loaded directionals, zero map point lights, and 27 visible warehouse
+fixture spots across 19 room spaces. The live room-state split was 5 lit, 6
+dim, and 8 dark. Treat those counts as project evidence, not universal indoor
+defaults.
+
+HDRP can synchronize a previously serialized `HDAdditionalLightData` value
+back onto `Light.intensity` during additive initialization. When named
+lit/dim/dark metadata is the authored source of truth, reapply the state after
+HDRP initializes to both `Light.intensity` and
+`HDAdditionalLightData.intensity`, then validate the live physical unit and
+range. The pinned kill-house profile uses 1400 lumens for a single lit fixture,
+1100 per fixture in a multi-fixture lit room, 160/120 for the equivalent dim
+states, and zero with the Light disabled for dark rooms. These are
+project-specific values, not general warehouse defaults.
+
+Keep the fixture's visible tube and its room illumination as separate
+contracts. On the pinned build, `Lamp_fluorescent_B` is authored in its local
+X-Y plane and must receive the vanilla approximately -90-degree X rotation so
+its broad emissive face points down. The exact `Lamps_C_on _cagville` donor is
+HDR emission 64 with its native emissive mask, intensity unit 1, use-intensity
+enabled, and exposure weight 0. The accepted kill-house visibility profile is
+512 lit, 16 dim, and 0 dark while retaining the spot-lumen values above and
+the warehouse Volume. Validate the transformed downward face, mask/keyword,
+per-state property block, and a normal player-camera upward capture. Do not
+raise global Bloom to compensate for an edge-on mesh or crushed tube emission.
+
+For current OPERATOR holographic sights, `HWSReticleBrightness` on
+`Ultimate Scope Shaders/HolographicSight` writes the selected vanilla setting
+to `_Reticle_Brightness`; `_EmissiveIntensity` is not the reticle control. Its
+exact size property is the misspelled float `_Retical_Size`. The compiled
+shader uses centred sample scale `2 / _Retical_Size`, so increasing the value
+linearly enlarges the reticle while `_Reticle_Tiling`, `_Reticle_Offset`,
+texture ST, optic transforms, colour, and aim centre remain unchanged.
+
+Treat normal and NVG as separate renderer/material contracts. The pinned
+CompM4 proof found size 9 normal and 16.5 NVG. The accepted indoor correction
+clones only the equipped normal renderer, applies 1.5x size (9 to 13.5), and
+leaves NVG size at 16.5. Restrict eligibility to exact HWS materials with
+baseline size 5 through 25 and cap the normal target at 22.56; this excludes
+the EOTech ring at 100 and legacy/special materials near 1. Snapshot original
+material references and restore/destroy owned clones on weapon change, scene
+load/unload, gate failure, restart, and plugin unload.
+
+Scale brightness arrays from snapshots, never from current scaled values. The
+accepted normal/NVG split is 2.0x capped at 3840 for normal and vanilla 1.0x
+capped at 900 for NVG. Preserve the shipped array order and UpArrow/DownArrow
+selection. A uniform 2.5x range was rejected because it washed out the optic
+window. The pinned indoor proof retained PVP Woods Warehouse Bloom `.03`; do
+not use a global Bloom increase to solve one optic.
+
+Indoor flashlight/laser validation must inspect the equipped weapon's selected
+branches, not only global component counts. Mouse3 can select IR illuminators
+or the visible Surefire branch, so cycle to and prove the visible branch.
+Mouse4 selects the PEQ laser branch. The pinned visible PEQ branch uses an
+active layer-0 native Light as its visible-dot emitter and keeps its HDRP/Unlit
+line renderer disabled; forcing the line on changes vanilla presentation.
+Map isolation must preserve these weapon-local objects. If the user requests a
+brighter indoor aid, apply a bounded one-time multiplier to the exact native
+emitter and restore process-global flashlight state on unload. The accepted
+kill-house profile uses the shipped idempotent flashlight update at 6x, a
+baseline-backed visible layer-0 laser at 6x, and an owned visible-beam material
+at 4x. Deduplicate controller-owned Lights, never touch layer-16 or `IRonly`
+emitters/materials, preserve the shipped enabled state, and restore every
+captured value/material reference before another scene generation is enhanced.
+
+For transported opaque materials, checking only for a non-null base map does
+not catch Unity's white fallback or a wrong atlas. Pin the expected base
+texture name per audited native material, reject `Texture2D.whiteTexture`, and
+require normal/mask/emissive maps when the profile declares them. Also validate
+architectural domains separately: an outer warehouse finish must not leak onto
+room partitions, even when both use valid resident HDRP materials.
+
 ## Exact Forest SeedMesh bark rule
 
 For the current full-crown Forest pines, read `sharedassets21.assets` and
@@ -192,13 +292,24 @@ white balance, lift/gamma/gain, and shadow distance from the comparable map.
 Keep 0200 on its separately audited night branch. Do not apply the day
 external LUT or exposure range to the night profile.
 
-Use one process-global render owner. In the current implementation, the map
-manifest selects `native-outdoor-v1`, Modded Operations `0.3.22` applies and
-restores the sun, HDRP Volume, tonemapping, ambient, and NVG transaction, and
-the package owns the hash-verified LUT. The map companion must not install a
-second global Volume. The accepted 2026-08-04 repeat run logged the selected
+Use one process-global render owner. In the version-pinned accepted Forest
+`0.3.22` runtime evidence, the map manifest selects `native-outdoor-v1`,
+Modded Operations applies and restores the sun, HDRP Volume, tonemapping,
+ambient, and NVG transaction, and the package owns the hash-verified LUT. The
+map companion must not install a second global Volume. Revalidate this owner on
+a newer framework. The accepted 2026-08-04 repeat run logged the selected
 profile and showed white phosphor in all four GPNVG tubes with terrain visible
 outside the brighter ECOTI channel.
+
+The 2026-08-06 Whiteout proof extends this ownership rule to a distinct Arctic
+profile. Manifest marker `RENDER_PROFILE_ARCTIC_OVERCAST_V1` is owned only by
+Modded Operations `0.3.23`; the Whiteout companion performs read-only global
+render audits and owns local weather/material repair only. The normal shipped-
+UI run proved a 60,000-lux 6500 K sun, +1.10 post exposure, cold white balance,
+HDRP volumetric fog, and 52 m daytime mean free path across initial load and
+native restart. The old pattern in which both framework and companion created
+high-priority global Volumes is rejected. Capture and restore `RenderSettings`
+sun, ambient, and fog fields as part of the single framework transaction.
 
 ## TerrainData and TerrainBRG ownership rule
 
@@ -237,6 +348,83 @@ surface.
 4. Bundle a raw material library so runtime code can recover original serialized values after portable authoring proxies are replaced.
 5. Validate the deployed bundle contains the material texture closure; Unity dependency discovery can omit maps from missing-shader imports unless packaging is explicit.
 
+## Indoor native-furniture renderer closure
+
+Treat a renderer's material array as an ordered submesh mapping. Read the
+direct installed-scene or prefab PPtr order and preserve it through extraction,
+authoring, bundling, and runtime rebind. Never sort or deduplicate material
+names: that can put a valid wood, marble, upholstery, or porcelain atlas on the
+wrong submesh while every dependency still appears present. Validate the exact
+slot count and identity on every authored prefab and every live renderer.
+
+Preserve the source mesh channels actually consumed by the native material.
+For the pinned residential set this includes UV1 and usually `COLOR_0` in
+addition to position, normal, tangent, and UV0. Some AssetRipper GLBs pad
+additional zero UV sets. Do not promote padded export channels into a vanilla
+authoring claim; compare the installed mesh record and gate the channels that
+are genuinely authored or shader-consumed. A mesh family that is excluded from
+the release because its native hierarchy is incomplete is not an exception that
+weakens the release gate.
+
+Do not assume one right-handed-to-left-handed GLB conversion works for every
+export pipeline. On the pinned OPERATOR residential AssetRipper export, direct
+comparison with installed vertex streams proves the source-axis-preserving rule
+is position/normal `(-x,y,z)`, tangent `(-x,y,z,-w)`, and one triangle-winding
+reversal. Reflecting Z instead produces an additional 180-degree Y rotation:
+doors, books, drawers, monitors, and cabinet fronts can then face a wall while
+bounds and texture dependencies still pass. Pin the conversion per exported
+family by comparing installed positions, normals, tangents, indices, and
+submesh ranges; never infer the visible front from the converted AABB.
+
+Treat a furniture root as a hierarchy, not merely a convenient render mesh.
+Record the active child order, names, local position/quaternion/scale, mesh and
+ordered material PPtrs, collider type/fields/collision-mesh PPtr, and active
+state from the installed donor. Retain only the complete active renderer and
+collider subtree needed for the visible prop, strip untransported behaviours
+explicitly, and fail closed when a required child is unavailable. Pillows,
+drawers, cabinet doors, toilet lid/seat, and desk doors are visible furniture,
+not optional decoration. Likewise, do not place a sofa segment, book insert,
+television piece, or bathtub root as a standalone prop unless its complete
+native assembly has been proven and transported.
+
+Facing must be a per-family installed contract. Store local front/back/up
+markers proven from the donor hierarchy or installed context, transform those
+markers at placement time, require the back against the owned wall and the
+visible front into the room, then test world bounds, overlap, and both sides of
+every portal approach. `transform.forward` matching an author-written comment
+is circular validation and is not proof that books or doors face the player.
+
+Portal-clearance probes must use the final instantiated aperture/socket
+transform. For a DoorV2-to-open-corridor connection, the door-owning endpoint
+can include a measured tangent offset while the opposite open endpoint does
+not. Prefer enumerating both actual endpoint transforms; when a static design
+probe must run earlier, test the union of raw and measured socket centres so a
+few-centimetre offset cannot turn a real collision into a false pass. Keep the
+aperture tangent offset distinct from the door leaf's child hinge pivot.
+
+Resolve shader ownership from the raw source material's shader PPtr. A portable
+`HDRP/Lit` transport material is cargo, not proof that the installed material
+uses that family. Recreate the live material from the matching resident shader,
+then apply the exact render queue, maps, texture scale/offset, saved colors and
+floats, and keyword state. On the pinned residential build,
+`Kitchen_TableChair` and `In_Floor_Basement` use
+`MilkShaders/Lit-Template`; the other audited furniture materials use
+`HDRP/Lit`. Reinspect this identity after game updates.
+
+For furniture, close more than base/normal presence. Compare metallic and
+smoothness remaps, ambient-occlusion remaps, normal scale, occlusion strength,
+SSR flags, transmission controls, emissive state, detail transforms, culling,
+Z-write, queue, and the complete expected keyword set. A raw saved property may
+not be exposed by the resident shader version. Preserve its provenance, require
+it when exposed, and separately require the resident properties that actually
+control rendering; do not claim a successful write to an absent property.
+
+Run the closure twice: statically on every scene renderer before bundling and
+again after resident-shader rehydration in the normal player runtime. Require
+zero invalid renderers, then inspect representative furniture through the
+normal player camera. An editor proxy material, dependency count, or one
+correct-looking prefab cannot prove an entire indoor level.
+
 ## Player-camera crown-silhouette rule
 
 A tree family passing mesh, submesh, material, texture, and shader-closure
@@ -250,6 +438,16 @@ mixed canopy rather than masking the defect through sheer instance count.
 Record both static closure and the player-camera result. An editor view,
 offscreen audit camera, active renderer count, or three-material/three-submesh
 assertion cannot replace this gate.
+
+For a battlefield that calls for living conifers, do not use a dead stump as
+a density substitute. The accepted Whiteout assembly replaced all 170 stump
+slots with complete native Scots-pine instances, removed the stump prefab and
+material from the explicit bundle dependency closure, and passed normal
+player-camera load/restart review with zero stump instances. Preserve that
+exclusion when rebuilding the map. Its audited Arctic placement path grounds
+the complete renderer base and then buries the result 0.34 m into powder snow
+to hide root plates; keep the report's zero-stump/static-assembly assertion as
+a release gate.
 
 ## Spawn reference
 

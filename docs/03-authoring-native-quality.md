@@ -197,6 +197,31 @@ float.
 Avoid rows. Use deterministic but nonuniform position, yaw, spacing, species,
 and scale variation. Preserve deliberate paths and spawn/camera clearances.
 
+### Build readable clusters and location-owned debris
+
+Treat a foliage cluster as a complete composition, not a tight pile of cloned
+trees and not a single tree mislabeled as a biome package. Vary the internal
+radius, spacing, height, yaw, understory, stones, and feathered ground cover.
+Inspect the cluster from inside, outside, and across the combat lane. Spread
+the members when crowns merge into one implausible mass, while retaining enough
+understory and edge variation for the package to read as one habitat.
+
+Place lived-in debris according to an environmental owner. Refuse isolated
+barrels, pallets, food, ammunition, and garbage in arbitrary open ground.
+Attach them to a trench, camp, wall, destroyed vehicle, or deliberate tree
+shelter; keep ammunition and military supplies organized enough to communicate
+use; place pallets flat or visibly leaning against support; and reject
+intersections between repeated props. Validate the density at player spawns,
+inside trenches, around fortification walls, and beside wrecks instead of
+accepting only a scene-wide object count.
+
+For native ragdoll-derived casualties, preserve the accepted skeleton/root
+rotation exactly. Apply only a measured vertical contact correction after the
+pose settles. A renderer-bounds or numeric terrain-gap counter is not visual
+proof: inspect the visible skinned mesh from player height and a low grazing
+angle, permit a small authored burial in loose terrain when appropriate, and
+reject every body that still floats or changes from face-down to side/back.
+
 ## LOD and texture quality
 
 Use the highest authored source for direct playable content. Do not turn a

@@ -115,9 +115,10 @@ actor at the nearest distant node.
 
 ## PVE population
 
-The package declares `minEnemies` and `maxEnemies`. The framework validates
+The package declares `minEnemies` and `maxEnemies`. The native briefing lets
+the host select an integer in that closed range. The framework validates
 the range and the valid-marker count. The server selects an inclusive
-deterministic count from sorted markers.
+confirmed count against active sorted markers on the live navigation graph.
 
 Use OPERATOR's shipped population owner. In the current inspected build,
 `RaidManager.ServerSpawnAI(false)` selects `standardAI`, instantiates the bot,

@@ -41,21 +41,24 @@ Do not publish these data:
 
 ## Installed file locations
 
-The generic framework and a map companion are BepInEx plug-ins. The package is
-data-only. Install the files at these exact relative locations:
+The generic framework and map companion have loader-specific adapters. The
+package is data-only and shared. Install files at these exact relative
+locations as applicable to the active loader:
 
 ```text
 <OPERATOR_INSTALL>\BepInEx\plugins\OperatorModAPI\OperatorModAPI.dll
 <OPERATOR_INSTALL>\BepInEx\plugins\OperatorModdedOperations\OperatorModdedOperations.dll
 <OPERATOR_INSTALL>\BepInEx\plugins\<MAP_PLUGIN_ID>\<MAP_PLUGIN_ASSEMBLY>.dll
-<OPERATOR_INSTALL>\BepInEx\OperatorMods\<PACKAGE_ID>\operator-map-package.json
+<OPERATOR_INSTALL>\Mods\<MELON_FRAMEWORK_ASSEMBLY>.dll
+<OPERATOR_INSTALL>\Mods\<MELON_MAP_COMPANION_ASSEMBLY>.dll
+<OPERATOR_INSTALL>\OperatorMods\<PACKAGE_ID>\operator-map-package.json
 ```
 
 Every path in `files[].path` is relative to `<PACKAGE_ROOT>`. The Ukrainian
 Forest package therefore installs its scene bundle at this location:
 
 ```text
-<OPERATOR_INSTALL>\BepInEx\OperatorMods\community.ukrainian-forest\content\operator_ukrainian_forest_scene
+<OPERATOR_INSTALL>\OperatorMods\community.ukrainian-forest\content\operator_ukrainian_forest_scene
 ```
 
 Do not put framework code in `<PACKAGE_ROOT>`. Do not put map coordinates in
@@ -175,6 +178,11 @@ set markers.
 | `maxEnemies` | not permitted | `15` |
 | infiltration `id` | `north-forest-edge` | `north-forest-edge` |
 | `defaultTimeCode` | `1100` | `1100` |
+
+This table records the historical package `0.3.21` bytes exactly. Its PVP
+`maxPlayers=16` value is not the current authoring recommendation. The current
+vanilla lobby exposes at most 12 players; new PVP records should declare 12 or
+less and provide at least `ceil(maxPlayers/2)` accepted markers per team.
 
 The framework member `ChooseStandalonePveEnemyCount` selects a value from the
 inclusive `minEnemies` to `maxEnemies` range. The map author MUST provide at
@@ -641,13 +649,13 @@ to enumerate package directories. Use this input shape:
 Calculate a staged file hash with this PowerShell command:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '<RELEASE_STAGE>\BepInEx\OperatorMods\<PACKAGE_ID>\content\<bundle-name>'
+Get-FileHash -Algorithm SHA256 -LiteralPath '<RELEASE_STAGE>\OperatorMods\<PACKAGE_ID>\content\<bundle-name>'
 ```
 
 Calculate a deployed file hash with this PowerShell command:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '<OPERATOR_INSTALL>\BepInEx\OperatorMods\<PACKAGE_ID>\content\<bundle-name>'
+Get-FileHash -Algorithm SHA256 -LiteralPath '<OPERATOR_INSTALL>\OperatorMods\<PACKAGE_ID>\content\<bundle-name>'
 ```
 
 The source, staged, archive, and deployed hashes MUST match for one candidate.

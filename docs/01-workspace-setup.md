@@ -104,13 +104,14 @@ framework MUST NOT reference the map companion or a map ID.
 Stage package data here:
 
 ```text
-<staging>/BepInEx/OperatorMods/<package-id>/
+<staging>/OperatorMods/<package-id>/
 ```
 
-Stage an optional companion here:
+Stage optional loader-specific companions here:
 
 ```text
 <staging>/BepInEx/plugins/<map-plugin>/
+<staging>/Mods/<map-plugin>.dll
 ```
 
 Close OPERATOR before a copy. Back up only the exact owned destination. Copy

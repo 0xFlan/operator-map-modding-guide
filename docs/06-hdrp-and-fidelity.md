@@ -256,6 +256,48 @@ An ECOTI-visible image with a black area outside the overlay usually means the
 base night signal is absent or crushed. It does not by itself prove an ECOTI
 material fault.
 
+## Separate fire, smoke, fog, and scorch responsibilities
+
+Fire, smoke, atmospheric fog, and ground scorching are different effects.
+Keep a wreck's emissive flame near the fuel/source, make the smoke rise and
+expand into a coherent column, let global or local volumetrics provide aerial
+perspective, and use a surface-conforming scorch only for ground damage. Do
+not swap fire and smoke roles or build a plume from conspicuous independent
+camera-facing squares.
+
+For a current HDRP/VFX Graph candidate, investigate Unity's six-way-lit smoke
+workflow before inventing a custom billboard shader. Unity describes this as
+an efficient approximation used by AAA productions: bake a simulated volume
+into two six-direction lightmaps plus alpha/emissive data, then render it with
+HDRP's Six Way Smoke Lit output so the plume responds to scene lights. Use
+curl-noise turbulence, drag, coherent upward advection, lifetime size/alpha
+curves, randomized flipbook phase and rotation, soft-particle depth fading,
+camera fade, and fog integration to remove repeated-puff and hard-intersection
+artifacts. Useful primary references are:
+
+- <https://unity.com/blog/engine-platform/realistic-smoke-with-6-way-lighting-in-vfx-graph>
+- <https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@17.0/manual/Block-Turbulence.html>
+- <https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@17.0/manual/Context-OutputSharedSettings.html>
+- <https://github.com/Unity-Technologies/VisualEffectGraph-Samples>
+
+HDRP Fog Volume Shader Graph and Local Volumetric Fog can add low-frequency
+density and light scattering, but each voxel has a GPU cost and a box-shaped
+volume can reveal itself when oversized. Keep volumes bounded, inspect local
+volumetric overdraw, and use a 3D density input rather than a uniform box:
+<https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.high-definition/Documentation~/create-a-fog-volume-shader.md>.
+
+This is an evaluation workflow, not an automatic compatibility claim. Before
+shipping a VFX Graph asset, fingerprint the retail player's VFX/HDRP runtime,
+author with the matching package generation, prove that the effect and every
+shader dependency survive the AssetBundle boundary, and test one isolated
+plume in game. Retain the current particle fallback until that spike passes.
+
+Scorch textures and conforming meshes require their own edge gate. Verify
+zero-alpha borders, mip behavior, alpha mode, cutout threshold, depth offset,
+terrain intersection, and fog occlusion at close, middle, and far distances.
+A black halo, flickering ring, visible square, or distant mark that renders
+through fog rejects the effect even when renderer/material audits pass.
+
 ## Use player-camera proof
 
 Offscreen cameras can miss camera-bound vegetation or use an invalid HDRP

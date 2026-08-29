@@ -23,12 +23,19 @@ Use this order:
 8. Match the map ID to one inactive scene object named `MAP_ID_<mapId>`.
 9. Set 2D infiltration anchors against the final preview. Do not use them as
    3D player-spawn coordinates.
-10. For PVE, set valid `minEnemies` and `maxEnemies`. For PVP, omit both
-    fields.
-11. After all file copies finish, regenerate `files[]` from every regular
+10. For PVE, set valid `minEnemies` and `maxEnemies`. Keep or remove the
+    optional schema-v2 AI response fields intentionally; JSON `null` is not an
+    omission. For PVP, omit the enemy and AI-profile fields, keep the current
+    maximum at 12 or lower, and author at least `ceil(maxPlayers/2)` spawn
+    markers for each team.
+11. Set `runtimeCompanion` to `null` when the map has no external companion.
+    When it has one, replace it with the exact plugin GUID, SemVer, lowercase
+    DLL SHA-256, and distinct exact-scene READY/FAILED marker names. Do not add
+    the companion DLL to the data-only package or `files[]`.
+12. After all file copies finish, regenerate `files[]` from every regular
     package file except the manifest. Use ordinal path order, exact final byte
     counts, and lowercase SHA-256.
-12. Run the strict package loader before you build or deploy the archive.
+13. Run the strict package loader before you build or deploy the archive.
 
 Read
 [`docs/03b-modded-operations-presentation.md`](../docs/03b-modded-operations-presentation.md)

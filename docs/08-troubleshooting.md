@@ -17,6 +17,12 @@
 | Pine lower trunk or branches are white | raw `pine_bark` and `Trunk_pine_var4` TextAsset load result, complete-state application log, submesh material slots, covering/snow floats, base/normal/mask bindings | verified dependency-asset loan or pine material rehydration |
 | Second launch reaches `MAP LOADED !BUG!` and Restart Operation loops | deterministic PVE/PVP asset ID, fake-null value retained in `NetworkClient.prefabs`, cleanup by asset ID, `UnregisterSpawnHandler` call | generic game-mode prefab lifecycle |
 | Open or invisible boulder | mesh closure, matching material, multi-angle player view | source mesh/material choice |
+| Runtime reports foliage/debris but the area still looks empty | active renderer bounds, material/shader state, cluster internal radius, spawn/center/trench location counts, current player-camera captures | map composition and runtime material ownership |
+| Foliage clusters look like tight knots | per-cluster member positions, crown overlap, internal radius/spacing, understory footprint and edge feathering | cluster layout rather than total tree count |
+| Dead bodies keep their pose but float | settled skinned-mesh vertices/bounds after the death pose, sampled final surface, translation-only contact offset, low-angle capture | casualty contact measurement; do not rotate the accepted pose |
+| Smoke is a stack of puffs or visible squares | output shader/material, flipbook and phase variation, six-way lightmaps, curl turbulence, soft-particle/depth fade, camera fade, fog response | VFX output and motion design, not spawn count alone |
+| Fire and smoke appear swapped | source-local emissive flame bounds, smoke velocity/expansion/lifetime, material assignment per output | role mapping between fire and smoke systems |
+| Crater has a black outline or renders vividly through fog | source alpha border/RGB dilation, mip edge, blend/cutout mode, threshold, conforming-mesh edge/depth offset, fog/depth pass | crater texture/material/mesh integration |
 | Road-like terrain | terrain layer maps, normals, color space, mips, runtime material | terrain material |
 | Hard grass/dirt change at a boundary hill | native Terrain extent versus render-only mesh extent, shared world-space weights, material family | terrain/exterior handoff |
 | Blank edge/sky | collision terrain extent, visual exterior buffer, boundary position | bounds/exterior |
@@ -36,6 +42,13 @@
 | PVP score or result causes a null exception | two audio sources, 16 non-empty clip arrays, `TeleType`, score/clock text, six result roots, animators, fade strings, status text | framework `ConfigureStandalonePvpPresentation` |
 | PVP player snaps back after a native respawn | `nativePvpLifecycle` state and any continuing generic position loop | framework must stop the position-only fallback |
 | Host PVP works but remote client does not load or spawn | identical peer hashes, bundle availability, registered asset ID `0x4D4F5002`, Mirror spawn message, expected clone type, adoption log | multiplayer package distribution and framework network lifecycle |
+| PVP refuses before scene transition | exact framework/API DLL hashes, package content identity, optional companion identity, game build/capabilities, selected operation/scene/time/player range, frozen connection objects | protocol-v2 content agreement; version text alone is insufficient |
+| Host waits at `ContentReady` | remote package preload/verification result, exact operation commit, rejection/timeout reason | remote content-ready phase |
+| Host waits at `SceneReady` | exact selected scene, PVP template registration, `ceil(maxPlayers/2)` marker capacity, spawn contract, companion plugin/hash, READY marker, FAILED marker | current scene-generation readiness phase |
+| PVP Restart reuses old readiness or times out | host UInt64 epoch, remote monotonic local scene generation, 5-second retries, 90-second deadline, stale/future/zero/overflow rejection | restart epoch handshake |
+| A late join or reconnect aborts PVP | frozen connection-object membership and abort reason | expected fail-closed behavior; late join is unsupported |
+| Companion READY exists but PVP still refuses | exact plugin GUID, SemVer, DLL hash, selected-scene ownership, and whether FAILED also exists | `runtimeCompanion` identity and failure precedence |
+| PVP works online but PVE co-op differs between peers | selected-loader receipt/sidecar, PVE package/scene/count identity, AI marker selection, movement, projectile and damage logs | Protocol-v4 agreement is only a barrier; PVE still needs its own two-process AI/combat/completion/restart/teardown proof |
 | Restart duplicates graphs or callbacks | scene-unload teardown log, graph/service ownership, callback generation | map companion lifecycle |
 | Second scene load throws `Il2CppSystem.Object` to `Transform` cast errors | any `foreach (Transform child in parent)` in the map-scoped repeat path; typed `childCount`/`GetChild(index)` traversal | IL2CPP collection interop |
 | Alive restart works but KIA restart fails | native death state, failure/end-screen owner, first exception | generic standalone end-screen lifecycle |

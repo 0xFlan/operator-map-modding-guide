@@ -29,23 +29,33 @@ This document uses the language and evidence rules in
 
 ## 1. Scope and status
 
-The current method has strong static and bounded runtime evidence. Forest
-`0.4.19` and Modded Operations `0.3.22` have accepted local first launch,
-one-click Confirm, 11:00 daylight, pine surface, tree contact, unload, Lone
-Wolf re-entry, repeat launch, above-terrain repeat spawn, and 02:00
-white-phosphor NVG results. The 2026-08-04 bounded runtime test also accepts
-same-process KIA restart through the shipped Mission Failed UI. It restored
-one owned playable player and grounded 14 of 14 active Forest `BrainAI`
-instances within 0.03 m of Terrain. The current single-player PVE evidence
-also accepts reciprocal firearm play, native all-enemies-dead extraction
-unlock, the exact ATAK exfil marker, a physical 15-second extraction, the
-Mission Successful After Action Report, and the insertion-area extraction
-placement. The two-peer PVP matrix remains open. Re-test the complete matrix
-after an OPERATOR, Unity, BepInEx, Il2CppInterop, A*, Core, or framework
-update.
+The current authored source checkpoint is Modded Operations `0.3.30` with the
+bundled-only Operator Mod API `0.2.0-alpha.7`. Shared source builds isolated
+BepInEx and MelonLoader products; install exactly one loader variant. Protocol
+v6 adds fail-closed PVP and online-PVE content/scene agreement, exact suite
+receipt and sidecar validation, loader-neutral companion identity, a
+host-authoritative PVE enemy-count identity, and restart readiness bound to a
+host-issued scene generation epoch. Its source and automated contracts are
+`PROVEN-STATIC`. They are not evidence from a real host and remote OPERATOR
+process. The last hash-pinned public framework publication remains `0.3.28`
+with bundled API `0.2.0-alpha.5`, and the last complete runtime framework
+candidate remains `0.3.24`.
 
-The method does not yet prove general multiplayer content agreement, late
-join, or all possible maps. Treat these claims as separate gates.
+A separately labeled `0.3.29`/alpha.6 archive exists only to transfer exact
+bytes for a controlled multiplayer test. It is not a Nexus release, not a
+standalone API release, and not proof of online support. Do not promote it
+until a real host and remote client pass content agreement, exact scene
+readiness, first spawn, movement, firearm-specific hit registration, score,
+round respawn, retained-content restart, unload, and return-to-armory.
+
+The earlier Forest `0.4.19` and Modded Operations `0.3.22` single-player PVE
+work remains bounded runtime evidence for one-click Confirm, daylight/night
+rendering, repeat launch, same-process KIA restart through the shipped Mission
+Failed UI, reciprocal firearm play, native all-enemies-dead extraction unlock,
+the exact ATAK exfil marker, physical 15-second extraction, and the Mission
+Successful result. It does not promote the current PVP candidate or prove PVE
+co-op. Re-test the complete applicable matrix after an OPERATOR, Unity,
+BepInEx, Il2CppInterop, A*, Core, framework, package, or companion update.
 
 The current first-Confirm owner retention, repeat-launch player recovery,
 same-process KIA restart, deterministic network game-mode identity, tree root
@@ -58,8 +68,12 @@ two exact-package 120-second runs with the final release bytes created 15 and
 1 m, moved 6 and 4 bots at least 5 m toward insertion, and recorded authored
 vegetation sight obstruction. Maximum displacement was `51.19 m` and
 `49.34 m`.
-Owner-aware firearm population is `PROVEN-STATIC` until reciprocal firearm
-damage passes. PVP remains `PROVEN-STATIC` until the two-peer matrix passes.
+Owner-aware firearm population and reciprocal firearm behavior are
+`PROVEN-RUNTIME` only for the stated pinned single-player Forest scope. The
+current protocol-v4 PVP and PVE source remains `PROVEN-STATIC` until each
+mode's real two-peer matrix passes. The existence of a PVE agreement path does
+not prove remote package/scene equality, AI replication, combat, completion,
+extraction, restart, or teardown.
 
 The old retail-scene prefab overlay is `RETIRED` for standalone mission
 parity. Keep it only for an explicit diagnostic test. See
@@ -90,7 +104,8 @@ Use these public names.
 | Short product name | OPERATOR: Modded Operations |
 | Mission-laptop tab | MODDED OPS |
 | Technical component | Modded Operations Framework |
-| Combined first-install archive | OPERATOR Modded Operations Starter Pack |
+| Framework download | Modded Operations plus its exact bundled preview API pair |
+| Map download | One data-only map package plus its optional exact-scene companion |
 
 Do not change an existing plugin GUID, assembly name, package ID, map ID, or
 operation ID to match a new display name. Treat these values as immutable
@@ -157,7 +172,13 @@ Keep these owners separate.
 | Optional exact-scene companion | Native material repair after generic terrain bind, map-owned A* graph, marker diagnostics, map-specific interactive initialization, strict world diagnostics, teardown | Catalog, generic terrain payload decoding, generic mission UI, other maps, shipped failure UI |
 
 The package directory MUST remain data-only. Install a required map companion
-as a separate BepInEx plugin.
+as a separate selected-loader product under `BepInEx/plugins` or `Mods`.
+
+The preview API Core and selected BepInEx or MelonLoader host remain separate
+runtime owners. The transactional runtime suite owns their exact executable
+files and records them in its selected-loader receipt and manifest sidecar. Do
+not publish a standalone preview-API download or duplicate Core/framework
+files in a map download. The runtime suite does not own or mutate map packages.
 
 Use scene and bundle data when it can preserve the required contract. Add a
 companion only for installed-runtime state that the bundle cannot preserve.
@@ -167,13 +188,17 @@ companion only for installed-runtime state that the bundle cannot preserve.
 Use this ownership layout.
 
 ```text
-BepInEx/
-|-- plugins/
+OPERATOR/
+|-- BepInEx/plugins/              # selected only for BepInEx
 |   |-- OperatorModAPI/
 |   |-- OperatorModdedOperations/
 |   `-- <map-plugin>/
-|       `-- <map-plugin>.dll
-`-- OperatorMods/
+|-- Mods/                         # selected only for MelonLoader
+|   |-- OperatorModAPI.dll
+|   |-- OperatorModAPI.MelonLoader.dll
+|   |-- OperatorModdedOperations.MelonLoader.dll
+|   `-- <map-plugin>.MelonLoader.dll
+`-- OperatorMods/                 # shared data, owned by map distributions
     `-- <package-id>/
         |-- operator-map-package.json
         |-- content/
@@ -181,8 +206,13 @@ BepInEx/
         `-- media/
 ```
 
-Do not put a map companion DLL below `BepInEx/OperatorMods`. Do not put map
-data in the framework archive.
+Do not put a map companion DLL below `OperatorMods`. Do not put map data in the
+runtime suite.
+
+The selected-loader suite receipt owns exact executable runtime paths. A map
+download owns only its `OperatorMods/<package-id>` tree. A declared companion
+is installed as the selected-loader executable variant and is never inventoried
+inside the data-only package.
 
 ## 6. Exact-build gate
 
@@ -190,13 +220,15 @@ Before a build or runtime test, record these values:
 
 - OPERATOR executable and data fingerprints;
 - Unity version;
-- BepInEx version;
-- Il2CppInterop version;
+- selected loader and exact version;
+- selected loader's Il2CppInterop version and public/protected API surface;
 - A* Pathfinding Project surface used by the map;
 - Core version and binary hash;
 - Modded Operations version and binary hash;
 - map companion version and binary hash;
-- package manifest and file hashes;
+- selected suite receipt, exact receipt-owned manifest sidecar, and every
+  selected executable path/hash;
+- package manifest and every declared file hash;
 - source state and dirty-worktree state.
 
 Fail closed when a required fingerprint does not match. Give the user an
@@ -228,6 +260,40 @@ The manifest MUST declare:
 - operations;
 - complete regular-file closure;
 - final file lengths and SHA-256 values.
+
+Schema version 2 can declare one optional map-level `runtimeCompanion` when
+the map requires an exact-scene selected-loader product:
+
+```json
+"runtimeCompanion": {
+  "pluginGuid": "author.example-map",
+  "pluginVersion": "1.2.3",
+  "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "melonLoaderSha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+  "runtimeContentId": "28b80e3a2066ee764a12494eee98a7957f29875d3708f4283a09e4f772be1e47",
+  "readyMarkerName": "AUTHOR_EXAMPLE_READY",
+  "failureMarkerName": "AUTHOR_EXAMPLE_FAILED"
+}
+```
+
+This is a closed contract. It binds one non-reserved lowercase namespaced
+plugin GUID, one exact SemVer identity, exact BepInEx and MelonLoader DLL
+SHA-256 values, one loader-neutral runtime-pair ID, and two distinct exact
+scene-object names. `runtimeContentId` is the lowercase SHA-256 of the UTF-8
+lines `operator-loader-neutral-runtime-pair-v1`, `pluginGuid`, `pluginVersion`,
+`sha256`, and `melonLoaderSha256`, in that order with `\n` separators and no
+trailing newline. Generate it with `tools/operator_runtime_content_id.py`.
+Omission or explicit JSON `null` means no companion. Schema version 1 rejects
+the field.
+
+Core validates and freezes the declaration. It does not discover, load, or
+execute the companion. The framework must resolve the already loaded plugin,
+verify its exact GUID/version/DLL bytes, and inspect the declared markers only
+inside the selected package-scene generation. The ready marker is valid only
+after the companion completes its exact-scene work. The failure marker always
+wins, including if it appears after ready. A PVP or online PVE peer cannot send
+`SceneReady` until this contract passes. Keep the DLL outside the data-only
+package tree and outside the package `files[]` inventory.
 
 The manifest supplies the mission presentation. Do not store mission-laptop
 text in a Unity scene object and expect the framework to discover it. Use this
@@ -284,13 +350,24 @@ A PVE operation MUST declare `minEnemies` and `maxEnemies`. Require this
 relationship:
 
 ```text
-1 <= minEnemies <= maxEnemies <= 64
+1 <= minEnemies <= maxEnemies <= 100
 ```
 
 A PVP operation MUST omit both enemy fields. PVP MUST create zero PVE actors.
 
-The framework MUST select an inclusive deterministic PVE count from valid,
-sorted markers. It MUST NOT use Unity global random state for this selection.
+The framework MUST expose the inclusive range only on its private cloned PVE
+briefing through the native enemy-count control. It MUST NOT mutate Tier 1,
+shipped Active/Simulation operation arrays, vanilla operation objects, vanilla
+enemy ranges, or PVP. Confirm MUST atomically capture the displayed value, and
+the host is authoritative online. The loaded scene MUST provide at least that
+many navigation-valid ordinary enemy markers in a stable name-ordered subset
+whose accepted X/Z positions remain at least 2 m apart after snapping.
+Inactive utility markers remain eligible; active-marker count is telemetry,
+not capacity. Native restart MUST retain the captured count; a fresh operation
+selection MAY reset to a bounded default. The framework MUST NOT replace the
+confirmed value with a hidden random reroll. `100` is a global hard cap, not a
+map entitlement: each operation publishes only its evidence-backed certified
+maximum.
 
 ## 9. Bundle contract
 
@@ -650,6 +727,16 @@ framework MUST convert those markers to `SpawnPoint` objects and assign two
 non-empty `Il2CppSystem.Collections.Generic.List<SpawnPoint>` instances to
 `PvpGameode.Team1SpawnPoints` and `Team2SpawnPoints`.
 
+Marker discovery MUST be mode-isolated. PVE can consume its explicit
+`PVE_PlayerSpawn_` markers and shared Team 1 aliases, but it MUST ignore
+PVP-prefixed markers and every Team 2 marker. PVP can consume its explicit
+PVP team markers and shared team aliases, but it MUST ignore
+`PVE_PlayerSpawn_`. For PVP, require at least
+`ceil(maxPlayers / 2)` accepted markers for each team before launch. The
+current vanilla lobby exposes at most 12 players, so a 12-player operation
+requires at least six Team 1 and six Team 2 markers. Reinspect this lobby limit
+after a game update.
+
 The current retail scalar seeds are `MaxRounds=13`, `RoundsToWin=7`, and
 `RoundTime=120`. The retail server replaces `MaxRounds` and `RoundTime` with
 the PVP lobby settings at the all-players-loaded barrier.
@@ -664,6 +751,36 @@ After `nativePvpLifecycle=true`, the framework MUST stop its generic
 position-only loop. The shipped respawn coroutine owns player placement. On
 unload, clear `PvpGameode.instance` only when it still points to the
 operation-owned component.
+
+Current Modded Operations `0.3.30` source uses protocol v6 for both PVP and
+online PVE. Before native launch, the host freezes authenticated remote
+connection objects and IDs. Every peer must validate its selected-loader suite
+receipt, the exact receipt-owned manifest sidecar, every selected file record,
+and loaded Core/host/framework/declared-companion path. Agreement then binds
+the loader-neutral suite identity, game build/capabilities, complete package
+content, map, operation, mode, spawn set, scene variant/path, time, player
+range, and companion runtime-pair identity. PVE additionally binds the declared
+enemy range and host-confirmed count. A remote must preload its exact verified
+package and commit the exact operation before it sends `ContentReady`.
+
+After the scene transition, each peer must create and register the exact
+native mode template, validate the selected scene and mode-specific spawn
+contract, and pass any declared companion READY/FAILED contract before it can
+send `SceneReady`. For PVE, scene readiness also validates that the agreed count
+does not exceed the navigation-valid, pairwise-spaced marker capacity. The host
+owns a nonzero unsigned 64-bit scene-generation
+epoch. Initial launch uses epoch 1. Each retained-content Restart increments
+it exactly once. A remote maps that request to one monotonic local package
+scene generation; a previous generation cannot satisfy the new barrier even
+when scene callbacks arrive host-first, remote-first, or load-before-unload.
+The request retries every 5 seconds inside the 90-second scene deadline.
+Zero, stale, future, out-of-phase, or overflowing epochs fail closed.
+
+Membership is immutable for the agreed session. A join, disconnect, or
+replacement connection aborts even when the numeric connection ID is reused.
+Late join is not supported. The protocol-v4 implementation is `PROVEN-STATIC`;
+it does not itself prove PVP combat or PVE AI replication, completion,
+extraction, restart, and teardown in two real processes.
 
 Require a host and client on different teams, first spawn, freeze release,
 death/respawn on both teams, score and round progression, correct
@@ -901,21 +1018,40 @@ mode owner, and expected actor set.
 
 A local host result does not prove multiplayer support.
 
-Before a multiplayer claim, test:
+For StandardPVP, static source and automated tests currently prove the shape
+of exact binary/package/companion agreement, the `ContentReady` barrier, the
+epoch-bound `SceneReady` barrier, immutable membership, mode-isolated marker
+discovery, bounded refusal, and cleanup. They do not prove Mirror transport or
+gameplay between two OPERATOR processes. Before a PVP support claim, test:
 
-- exact host and client package content agreement;
-- mismatch refusal before content activation;
-- deterministic catalog and operation resolution;
-- scene load on each peer;
-- player and AI authority;
-- interactive-object state;
-- late join;
-- restart;
-- disconnect and teardown;
-- version, hash, game-build, protocol, capability, and session identity.
+- matching exact selected-loader suite receipt/sidecar/file closure, package
+  content, optional companion runtime-pair identity, game build, protocol,
+  capability, operation, scene, time, player range, and session identity on
+  host and remote;
+- mismatch refusal before native content activation;
+- exact remote package preload and operation commit before `ContentReady`;
+- exact scene, mode template, spawn contract, and optional companion readiness
+  on every peer before `SceneReady(epoch)`;
+- first spawn, movement replication, firearm-specific hit registration, death,
+  score, freeze release, round respawn, and native match end;
+- six-per-team capacity in a 12-player lobby, then a separate real 12-player
+  stress test if 12-player support is claimed;
+- retained-content Restart with one new epoch and no stale readiness reuse;
+- unload, disconnect, failure abort, and return-to-armory cleanup;
+- explicit rejection of late join and every membership change.
 
-If this matrix does not pass, label the release as local or host-only for the
-tested scope.
+Protocol v6 gives online PVE its own content/scene barrier and binds the
+host-confirmed enemy count. Before a PVE online/co-op claim, two distinct
+processes must still prove synchronized start, both peers leaving loading,
+grounded players, identical agreed count and package closure, AI replication,
+network movement, firearm/projectile registration, damage, completion,
+extraction, Restart on both peers, disconnect/failure cleanup, and teardown.
+Repeat capacity, frame-time, spawn-time, completion, Restart, and teardown at
+each claimed map maximum through the global hard cap of 100. A single-player,
+host-only, or join-in-progress success does not satisfy this matrix.
+
+If the applicable matrix does not pass, state the exact tested local or static
+scope. Do not advertise general online support.
 
 ## 25. Release archive boundaries
 
@@ -923,9 +1059,19 @@ Build these archives from clean staging directories.
 
 | Archive | Contents |
 | --- | --- |
-| Framework-only | Core and OPERATOR: Modded Operations files; no map data or map companion |
+| Framework download | The exact bundled preview API Core/host pair and matching OPERATOR: Modded Operations files; no map data or map companion |
 | Map-only | Data-only package and its exact-scene companion; no Core or framework DLL |
-| Complete starter pack | Framework ownership domain plus one map ownership domain |
+| Controlled test transfer | The same ownership split, clearly labeled `TEST ONLY` and `NOT FOR NEXUS`; exact hashes must match every test machine |
+
+Do not publish the preview API as a standalone download. Keep it inside the
+matching framework download until the API reaches a full stable release. Do
+not duplicate the API or framework in a map archive. Public Nexus distribution
+uses one framework download plus one separate map download.
+
+A controlled multiplayer-test archive is not a release candidate. Its file
+name and README must state that host-plus-remote proof is pending. It must not
+update public release records, decompiler snapshots, or support wording merely
+because its ZIP integrity and hashes pass.
 
 Do not include logs, captures, private flags, smoke drivers, forced-scene
 controls, auto-launch controls, extracted game assets without permission, or
@@ -966,9 +1112,11 @@ Require these results for the exact release bytes.
 | Foliage | Complete close, middle, and far crown silhouettes |
 | Navigation | One playable-only graph; all mission marker classes inside, grounded, and on graph |
 | PVE | Count inside package range; actors stay inside walls; reciprocal combat |
-| PVP | Zero PVE actors; host and client first spawn and respawn on their authored opposite team sides; native IDs remain Team 1=`1` and Team 2=`2` |
+| PVP agreement | Exact binary/package/companion agreement; remote preload and operation commit; every `ContentReady`; exact-generation `SceneReady(epoch)`; immutable membership; mismatch/timeout/late-join refusal |
+| PVP gameplay | Zero PVE actors; `ceil(maxPlayers/2)` markers per side; host and remote first spawn, movement, firearm hits, death, score, round respawn, native end, Restart, unload, and opposite-side isolation; native IDs remain Team 1=`1` and Team 2=`2` |
+| PVE online | Separate host/remote package, scene, AI placement, movement, projectile, damage, completion, extraction, restart, and teardown proof; PVP agreement is not evidence |
 | Interactives | Complete applicable player, AI, network, restart, and unload matrix |
-| Lifecycle | Normal restart, respawn, KIA restart, and three clean generations |
+| Lifecycle | Normal restart, respawn, KIA restart, and three clean generations; PVP Restart advances one scene epoch and rejects stale readiness |
 | Performance | Stable player-camera frame time at declared actor and foliage load |
 | Deployment | Source, stage, ZIP, and installed hashes agree while OPERATOR was closed |
 
@@ -997,6 +1145,12 @@ retested.
 | KIA throws before Mission Failed UI | PVE mode owner, singleton, or `RaidTimer` is missing |
 | Restart duplicates state | Scene-generation invalidation or reverse teardown is incomplete |
 | Host works but client fails | Content agreement, nonzero deterministic Mirror mode asset ID, peer prefab registration, clone adoption, authority, or late-join path is not proved |
+| Peer launch refuses before the scene transition | Compare the selected-loader suite receipt, exact manifest sidecar and files, complete package closure, companion runtime-pair identity, game build, mode/count identity, and frozen authenticated connection objects; version text alone is insufficient |
+| Host waits at `ContentReady` | A remote did not preload the exact verified package or commit the matching operation before its acknowledgement |
+| Host waits at `SceneReady` | Check the selected scene, deterministic mode template, mode-specific marker capacity/spawn contract, declared companion identity, READY marker, and FAILED-marker precedence on every peer |
+| Restart accepts an old scene or times out | Inspect the host-issued UInt64 epoch, the remote monotonic local scene generation, retry/deadline logs, and stale/future/overflow refusal |
+| A player joins after agreement begins and the operation aborts | Expected fail-closed behavior; current agreement membership is immutable and late join is unsupported |
+| PVE agreement passes but remote play differs | Agreement is only `PROVEN-STATIC`; require the separate two-process AI replication, movement, projectile/damage, completion, extraction, restart, and teardown matrix |
 
 Use [Troubleshooting](docs/08-troubleshooting.md) for the complete
 symptom-to-layer table.
@@ -1019,16 +1173,26 @@ and mark their status clearly.
 
 ## 29. Fixed PVE AI and foliage sight contract
 
-Operator Mod API `0.2.0-alpha.3` and Modded Operations `0.3.22` add schema
-version 2. A schema-v2 PVE operation can declare one immutable
-`pveAiProfile`. Schema v1 and PVP reject it. The framework adds no difficulty
-UI and makes no global AI change.
+The current Operator Mod API `0.2.0-alpha.7` contract and Modded Operations
+`0.3.30` source support schema version 2. A schema-v2 PVE operation can
+declare one immutable `pveAiProfile`. Schema v1 and PVP reject it. The
+framework adds no difficulty UI and makes no global AI change.
 
 The profile contains a stable ID, detection range, field of view, maximum
 effective range, wander radius, communications flag, and counter-suppression
-flag. The generic framework applies the selected operation's values to native
-`BotSpawnDetails` immediately before the shipped
-`RaidManager.ServerSpawnAI(false)` owner-aware population path.
+flag. It can also declare an initial-wander-delay cap from 2 through 60
+seconds, a lowercase reaction disposition of `defensive`, `offensive`, or
+`random`, and a maximum reaction-time cap from 0.10 through 1.50 seconds.
+Omission preserves the corresponding native-prefab behavior; explicit JSON
+`null` is invalid.
+
+The generic framework applies the selected operation's required values to
+native `BotSpawnDetails` immediately before the shipped
+`RaidManager.ServerSpawnAI(false)` owner-aware population path. It applies a
+declared reaction disposition before spawn. After spawn, it can advance only
+the first native wander delay and cap native base/current reaction time once,
+without raising a faster prefab value. It must not change native target lists,
+team lists, damage, cover, aim, or later wander cycles.
 
 Tune the profile from the authoritative combat volume, not from the visual
 terrain apron. Measure all accepted player-to-enemy marker gaps. Keep the

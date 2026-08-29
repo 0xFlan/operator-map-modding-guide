@@ -141,9 +141,14 @@ Operations MUST remain map-independent.
 ## PVE population range
 
 Declare `minEnemies` and `maxEnemies` on each PVE operation. The generic host
-selects an inclusive deterministic count from that range and MUST have at least
-`minEnemies` valid scene markers. PVP operations omit both fields. Do not
-hard-code one map's count or marker coordinates in the generic adapter.
+exposes that closed range only on its private cloned modded-PVE briefing through
+the native enemy-count control. Confirm captures the displayed integer, and the
+loaded scene MUST have at least that many navigation-valid ordinary markers in
+a stable name-ordered, pairwise-separated subset. Inactive utility markers may
+remain eligible; active count is telemetry, not capacity. PVP operations omit
+both fields. Never mutate Tier 1, shipped operation arrays, vanilla enemy
+ranges, or PVP. Do not hard-code one map's count or marker coordinates in the
+generic adapter.
 
 ## Team PVP identity
 

@@ -101,6 +101,68 @@ If no authorized complete prefab is available, a live-template clone or
 component reconstruction is experimental. Build its complete graph inactive,
 prove network registration, and then allow normal lifecycle activation.
 
+## Exact-build recovery exception
+
+Use this only when the user explicitly requests reconstruction because the
+complete authorized Unity dependencies are unavailable. Pin the installed
+Unity version plus executable, `GameAssembly.dll`, and `UnityPlayer.dll`
+fingerprints. Reject other builds instead of guessing across an update.
+
+Recover from two independent sources:
+
+1. Parse the official prefab YAML for serialized references, component order,
+   scalar values, FinalIK curves, audio order, and source GUIDs.
+2. Audit a current installed scene instance for the live hierarchy, added
+   meshes, colliders, hit boxes, fracture pieces, and component closure.
+
+Do not treat an exported prefab candidate, a mesh name, or a pivot name as
+proof. The audited residential interior instance in the pinned 2026-08 build
+has 119 transforms and 316 components. Its functional closure includes one
+`DoorV2`, one `MilkRigidbodySync`, two `DoorHandleV2`, four FinalIK
+`InteractionObject`, four `InteractionTarget`, three `ShootableDoorPart`, two
+`DoorHitBox`, two `NodeLink2`, one `NavmeshCut`, 31 rigid bodies including the
+pivot, 30 breached-piece bodies, 35 box colliders, and one audio source.
+
+Preserve these non-obvious bindings:
+
+- root order: `NetworkIdentity`, `DoorV2`,
+  `ExcludeFromMirrorSpawnable`, `MilkRigidbodySync` after `Transform`;
+- `Center` is the shared push transform;
+- `Handle01` is front and uses `InteractionL (4)` plus
+  `InteractionL Centre`; `Handle02` uses `InteractionL (3)` plus
+  `InteractionL Centre 2`;
+- damage IDs are lock `1`, top hinge `2`, bottom hinge `3`;
+- sound arrays contain opening `10`, locked `10`, closing `10`, thud `15`,
+  and breach `2` clips in numeric order;
+- the openable link uses tag `2`; the walkable link uses tag `1`; both use
+  graph mask `-1` and separate endpoints;
+- the destroyed rigid-body array contains exactly 30 bodies.
+
+For this exact-build recovery path, make every recovered door clip resident
+before the shell can be used. Import the opening, locked, closing, thud, and
+breach clips as decompressed-on-load audio, disable background loading, and
+preload all 47 unique clips while the reconstructed graph is still inactive.
+This prevents the first few door interactions from paying synchronous decode
+or load cost. Treat it as a pinned reconstruction requirement, not a universal
+rule for authorized native door prefabs.
+
+Construct every native gameplay component while the portable shell is
+inactive. Reject the shell on any null internal reference, count mismatch,
+missing audio clip, visible built-in primitive mesh, or unresolved physics
+material. Let `Awake` and `Start` run through activation; do not invoke private
+lifecycle methods to compensate for a partial graph.
+
+Treat Mirror as a separate closure. An authoritative instance may use the
+audited vanilla asset ID only after proving registration and component order.
+A remote client must not also activate its portable shell when Mirror will
+instantiate the registered vanilla prefab, or duplicate doors will result.
+Keep authoritative spawn and client provisioning behind separate gates and
+test host, remote client, and late join before promotion.
+
+Record the source-prefab hash, installed-build fingerprint, scene-instance
+audit, recovered dependency manifest, static validation, build log, and live
+probe separately. Static graph closure is not gameplay proof.
+
 ## Promotion matrix
 
 Require front and back interaction, FinalIK, push/pull/release, lock/latch,

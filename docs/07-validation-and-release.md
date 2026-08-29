@@ -27,7 +27,12 @@
   collision shape, an absolute correction no greater than `12 m`, and at
   least `0.75` of its full rendered height above the sampled surface;
 - each PVP spawn set has separate non-empty Team 1 and Team 2 marker groups;
-  current-build team IDs are exactly `1` and `2`;
+  current-build team IDs are exactly `1` and `2`, and each group contains at
+  least `ceil(maxPlayers/2)` markers; the current 12-player maximum requires
+  at least six per team;
+- schema-v2 `runtimeCompanion`, when present, binds one exact plugin GUID,
+  SemVer, lowercase DLL SHA-256, and distinct exact READY/FAILED scene-marker
+  names;
 - each interactive prefab has a complete field/reference closure or is marked
   non-interactive;
 
@@ -50,6 +55,13 @@
 - each peer logs registration of deterministic mode asset ID `0x4D4F5001` or
   `0x4D4F5002`; the remote peer logs validation and adoption of the matching
   spawned clone;
+- PVP logs show frozen connection-object membership, exact framework/API/
+  package/companion identity, every remote `ContentReady`, and every current-
+  epoch `SceneReady` before the single host owner spawn;
+- a declared companion passes exact plugin/hash identity and READY only inside
+  the selected scene generation; FAILED wins even after READY;
+- retained-content PVP Restart advances the nonzero UInt64 scene epoch exactly
+  once and rejects stale, future, zero, out-of-phase, and overflowing values;
 - one map-scoped A* service/graph is scanned for the exact scene;
 - graph dimensions and centre match the gameplay physics/bullet volume rather
   than a larger visual apron;
@@ -88,6 +100,20 @@
 - on flat ground and multiple slopes, only the root zone is below terrain and
   at least three quarters of each tree is visibly above terrain;
 - rocks/boulders are complete from multiple angles;
+- full foliage packages read naturally at both spawns and through the center;
+  their internal spacing is neither a single-tree placeholder nor an
+  implausibly condensed knot;
+- lived-in debris is visibly dense where the brief requires itâ€”inside and
+  around trenches, walls, camps, and wrecksâ€”and is not justified by a global
+  object count alone;
+- every retained casualty visibly contacts or is slightly buried in the final
+  surface while preserving its accepted native pose; bounds-derived gap logs
+  alone do not pass this gate;
+- every required fire/smoke source has the correct role mapping; smoke reads
+  as a continuous expanding plume without obvious puff tiles or square edges
+  from close, middle, rear, and crosswind views;
+- crater and wreck scorches have no black border, hard square, z-fighting,
+  terrain clipping, or through-fog visibility error;
 - cover is grounded across slopes;
 - boundaries are both blocked and visually credible;
 - no grass/dirt/rock material transition is visible at a boundary hill from a
@@ -99,9 +125,14 @@
   remain inside the gameplay wall where player/AI bullets can interact;
 - PVP creates no PVE actors before or after restart;
 - PVP freeze time releases; host and remote client start on their authored
-  sides; bullet deaths update the native score; the next round respawns both
-  teams through the shipped `PvpGameode`; match end, restart, and
-  return-to-armory each clear the prior owner;
+  sides; movement replicates; real firearm hits and deaths update the native
+  score; the next round respawns both teams through the shipped `PvpGameode`;
+  match end, restart, unload, and return-to-armory each clear the prior owner;
+- PVP rejects a late join or any connection-object membership change; current
+  releases must not advertise late-join support;
+- online PVE passes a separate host/remote package, scene, AI placement,
+  movement, projectile, damage, completion, restart, and teardown matrix; PVP
+  agreement and single-player PVE do not satisfy this gate;
 - Back, Cancel, tab switching, selector, and exact-scene ownership remain
   isolated from official mission rows;
 - native KIA/end-screen restart is recorded separately from normal alive
@@ -156,6 +187,11 @@ The result record must include the exact operation ID, mode, hold time, driver
 SHA-256, captured process identities, log and screenshot hashes, pass/fail
 state, and cleanup state. A passing run leaves no private driver, control file,
 capture directory, or environment flag in the normal game installation.
+
+Accept only evidence created by the current run. Filter screenshots and logs
+by a recorded run-start time and captured process identity before moving them
+into the evidence directory. A pre-existing file with a familiar name is not
+current visual proof, even when its hash is recorded successfully.
 
 The Forest `0.4.17` and Modded Operations `0.3.20` movement baseline passed
 this workflow. The first generation created 15 grounded PVE actors. The
@@ -221,9 +257,15 @@ unless its owner has explicitly authorized that exact redistribution.
 
 For a standalone map that needs runtime reconstruction, ship both removable
 parts with explicit ownership: the data-only package under
-`BepInEx/OperatorMods/<package-id>` and the map companion under its own
-`BepInEx/plugins/<map-plugin>` directory. Never place the companion DLL inside
-the package root or the generic framework archive.
+`OperatorMods/<package-id>` and each map companion under its loader's own
+`BepInEx/plugins/<map-plugin>` or `Mods` location. Never place a companion DLL
+inside the package root or the generic framework archive.
 
 Keep local absolute paths, credentials, temporary logs, and test artifacts out
 of the release package.
+
+Ship the preview API Core/host pair only inside the matching Modded Operations
+framework download until the API becomes a full stable release. Ship each map
+as a separate download and do not duplicate the API or framework inside it. A
+multiplayer `TEST ONLY` transfer ZIP is not a Nexus release and must not change
+support wording or the hash-pinned public publication record.

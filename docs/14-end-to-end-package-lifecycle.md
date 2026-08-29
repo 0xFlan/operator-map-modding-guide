@@ -23,6 +23,11 @@ A companion does not parse a second manifest. It does not load a second copy
 of a framework-owned bundle. It does not call `DebugStartOperation`. It does
 not create a parallel mission UI.
 
+The matching preview API Core/host pair ships inside the Modded Operations
+framework download. It is not a standalone public download until the API
+reaches a full stable release. A map download contains only its data package
+and optional companion; it must not duplicate the framework or API.
+
 ## 3. From source asset to playable object
 
 For each object, close this complete chain:
@@ -258,13 +263,22 @@ Do not spawn players before this order finishes.
 
 ## 11. Optional companion activation
 
-Gate a companion on:
+Schema v2 declares a required companion with `runtimeCompanion`: exact plugin
+GUID, exact SemVer, lowercase DLL SHA-256, and distinct READY/FAILED
+scene-marker names. Core freezes that declaration; it does not load the
+plugin. The framework first resolves the already loaded plugin and verifies
+its exact identity. Then gate companion scene work on:
 
 - exact streamed scene path;
 - exact `MAP_ID_<mapId>`;
 - expected authoring marker;
 - compatible game and framework version;
 - one shared final `TerrainData` when terrain is declared.
+
+Publish the READY marker only after the complete exact-scene contract passes.
+Publish FAILED on an unrecoverable world error. FAILED wins even if READY was
+already observed. For PVP, this check completes before the peer can send
+`SceneReady` for the current epoch.
 
 A companion can then repair resident shaders, terrain materials, trees,
 props, A*, lighting, doors, or map-specific markers. It must destroy only its
@@ -414,7 +428,25 @@ audio sources, non-empty clip arrays, timer/score text, result roots,
 animators, fade states, outcome text, and round values. The shipped controller
 owns freeze, death, score, respawn, and operation end.
 
-Prove PVP with one host and one remote client.
+Modded Operations `0.3.30` protocol v6 freezes authenticated host/remote membership for PVE and PVP
+and requires exact framework/API/package/optional-companion/operation/scene
+identity before every remote sends `ContentReady`. After scene transition,
+each peer validates the exact scene, native template, mode-owned spawn contract, and
+companion READY/FAILED contract before it sends `SceneReady` for the
+host-issued nonzero UInt64 scene epoch. Retained-content Restart increments
+the epoch exactly once. Stale readiness, membership change, late join,
+disconnect, replacement connection, mismatch, timeout, and overflow fail
+closed.
+
+PVP requires `ceil(maxPlayers/2)` valid markers per team. The current vanilla
+maximum is 12, which requires at least six on each side. Prove the protocol
+and gameplay with one host and one remote client; run a separate real
+12-player stress matrix before advertising 12-player support.
+
+Protocol v6 gives online PVE a separate content/scene agreement and binds the
+host-confirmed count. It remains `PROVEN-STATIC`: require two-process package,
+scene, AI replication, movement, projectile, damage, completion, extraction,
+Restart on both peers, failure/return, and teardown proof.
 
 ## 18. Failure, restart, and leave
 
@@ -438,6 +470,11 @@ restore operation-owned spawn globals if identity still matches
 Keep verified map bundles resident for shipped restart. A full package release
 can unload them later. Never use `NetworkClient.ClearSpawners()`.
 
+For PVP retained-content Restart, preserve content agreement but advance the
+host scene epoch exactly once. Require the remote's corresponding monotonic
+local scene generation before owner spawn. Do not allow a prior scene-ready
+acknowledgement to survive replacement-scene callback reordering.
+
 For StandardPVE, teardown also destroys the operation-owned ATAK mesh and
 material. It clears zone/global extraction occupants when the operation was
 not successful. It preserves `GameManagerNetwork.SuccessfulOperation` during
@@ -459,8 +496,9 @@ $item.Length
 $hash.Hash.ToLowerInvariant()
 ```
 
-The archive must extract directly into `<OPERATOR_INSTALL>`. A map-only
-archive normally contains:
+The archive must extract directly into `<OPERATOR_INSTALL>`. Public users
+install one matching framework download, which includes the preview API, then
+one separate map-only archive. The map-only archive normally contains:
 
 ```text
 BepInEx/
@@ -474,6 +512,11 @@ BepInEx/
 ```
 
 Do not add private absolute paths or an extra archive root.
+
+A separately labeled multiplayer-test ZIP is transfer packaging only. Mark it
+`TEST ONLY` and `NOT FOR NEXUS`, pin matching hashes on every test machine,
+and keep public release records and support wording unchanged until the live
+matrix passes.
 
 ## 20. Full acceptance
 
@@ -493,7 +536,9 @@ Use physical input and test:
 12. native all-enemies-dead extraction unlock;
 13. the exact current-build ATAK exfil marker;
 14. physical extraction, the native timer, Mission Successful, and Continue;
-15. host and remote PVP sides, death, score, respawn, and end;
+15. host and remote PVP exact agreement, content-ready and current-epoch
+    scene-ready barriers, sides, movement, firearm hits, death, score, round
+    respawn, retained-content restart, unload, and end;
 16. map materials, lighting, trees, props, and interactives at player height.
 
 A compile is `PROVEN-STATIC`. A controlled runtime event is

@@ -1,8 +1,10 @@
 # 3c. Native mode ownership, PVE, and StandardPVP
 
-Status: `PROVEN-STATIC` for OPERATOR Steam build `24091246` and the current
-framework source. Host, remote-client, restart, and return-to-armory behavior
-must also pass the physical release matrix.
+Status: `PROVEN-STATIC` for OPERATOR Steam build `24091246`, Modded Operations
+`0.3.30`, and bundled-only Operator Mod API `0.2.0-alpha.7`. Protocol v6 covers
+PVP and online PVE in source, but exact two-process transport, movement,
+combat, restart, failure/return, and teardown must still pass each physical
+release matrix.
 
 Use this chapter to decide which data belongs in a map scene and which data
 belongs in OPERATOR: Modded Operations. It also gives the exact current-build
@@ -86,6 +88,11 @@ PVP_Team1Spawn_*
 PVP_Team2Spawn_*
 ```
 
+Discovery is mode-isolated. PVE ignores PVP-prefixed and Team 2 markers. PVP
+ignores `PVE_PlayerSpawn_` markers. Shared `Team1_Spawn_` and
+`Team1_Backup_Spawn_` aliases can remain valid for either mode; explicit PVE
+and PVP prefixes belong only to their own mode.
+
 The first team uses integer team ID `1`. The second team uses integer team ID
 `2`. Do not use `0` and `1`. `PlayerMaster` passes
 `MyTeamIdentifier.TeamID` to the retail spawn selector without converting it.
@@ -111,6 +118,12 @@ The source file is:
 
 The current build creates exactly ten markers for each team. Team 1 uses the
 same side as PVE players. Team 2 uses the same side as the PVE enemy pockets.
+
+Before PVP launch, the framework requires at least
+`ceil(maxPlayers / 2)` valid markers for each team. The current vanilla lobby
+exposes at most 12 players, so a map that declares 12 must provide at least six
+accepted Team 1 markers and six accepted Team 2 markers. Extra valid markers
+are permitted. Reinspect the lobby limit after a game update.
 
 ## 4. Add the PVP spawn-set identity
 
@@ -148,7 +161,7 @@ Use this complete schema-version-1 shape:
   "areaOfOperation": "EXAMPLE REGION",
   "sitrep": "Team 1 enters from the player side. Team 2 enters from the opposing side. Both teams use the same package build.",
   "minPlayers": 2,
-  "maxPlayers": 16,
+  "maxPlayers": 12,
   "spawnSet": "example-pvp",
   "infiltrations": [
     {
@@ -156,7 +169,7 @@ Use this complete schema-version-1 shape:
       "displayName": "TEAM ONE ENTRY",
       "mapPositionX": 0.5,
       "mapPositionY": 0.2,
-      "maxPlayers": 16
+      "maxPlayers": 12
     }
   ],
   "timeCodes": ["1100", "0200"],
@@ -292,7 +305,50 @@ type before it adopts the clone as `GameMode.singleton` or
 `PvpGameode.instance`. Release calls `NetworkClient.UnregisterPrefab` for the
 operation-owned template. Do not assign one ID to two different prefabs.
 
-## 11. Verify PVP before release
+## 11. Require exact peer agreement
+
+Modded Operations `0.3.30` source uses private protocol v6 for PVP and online
+PVE. It does not infer equality from a package version string.
+
+Before native launch, the host freezes each authenticated remote connection
+object and numeric ID. Every peer must match:
+
+- the exact selected-loader suite receipt, receipt-owned manifest sidecar and
+  selected files, including loaded framework, API Core, API host, and declared
+  companion paths;
+- protocol, game build, required capabilities, and session identity;
+- package ID, package version, and exact package content identity;
+- optional `runtimeCompanion` GUID, version, loader-neutral pair ID, and marker
+  contract;
+- map, operation, mode, spawn set, scene variant/path, time, and player range;
+- for PVE, the declared enemy range and host-confirmed enemy count.
+
+A remote loads and verifies its own package bytes, commits the exact operation,
+and only then sends `ContentReady`. The host does not start the native scene
+transition until every frozen peer is content-ready.
+
+After transition, each peer must validate the exact package scene, construct
+and register the deterministic mode template, install the mode-specific spawn
+contract, and pass any declared companion contract before `SceneReady`. PVE
+also validates the agreed count against navigation-valid ordinary markers that
+remain at least 2 m apart after snapping; inactive utility markers are eligible
+and active count is telemetry only. A declared READY marker is insufficient
+when plugin identity is wrong. A declared FAILED marker always wins, including
+after READY.
+
+Scene readiness is bound to a nonzero unsigned 64-bit epoch. Initial launch is
+epoch 1. Each retained-content Restart advances it exactly once. A remote maps
+the request to one monotonic local scene generation and cannot reuse a prior
+generation's acknowledgement. The host retries the request every 5 seconds
+inside the 90-second scene deadline. Zero, stale, future, out-of-phase, and
+overflowing epochs fail closed.
+
+The frozen membership cannot change. A late join, disconnect, or replacement
+connection aborts even if a numeric connection ID is reused. Late join is not
+supported for either agreed mode. This implementation is `PROVEN-STATIC` and
+does not by itself prove real PVP combat or PVE AI/gameplay equivalence.
+
+## 12. Verify PVP before release
 
 Record all of these results:
 
@@ -311,9 +367,27 @@ Record all of these results:
 13. Return to the armory clears the mode owner and restores player control.
 14. The client log proves registration of asset ID `0x4D4F5002`, receipt of a
     matching clone, and adoption of `StandalonePvpGameMode`.
-15. Repeat with a remote client. Both peers must use identical framework,
-    package, scene-bundle, dependency-bundle, and companion hashes.
+15. The host and remote logs show the same frozen membership, exact agreement,
+    every `ContentReady`, and the current-epoch `SceneReady` set.
+16. Repeat with a remote client. Both peers must present an exact valid suite
+    receipt/sidecar/file closure and identical package manifest plus every
+    declared package file.
+17. Fire real weapons in both directions. Record firearm-specific hit/death,
+    score, round respawn, retained-content Restart, unload, and armory return.
+18. If 12-player support is advertised, run a separate real 12-player matrix;
+    six static markers per team prove capacity only, not load behavior.
 
 Host-only success does not prove remote-client AssetBundle or Mirror spawn
 behavior. Keep the multiplayer release gate open until the remote-client test
 passes.
+
+For online PVE, run a separate two-process matrix. Start both peers together;
+prove both leave loading and remain grounded, the host-confirmed count is the
+agreed count, the remote adopts the same operation, AI replicate and take real
+weapon damage, all-AI-dead completion and extraction work, Restart replaces
+the scene on both peers, and failure/return/close tear down cleanly. Repeat
+spawn time, frame time, completion, Restart, and teardown at the map's claimed
+certified maximum. The global cap is 100, but a map may claim only its smaller
+verified maximum. Reject late join or any roster change within the bounded
+agreement deadline. Solo, host-only, and join-in-progress success do not close
+this gate.

@@ -3,7 +3,7 @@
 A technical manual for people who build, package, load, and validate custom
 OPERATOR maps. It uses the current standalone Modded Operations method. It
 assumes a Windows PC, a legal local OPERATOR installation, Unity, AssetRipper,
-and BepInEx IL2CPP.
+and exactly one supported IL2CPP loader: BepInEx or MelonLoader.
 
 Worked public implementations:
 
@@ -14,6 +14,15 @@ The framework in this manual is **OPERATOR: Modded Operations — Standalone Map
 Framework**. Read the
 [OPERATOR Standalone Map Modding BIBLE](OPERATOR_MAP_MODDING_BIBLE.md) before
 you make a release package.
+
+Current source checkpoint: Modded Operations `0.3.30` with bundled-only
+Operator Mod API `0.2.0-alpha.7`. Shared source builds isolated BepInEx and
+MelonLoader products; install exactly one variant. Protocol v4 adds fail-closed
+PVP and PVE content/scene agreement, a host-authoritative PVE enemy-count
+identity, and restart epochs. These contracts and their automated tests are
+`PROVEN-STATIC`, not supported online gameplay. A real host and remote client
+must still pass the full mode-specific launch, movement, combat, restart,
+failure, return, and teardown matrix.
 
 
 ## Build a map in this order
@@ -29,7 +38,8 @@ you make a release package.
 7. Wire the exact mission row, briefing, preview, infiltration marker, time,
    bundle, and scene data with
    [docs/03b-modded-operations-presentation.md](docs/03b-modded-operations-presentation.md).
-8. Wire PVE or the shipped `PvpGameode` owner with
+8. Wire PVE or the shipped `PvpGameode` owner, PVP marker capacity, and exact
+   peer-readiness contract with
    [docs/03c-native-mode-ownership-and-pvp.md](docs/03c-native-mode-ownership-and-pvp.md).
 9. Build the [standalone package](docs/10-standalone-packages.md).
 10. Implement the [standalone runtime flow](docs/04-runtime-integration.md).
@@ -61,16 +71,26 @@ binds shared render/collision state. Map equations and exact asset repairs do
 not belong in the generic framework.
 
 The scene/package owns marker coordinates, combat walls, tree families, and
-PVE `minEnemies`/`maxEnemies`. The exact-scene companion builds navigation
+PVE `minEnemies`/`maxEnemies`. The global hard cap is 100, but every map must
+publish its smaller evidence-backed certified maximum. The exact-scene companion builds navigation
 from the authoritative gameplay physics/bullet volume and rejects outside
-markers before graph lookup. OPERATOR: Modded Operations consumes the declared
-population range and stays free of map coordinates. Tree-family acceptance also requires
+markers before graph lookup. Inactive utility markers remain eligible only
+when they are navigation-valid and at least 2 m apart in X/Z after snapping.
+OPERATOR: Modded Operations consumes the declared population range and stays
+free of map coordinates. Tree-family acceptance also requires
 close/mid/far player-camera crown silhouettes; structural asset closure alone
 does not prove foliage quality.
 
 The MapBridge retail-scene overlay method is `RETIRED` for mission parity. It
 remains available for explicit local diagnostics. See the
 [archived overlay method](docs/archive/legacy-mapbridge-overlay.md).
+
+Public distribution keeps executable runtime files and map data separate. The
+transactional suite installer selects one loader and installs the exact API,
+framework, and companion/product set recorded by its manifest, receipt, and
+sidecar. It does not install, update, remove, or rewrite data-only map packages
+under `OPERATOR/OperatorMods`. Map downloads must not duplicate the framework
+or API. A test transfer is not a release or an online-support claim.
 
 ## Documentation map
 
@@ -93,7 +113,8 @@ remains available for explicit local diagnostics. See the
   bundle-content, hashing, and in-game presentation workflow.
 - [03c Native mode ownership](docs/03c-native-mode-ownership-and-pvp.md):
   exact PVE/PVP owner boundary, one-based team markers, shipped
-  `PvpGameode` defaults and references, lifecycle, teardown, and test gates.
+  `PvpGameode` defaults and references, exact PVP peer agreement, scene
+  generation epochs, lifecycle, teardown, and test gates.
 - [04 Runtime integration](docs/04-runtime-integration.md): standalone
   ownership, exact load order, readiness, mode owner, restart, and teardown.
 - [05 Spawn and gameplay](docs/05-spawn-and-gameplay.md): handoff timing,
@@ -114,7 +135,9 @@ remains available for explicit local diagnostics. See the
 - [Package JSON Schema](schemas/operator-map-package.schema.json): closed
   machine-readable schema-v1 manifest contract.
 - [Package JSON Schema v2](schemas/operator-map-package-v2.schema.json):
-  schema-v1 fields plus the closed PVE-only fixed AI profile.
+  schema-v1 fields plus scene variants, the closed PVE-only fixed AI profile,
+  runtime terrain, and the optional closed runtime-companion identity/readiness
+  contract.
 - [Package manifest template](templates/operator-map-package.example.json):
   complete PVE/PVP schema shape with explicit placeholder hashes; read the
   [template instructions](templates/README-package-template.md) before use.
@@ -166,6 +189,16 @@ Start a new Codex task after installation. Invoke the skill as
   Death/KIA restart remains a separate gate. It MUST use the generic
   framework's native-compatible mode owner and the shipped failure UI. The
   map bundle MUST NOT own this UI.
+
+Online PVP and PVE co-op are separate release gates. Each requires two distinct
+OPERATOR processes to start together with exact suite-receipt and complete
+package-content agreement. Both peers must leave loading, remain grounded,
+complete the mode-specific combat flow, Restart, and return cleanly; late join
+or membership change must be rejected within its bound. PVE additionally must
+prove the host-selected enemy count, replicated AI, completion, extraction,
+and the claimed capacity/performance/teardown ceiling. Static agreement tests,
+a solo or host-only session, and join-in-progress success do not close either
+gate.
 
 Do not call a map ready because it looks correct in the Unity editor or in a
 forced-camera capture.

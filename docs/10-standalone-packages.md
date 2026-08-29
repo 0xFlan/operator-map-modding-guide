@@ -9,7 +9,8 @@ Map Framework**.
 The machine-readable contracts are the legacy
 [`schema v1`](../schemas/operator-map-package.schema.json) and
 [`schema v2`](../schemas/operator-map-package-v2.schema.json). Use v2 only
-when a PVE operation requires a fixed `pveAiProfile`.
+when a map requires `sceneVariants`, `runtimeCompanion`, or another v2 map
+field, or when a PVE operation requires a fixed `pveAiProfile`.
 Start from the annotated
 [`templates/operator-map-package.example.json`](../templates/operator-map-package.example.json)
 only after you read its
@@ -21,7 +22,7 @@ lengths and hashes in that example are placeholders, not release values.
 Use this layout:
 
 ```text
-BepInEx/
+OPERATOR/
 |-- OperatorMods/
 |   `-- author.example-map/
 |       |-- operator-map-package.json
@@ -32,12 +33,13 @@ BepInEx/
 |       |   `-- outdoor-rgba-half-32.bytes
 |       `-- media/
 |           `-- preview.png
-`-- plugins/
-    `-- AuthorExampleMap/
-        `-- AuthorExampleMap.dll
+|-- BepInEx/plugins/AuthorExampleMap/AuthorExampleMap.dll
+`-- Mods/AuthorExampleMap.MelonLoader.dll
 ```
 
-The DLL is optional. It is not part of the data-only package.
+The two DLL paths are mutually exclusive loader variants. The companion is
+optional and is not part of the shared data-only package. The suite installer
+does not install, update, remove, or rewrite `OperatorMods` packages.
 
 ## Manifest top-level fields
 
@@ -75,6 +77,7 @@ A map ID and operation ID MUST stay below the owning package namespace.
 | `previewImage` | safe relative path | Declared package image |
 | `externalTonemapLut` | object or null | Optional verified raw LUT contract |
 | `runtimeTerrain` | object or null | Optional exact runtime reconstruction contract |
+| `runtimeCompanion` | closed object or null | Optional exact external selected-loader companion identity and READY/FAILED marker contract; schema v2 only |
 | `operations` | array | 1 to 32 operation definitions |
 
 A dependency bundle MUST contain no scene. The scene bundle MUST expose the
@@ -119,8 +122,8 @@ for the exact decoder, dimensions example, UI targets, and validation matrix.
 | `sitrep` | string | 1 to 4000 characters |
 | `minPlayers` | integer | 1 to 64 |
 | `maxPlayers` | integer | 1 to 64 and not less than `minPlayers` |
-| `minEnemies` | integer | Required for PVE; 1 to 64 |
-| `maxEnemies` | integer | Required for PVE; not less than `minEnemies`; 1 to 64 |
+| `minEnemies` | integer | Required for PVE; 1 to 100 |
+| `maxEnemies` | integer | Required for PVE; not less than `minEnemies`; 1 to 100; native briefing selection cannot exceed it |
 | `pveAiProfile` | closed object | Optional in schema v2 and PVE only; fixed operation-local native AI values |
 | `spawnSet` | token | Matches one scene `SPAWN_SET_...` marker |
 | `infiltrations` | array | 1 to 16 package-owned infiltration choices |
@@ -141,9 +144,26 @@ For a 10-to-15 actor PVE operation, use:
 "maxEnemies": 15
 ```
 
-The scene MUST have at least ten valid enemy markers for this example. The
-server selects an inclusive deterministic count. The map scene owns the marker
-positions. The generic framework owns count selection and actor creation.
+The global schema ceiling is 100, but each package MUST publish only an
+evidence-backed maximum. Every scene variant MUST retain at least
+`maxEnemies` navigation-valid ordinary enemy markers with at least two metres
+of planar separation after snapping. The native briefing selects a whole
+number in the declared range, Confirm captures it atomically, and the host is
+authoritative in multiplayer. The map scene owns marker positions; the generic
+framework owns selection validation and native `RaidManager` actor creation.
+
+For a larger evidence-backed range, LOT 12 package `0.1.22` uses `10..60` and
+authors 72 validated tactical positions in every scene variant. Its current
+BepInEx local test launched and grounded 60 server-owned AI, removed the exact
+population on alive Restart, retained the selected count, and validated a fresh
+60. That proves the map-local lifecycle, not universal performance: 60 AI was a
+demanding CPU/memory stress case on the test machine. It also does not replace
+the separate two-peer PVE replication and reciprocal-combat gate.
+
+That same `0.1.22` package preloads the exact reconstructed wooden door's 47
+unique clips as decompressed-on-load assets before interaction. This mitigates
+first-door audio/decode hitches for that pinned recovery path; it is not a
+general requirement for complete authorized native door prefabs.
 
 An optional schema-v2 profile has these required fields:
 
@@ -157,10 +177,68 @@ An optional schema-v2 profile has these required fields:
 | `useComms` | Boolean |
 | `counterSuppression` | Boolean |
 
+It also has these optional fields:
+
+| Field | Contract |
+| --- | --- |
+| `initialWanderDelayMaxSeconds` | Finite `2..60`; caps only the first native wander delay |
+| `reactionDisposition` | Exact lowercase `defensive`, `offensive`, or `random` |
+| `maximumReactionTimeSeconds` | Finite `0.10..1.50`; caps native base/current reaction time without raising a faster prefab value |
+
 The object is fixed data. It does not create a difficulty control. Measure
 playable geometry and marker gaps before you choose the values. Read
 [AI navigation, routes, and behavior](11-ai-navigation-and-behavior.md) for
 the native write, wander-delay, and foliage sight contracts.
+
+## Optional runtime companion
+
+Schema v2 can bind one exact external map companion:
+
+```json
+"runtimeCompanion": {
+  "pluginGuid": "author.example-map",
+  "pluginVersion": "1.2.3",
+  "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "melonLoaderSha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+  "runtimeContentId": "28b80e3a2066ee764a12494eee98a7957f29875d3708f4283a09e4f772be1e47",
+  "readyMarkerName": "AUTHOR_EXAMPLE_READY",
+  "failureMarkerName": "AUTHOR_EXAMPLE_FAILED"
+}
+```
+
+The GUID is one non-reserved lowercase namespaced product identity. The
+version is an exact SemVer 2.0 value. `sha256` and `melonLoaderSha256`
+identify the exact BepInEx and MelonLoader binaries. `runtimeContentId` is the
+SHA-256 of this UTF-8 preimage, joined with `\n` and with no trailing newline:
+
+```text
+operator-loader-neutral-runtime-pair-v1
+<pluginGuid>
+<pluginVersion>
+<sha256>
+<melonLoaderSha256>
+```
+
+Generate this value with `tools/operator_runtime_content_id.py` from the
+maintained workspace. Runtime agreement recomputes it and fails closed when it
+does not bind the declared exact binary pair.
+
+The two marker names are distinct, trimmed, slash-free exact GameObject names
+of at most 128 characters. Omission or JSON `null` means no companion. Schema
+v1 rejects this field.
+
+Core validates and freezes the declaration but does not load the plugin. The
+framework resolves the already loaded plugin, verifies GUID/version/DLL
+bytes, and looks for the marker only in the selected package-scene generation.
+The companion publishes READY only after its exact-scene work passes and
+publishes FAILED on an unrecoverable map-world error. FAILED always wins. A
+PVP or online PVE peer cannot acknowledge scene readiness before this contract
+passes.
+
+Install only the selected companion in its own
+`BepInEx/plugins/<map-plugin>` or `Mods/<map-plugin>` directory. Never put the
+DLL in `OperatorMods`, the package `files[]` table, or the framework
+archive.
 
 ## Infiltration fields
 
@@ -264,10 +342,15 @@ Use immutable logical IDs and content hashes.
 - A file path, Unity instance ID, mutable list index, or official mission ID
   MUST NOT be the durable package identity.
 
-Multiplayer content agreement needs more than version text. It needs exact
-package content, game build, protocol, required capabilities, and session
-identity. Do not claim multiplayer agreement before the two-peer mismatch and
-late-join matrix passes.
+Multiplayer content agreement needs more than version text. Protocol v4 binds
+the selected-loader suite receipt and exact sidecar, receipt-owned loaded
+framework/API/host/companion paths, complete package content, game build,
+required capabilities, operation/scene identity, player range, and session
+identity. PVE also binds the declared range and host-confirmed enemy count.
+Static tests do not prove two-process transport. Do not claim PVP or PVE
+support before two distinct OPERATOR processes pass synchronized start,
+content/scene readiness, both-peer grounding, the mode-specific combat and
+completion flow, Restart, teardown, and bounded late-join/membership refusal.
 
 ## Scene metadata markers
 
@@ -296,13 +379,15 @@ PVE_EnemySpawn_01
 PVE_HVTSpawn_00
 ```
 
-Accepted player aliases can include:
+Accepted shared Team 1 aliases can include:
 
 ```text
 Team1_Spawn_00
 Team1_Backup_Spawn_00
-PVP_Team1Spawn_00
 ```
+
+`PVE_PlayerSpawn_` is PVE-only. `PVP_Team1Spawn_` is PVP-only. PVE ignores
+Team 2 and PVP-prefixed markers; PVP ignores PVE-prefixed markers.
 
 For team PVP:
 
@@ -312,6 +397,12 @@ Team1_Backup_Spawn_00
 Team2_Spawn_00
 Team2_Backup_Spawn_00
 ```
+
+Explicit PVP-only aliases are `PVP_Team1Spawn_` and `PVP_Team2Spawn_`.
+Require `ceil(maxPlayers / 2)` accepted markers on each PVP team. The current
+vanilla maximum is 12 players, so a 12-player operation requires at least six
+per side. This is a static capacity check, not proof of a live 12-player
+session.
 
 A marker supplies position and facing. Put its foot point on the intended
 collision surface. Keep headroom and remove overlapping solid colliders.
@@ -416,8 +507,12 @@ cannot load.
 14. Require the exact scene path.
 15. Load the exact scene.
 16. Validate exact map and spawn-set metadata.
-17. Run the companion world contract when the map requires it.
-18. Continue to native-compatible mode readiness.
+17. Verify the declared companion plugin GUID/version/DLL hash when present.
+18. Run the companion world contract; require its exact-scene READY marker
+    and fail on its FAILED marker.
+19. For PVP, require every frozen peer's exact `ContentReady`, then the current
+    epoch's exact-scene `SceneReady` before native owner spawn.
+20. Continue to native-compatible mode readiness.
 
 ## Build and package sequence
 

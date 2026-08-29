@@ -141,6 +141,21 @@ Current implementation members are `SelectCatalogOperation`,
 `BuildPackageInfiltrationMapPrefab`, `PrimeNativeInfiltrationSelector`, and
 `InvokeNativeBoardStart` in `CerberusNativeTabFix.cs`.
 
+## Private modded-PVE enemy selector
+
+Expose `minEnemies..maxEnemies` only on the cloned modded-PVE briefing. Reuse
+the shipped enemy-count slider presentation, but bind it to private operation
+state. Confirm captures the displayed value atomically; Restart retains it;
+the next fresh Operation Room selection may choose a new value. Revalidate the
+value against the package range, the hard framework ceiling, and exact
+navigation-valid marker capacity before the single native population call.
+
+Never write Tier 1 unlock state, shipped Active/Simulation operation arrays,
+vanilla operation objects, vanilla enemy ranges, or the PVP briefing. Capture
+and reverse-restore only process globals temporarily owned for the active
+modded generation, and restore them only when they still contain the values
+the framework installed.
+
 ## Confirm lifetime
 
 Package I/O can outlive the Confirm frame. Capture the exact player-owned
