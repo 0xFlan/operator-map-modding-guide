@@ -194,7 +194,22 @@ Read [references/implementation-locators.md](references/implementation-locators.
     completion, extraction, Restart on both peers, and exact teardown. Expose
     an enemy-count control only on the private modded-PVE operation clone; do
     not mutate Tier 1, shipped operation arrays, vanilla enemy ranges, or PVP.
-17. Keep verified dependency-bundle ownership in the generic framework. A
+17. Make every post-readiness `Update` path bounded. Perform the exact full-scene
+    marker/spawn/companion scan once, cache the accepted generation-owned
+    object, and then validate that cached object's liveness, active state,
+    scene handle, and exact name in O(1). Cadence diagnostics and registry
+    snapshots; do not run `Resources.FindObjectsOfTypeAll`, enumerate all scene
+    roots/transforms, or allocate LINQ arrays every rendered frame. Place an
+    owner-local player once per player/scene-generation assignment, record the
+    acknowledgement, and retire the placement path. Never use periodic spawn
+    correction after gameplay readiness and never write a remote player's
+    transform. Keep every companion dormant outside its exact owned scene.
+    Read renderer state through `sharedMaterial`; Unity's instance-material
+    accessor clones native material state even when the caller only intends to
+    inspect it. Measure an exact sustained gameplay window and gate both frame
+    time and memory growth; do not diagnose a leak from one absolute process
+    value without a same-build baseline or start-to-peak growth record.
+18. Keep verified dependency-bundle ownership in the generic framework. A
     companion must not call `AssetBundle.GetAllLoadedAssetBundles()` as an
     ownership lookup and must not load a second copy of a large bundle. A
     map-scoped borrower API can return an exact asset, but require a live probe
@@ -216,12 +231,12 @@ Read [references/implementation-locators.md](references/implementation-locators.
     and scene bundle handles. Treat `AssetBundle.GetAllLoadedAssetBundles()`
     only as a process diagnostic; a zero result is not ownership evidence and
     must not override the framework's verified cache.
-18. For `SeedMesh_Tree_Bark`, audit the installed shader property table. The
+19. For `SeedMesh_Tree_Bark`, audit the installed shader property table. The
     current Forest bark slots use `_MainTex`, `Normal_vegetation`,
     `mask_vegetation`, `Vector1_DDCDCAD2`, `Vector1_16F2F1E4`,
     `Vector1_813F3AD6`, `_Wetness_sm`, `_Vertex_AO_sm`, and `_cutoff`.
     Generic `_Smoothness` or `_BaseColor` writes do not prove this shader.
-19. Select lighting from a comparable vanilla biome and copy its complete
+20. Select lighting from a comparable vanilla biome and copy its complete
     light plus active Volume contract. The current Forest day reference is
     `sharedassets11.assets` PVP Woods Warehouse: 30,000 lux, 5,500 K, bounce
     5, bloom `.03`, and lens-flare intensity `.5`. The rejected bright PVP

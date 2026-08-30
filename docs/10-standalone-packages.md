@@ -240,6 +240,37 @@ Install only the selected companion in its own
 DLL in `OperatorMods`, the package `files[]` table, or the framework
 archive.
 
+### Steady-state runtime and placement isolation
+
+Treat exact-scene discovery as a generation-start gate, not a per-frame
+maintenance task. The framework or companion may traverse the scene to prove
+the unique READY/FAILED and spawn contracts before gameplay. After acceptance,
+cache the exact generation-owned object and validate only its liveness,
+`activeInHierarchy`, scene handle, and exact name. A normal post-readiness
+`Update` must not repeatedly call `Resources.FindObjectsOfTypeAll`, enumerate
+every root/transform, or allocate LINQ snapshots.
+
+Player insertion follows the same ownership rule. Assign each player once per
+scene generation, send the placement request only to that player's owning
+process, require its grounded acknowledgement, then retire the placement path.
+Do not periodically move players back to spawn after gameplay becomes ready,
+and never correct a remote player by writing its transform directly. Native
+OPERATOR/Mirror code continues to own player and AI movement, bullets, hits,
+health, animation, damage, death, and PVP rounds.
+
+Every map companion must remain dormant outside its exact package scene.
+Diagnostic weapon, material, lighting, or navigation work from one companion
+must not run in vanilla or another modded map. Read renderer state through
+`sharedMaterial`; accessing the instance material can create a persistent
+native clone even for a read-only diagnostic.
+
+For performance acceptance, measure a foreground, exact-scene sustained window
+after readiness. Record frame-time percentiles, physical working set, private
+memory at window start/peak/final, Unity reserved memory at start/peak, and GC
+activity. Gate start-to-peak growth as well as an environment-specific absolute
+ceiling. A single high private-byte value without a same-build control or a
+growth series is not enough to attribute a leak to the selected map.
+
 ## Infiltration fields
 
 | Field | Type | Requirement |
