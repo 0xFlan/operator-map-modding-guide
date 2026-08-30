@@ -152,7 +152,7 @@ number in the declared range, Confirm captures it atomically, and the host is
 authoritative in multiplayer. The map scene owns marker positions; the generic
 framework owns selection validation and native `RaidManager` actor creation.
 
-For a larger evidence-backed range, LOT 12 package `0.1.22` uses `10..60` and
+For a larger evidence-backed range, LOT 12 package `0.1.24` uses `10..60` and
 authors 72 validated tactical positions in every scene variant. Its current
 BepInEx local test launched and grounded 60 server-owned AI, removed the exact
 population on alive Restart, retained the selected count, and validated a fresh
@@ -160,7 +160,7 @@ population on alive Restart, retained the selected count, and validated a fresh
 demanding CPU/memory stress case on the test machine. It also does not replace
 the separate two-peer PVE replication and reciprocal-combat gate.
 
-That same `0.1.22` package preloads the exact reconstructed wooden door's 47
+That same `0.1.24` package preloads the exact reconstructed wooden door's 47
 unique clips as decompressed-on-load assets before interaction. This mitigates
 first-door audio/decode hitches for that pinned recovery path; it is not a
 general requirement for complete authorized native door prefabs.

@@ -3,9 +3,10 @@
 Use this reference for generalized additive modding and `OperatorModAPI` work.
 Keep private map-specific fixes in their project evidence log.
 
-## Current multiplayer/package checkpoint (2026-08-20)
+## Current multiplayer/package checkpoint (2026-08-30)
 
-The current unshipped Modded Operations `0.3.30` and bundled OperatorModAPI
+The current Modded Operations `0.3.31` multiplayer-test candidate and bundled
+OperatorModAPI
 `0.2.0-alpha.7` source use protocol v6 for PVP and online PVE. Agreement binds
 the exact selected-loader suite receipt and manifest sidecar, game fingerprint,
 protocol/capabilities, canonical package/content/operation/variant/scene

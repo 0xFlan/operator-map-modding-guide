@@ -428,7 +428,7 @@ audio sources, non-empty clip arrays, timer/score text, result roots,
 animators, fade states, outcome text, and round values. The shipped controller
 owns freeze, death, score, respawn, and operation end.
 
-Modded Operations `0.3.30` protocol v6 freezes authenticated host/remote membership for PVE and PVP
+Modded Operations `0.3.31` protocol v6 freezes authenticated host/remote membership for PVE and PVP
 and requires exact framework/API/package/optional-companion/operation/scene
 identity before every remote sends `ContentReady`. After scene transition,
 each peer validates the exact scene, native template, mode-owned spawn contract, and

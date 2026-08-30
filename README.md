@@ -9,15 +9,16 @@ Worked public implementations:
 
 - [OPERATOR: Modded Operations framework](https://github.com/0xFlan/operator-modded-operations)
 - [Ukrainian Forest reference map](https://github.com/0xFlan/operator-ukrainian-forest)
+- [LOT 12 reference map](https://github.com/0xFlan/operator-lot-12)
 
 The framework in this manual is **OPERATOR: Modded Operations — Standalone Map
 Framework**. Read the
 [OPERATOR Standalone Map Modding BIBLE](OPERATOR_MAP_MODDING_BIBLE.md) before
 you make a release package.
 
-Current source checkpoint: Modded Operations `0.3.30` with bundled-only
+Current source checkpoint: Modded Operations `0.3.31` with bundled-only
 Operator Mod API `0.2.0-alpha.7`. Shared source builds isolated BepInEx and
-MelonLoader products; install exactly one variant. Protocol v4 adds fail-closed
+MelonLoader products; install exactly one variant. Protocol v6 adds fail-closed
 PVP and PVE content/scene agreement, a host-authoritative PVE enemy-count
 identity, and restart epochs. These contracts and their automated tests are
 `PROVEN-STATIC`, not supported online gameplay. A real host and remote client

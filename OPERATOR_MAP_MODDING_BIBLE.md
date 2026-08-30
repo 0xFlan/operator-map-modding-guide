@@ -29,7 +29,7 @@ This document uses the language and evidence rules in
 
 ## 1. Scope and status
 
-The current authored source checkpoint is Modded Operations `0.3.30` with the
+The current authored source checkpoint is Modded Operations `0.3.31` with the
 bundled-only Operator Mod API `0.2.0-alpha.7`. Shared source builds isolated
 BepInEx and MelonLoader products; install exactly one loader variant. Protocol
 v6 adds fail-closed PVP and online-PVE content/scene agreement, exact suite
@@ -37,11 +37,11 @@ receipt and sidecar validation, loader-neutral companion identity, a
 host-authoritative PVE enemy-count identity, and restart readiness bound to a
 host-issued scene generation epoch. Its source and automated contracts are
 `PROVEN-STATIC`. They are not evidence from a real host and remote OPERATOR
-process. The last hash-pinned public framework publication remains `0.3.28`
-with bundled API `0.2.0-alpha.5`, and the last complete runtime framework
-candidate remains `0.3.24`.
+process. The exact `0.3.31` BepInEx bytes have bounded single-machine PVE,
+restart, selector, performance, and cross-map control evidence; MelonLoader and
+real peer claims remain open.
 
-A separately labeled `0.3.29`/alpha.6 archive exists only to transfer exact
+A separately labeled `0.3.31`/alpha.7 archive exists only to transfer exact
 bytes for a controlled multiplayer test. It is not a Nexus release, not a
 standalone API release, and not proof of online support. Do not promote it
 until a real host and remote client pass content agreement, exact scene
@@ -70,7 +70,7 @@ vegetation sight obstruction. Maximum displacement was `51.19 m` and
 `49.34 m`.
 Owner-aware firearm population and reciprocal firearm behavior are
 `PROVEN-RUNTIME` only for the stated pinned single-player Forest scope. The
-current protocol-v4 PVP and PVE source remains `PROVEN-STATIC` until each
+current protocol-v6 PVP and PVE source remains `PROVEN-STATIC` until each
 mode's real two-peer matrix passes. The existence of a PVE agreement path does
 not prove remote package/scene equality, AI replication, combat, completion,
 extraction, restart, or teardown.
@@ -752,7 +752,7 @@ position-only loop. The shipped respawn coroutine owns player placement. On
 unload, clear `PvpGameode.instance` only when it still points to the
 operation-owned component.
 
-Current Modded Operations `0.3.30` source uses protocol v6 for both PVP and
+Current Modded Operations `0.3.31` source uses protocol v6 for both PVP and
 online PVE. Before native launch, the host freezes authenticated remote
 connection objects and IDs. Every peer must validate its selected-loader suite
 receipt, the exact receipt-owned manifest sidecar, every selected file record,
@@ -778,7 +778,7 @@ Zero, stale, future, out-of-phase, or overflowing epochs fail closed.
 
 Membership is immutable for the agreed session. A join, disconnect, or
 replacement connection aborts even when the numeric connection ID is reused.
-Late join is not supported. The protocol-v4 implementation is `PROVEN-STATIC`;
+Late join is not supported. The protocol-v6 implementation is `PROVEN-STATIC`;
 it does not itself prove PVP combat or PVE AI replication, completion,
 extraction, restart, and teardown in two real processes.
 
@@ -1174,7 +1174,7 @@ and mark their status clearly.
 ## 29. Fixed PVE AI and foliage sight contract
 
 The current Operator Mod API `0.2.0-alpha.7` contract and Modded Operations
-`0.3.30` source support schema version 2. A schema-v2 PVE operation can
+`0.3.31` source support schema version 2. A schema-v2 PVE operation can
 declare one immutable `pveAiProfile`. Schema v1 and PVP reject it. The
 framework adds no difficulty UI and makes no global AI change.
 

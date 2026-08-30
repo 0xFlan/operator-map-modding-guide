@@ -1,7 +1,7 @@
 # 3c. Native mode ownership, PVE, and StandardPVP
 
 Status: `PROVEN-STATIC` for OPERATOR Steam build `24091246`, Modded Operations
-`0.3.30`, and bundled-only Operator Mod API `0.2.0-alpha.7`. Protocol v6 covers
+`0.3.31`, and bundled-only Operator Mod API `0.2.0-alpha.7`. Protocol v6 covers
 PVP and online PVE in source, but exact two-process transport, movement,
 combat, restart, failure/return, and teardown must still pass each physical
 release matrix.
@@ -307,7 +307,7 @@ operation-owned template. Do not assign one ID to two different prefabs.
 
 ## 11. Require exact peer agreement
 
-Modded Operations `0.3.30` source uses private protocol v6 for PVP and online
+Modded Operations `0.3.31` source uses private protocol v6 for PVP and online
 PVE. It does not infer equality from a package version string.
 
 Before native launch, the host freezes each authenticated remote connection

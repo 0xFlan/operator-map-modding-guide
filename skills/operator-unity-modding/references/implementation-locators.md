@@ -19,11 +19,11 @@ drive-specific workspace, a private log, or a private test control.
 
 - Assemblies: BepInEx `OperatorModdedOperations.dll`; MelonLoader
   `OperatorModdedOperations.MelonLoader.dll`.
-- Current unshipped multiplayer-test candidate: `0.3.30`. BepInEx is 632,832
-  bytes / SHA-256
-  `772D9FC1470DCC115B22F8C232C4A3B90D0FC727C5B1D27A0F54ED95E5D1AE86`;
-  MelonLoader is 634,368 bytes / SHA-256
-  `2C2D11C28BD2D470ABAC83F2FC558476384DA8D79302FA4B1ADD6F845A113F83`.
+- Current multiplayer-test candidate: `0.3.31`. BepInEx is 642,560 bytes /
+  SHA-256
+  `54890536492E645050C7C2125F7D1FF4FFC23C3BE23EBF95A2294E648439DEB7`;
+  MelonLoader is 643,584 bytes / SHA-256
+  `EBCAD6563366D614A12C2797622B7639A16377EAE829A4279A3914CFF498C635`.
 - Required bundled preview API: `0.2.0-alpha.7`. Core is 204,800 bytes /
   SHA-256
   `5B74AC25B4047D9AB8E9929D136C53B7543DA52B621FAF3D4AF42719D276E21E`;
@@ -31,10 +31,11 @@ drive-specific workspace, a private log, or a private test control.
   `6223553C5406AD3586F23EA2B5F05C6F4626FA62A03E0598667E09A5486E1E3B`;
   MelonLoader host is 24,576 bytes /
   `1CC745AB57A18848F15A47C80FCE5399C4006FE3ADE2C94B449792CFBABFF7FA`.
-- This candidate is `PROVEN-STATIC`, not a promoted public release. The public
-  decompiler/source-state record remains `0.3.28` with API alpha.5 until a
-  release promotion regenerates those artifacts. Do not mix the candidate
-  DLL with that prior publication identity.
+- This candidate is `PROVEN-RUNTIME` only for the recorded single-machine
+  BepInEx gates and `PROVEN-STATIC` for MelonLoader and peer networking. It is
+  not a promoted public release. Do not mix it with a historical decompiler or
+  API publication identity, and do not claim online support until separate-PC
+  host/client PVE and PVP matrices pass.
 - Current source includes `CerberusNativeTabFix.cs`, the peer-agreement/runtime
   partials, `PveEnemyCountSelection.cs`, and `FrameworkEvidence.cs`.
 - Install directories: BepInEx
@@ -143,7 +144,7 @@ that more than one package can select.
 
 ## Ukrainian Forest worked reference
 
-- Package: `community.ukrainian-forest`, version `0.3.21`.
+- Package: `community.ukrainian-forest`, version `0.3.24`.
 - Map: `community.ukrainian-forest.ukrainian-forest`.
 - Dependency bundle: `content/operator_ukrainian_forest`.
 - Scene bundle: `content/operator_ukrainian_forest_scene`.
@@ -183,9 +184,11 @@ that more than one package can select.
 - Current-build team IDs: Team 1 is `1`; Team 2 is `2`.
 - Terrain object: `NATIVE_Ground_HillyTerrain`.
 - Companion assembly: `OperatorUkrainianForest.dll`.
-- Companion version: `0.4.19`.
-- Accepted Release DLL: 298,496 bytes; SHA-256
-  `85FC1478A8E04FDA37CB2CBAD08D26231F3C4ECABD6A5F19899484948A763E74`.
+- Companion version: `0.4.22`.
+- Current selected-suite BepInEx DLL: 330,752 bytes; SHA-256
+  `E7B4BF59480D26BE309560580E919047B9EEF5286E50A98EED7150E47F2861DF`.
+- Current selected-suite MelonLoader DLL: 331,264 bytes; SHA-256
+  `FAA79A7998F92D8F02EA7226F70F456323812ABBFCF9F5B40315100E6A348463`.
 - Build the exact Release binary from the current source. Verify its hash
   against the release archive checksum file.
 - Companion source file: `OperatorUkrainianForestPlugin.cs`.
