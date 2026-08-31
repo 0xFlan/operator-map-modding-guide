@@ -153,6 +153,15 @@ a reversible scene-lifetime transaction:
    and a named lit/dim/dark owner. Validate spot type, physical light unit,
    intensity, range, temperature, fixture height, shadows, and visual emissive
    state. A disabled dark fixture must not retain a bright emissive tube.
+   Mount overhead fixtures against the interior underside of the roof, not a
+   downward ray hit on the roof's exterior top. For thick or one-sided roof
+   colliders, sample across the fixture renderer footprint, cast upward from
+   below the roof with backface queries enabled only for the bounded query,
+   select the nearest underside hit, and align the fixture's highest rendered
+   point to the lowest sampled underside minus the declared gap. Restore the
+   global backface-query flag in `finally`. Gate every fixture's live underside
+   gap and inspect a normal player-camera upward view; transform values and a
+   visible light pool do not prove that the fixture mesh is below the ceiling.
 5. Gate all loaded directionals, not merely the map sentinel. Restore every
    captured value and external directional state on scene unload, failure, or
    plugin unload.
@@ -162,6 +171,12 @@ enabled loaded directionals, zero map point lights, and 27 visible warehouse
 fixture spots across 19 room spaces. The live room-state split was 5 lit, 6
 dim, and 8 dark. Treat those counts as project evidence, not universal indoor
 defaults.
+
+The later Lot 12 ceiling correction uses an exact 0.080 m fixture-top gap from
+the measured interior underside. Its earlier top-face measurement could pass a
+small-gap check while leaving the fixture embedded inside the roof thickness.
+Treat the value as project evidence; the underside-sampling rule is the
+reusable invariant.
 
 HDRP can synchronize a previously serialized `HDAdditionalLightData` value
 back onto `Light.intensity` during additive initialization. When named

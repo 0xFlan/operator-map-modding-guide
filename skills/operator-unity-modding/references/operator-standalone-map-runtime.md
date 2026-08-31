@@ -952,6 +952,10 @@ environment at scene scope:
 - leave weapon-local spot/point lights alone;
 - require authored map light components to descend from visible native fixture
   holders with explicit lit/dim/dark state;
+- for overhead fixtures, measure the roof's interior underside across the
+  renderer footprint and validate the fixture's rendered top against that
+  surface; a downward hit from above measures the exterior top and can embed a
+  fixture inside a thick roof while still passing a nominal gap check;
 - audit all loaded directionals after mutation, then restore on unload, runtime
   gate failure, and plugin unload.
 
