@@ -313,7 +313,7 @@ Confirm, and the host owns that count in multiplayer. PVP omits both fields.
 Modded Operations must not hard-code a map's range.
 
 Current version-pinned LOT 12 evidence demonstrates the large-population form
-of this contract without changing the global ceiling: package `0.1.24` declares
+of this contract without changing the global ceiling: package `0.1.25` declares
 `10..60`, every one of ten scenes authors 72 tactical candidates with at least
 2.05 m pre-runtime planar separation, and the companion certifies at least 60
 after graph snapping. A BepInEx generation launched and grounded 60/60 native
@@ -321,9 +321,23 @@ server-owned AI, alive Restart destroyed the exact prior 60 roots, and the next
 generation validated a fresh 60/60. Treat this as local lifecycle evidence,
 not a general performance or multiplayer claim: the same 60-AI run was highly
 CPU/memory intensive, and paired peer replication is still a separate gate.
-Package `0.1.24` also preloads the exact reconstructed door's 47 unique audio
+Package `0.1.25` also preloads the exact reconstructed door's 47 unique audio
 clips as decompressed-on-load assets before interaction; this is first-use hitch
 mitigation, not multiplayer door proof.
+
+Separate control-plane cost from native simulation cost. Once a launch or
+active operation owns the runtime, retire operation-room discovery scans and
+cache successful immutable lookups. Run stable transport/readiness maintenance
+on a bounded cadence, but preserve actual per-frame observation while a
+protocol explicitly requires consecutive stable frames; sampling every 15th
+frame is not equivalent to 15 consecutive frames. Retire weapon-authority work
+per slot after the synchronized netId is confirmed, reopen it when that netId
+changes, and clear the cache on every scene-generation reset and unload.
+
+These changes reduce framework main-thread overhead but cannot make 60 native
+AI cheap. Performance-qualify high populations separately with frame-time,
+memory, and sustained combat evidence on representative hardware, and keep a
+high maximum opt-in when it does not meet the normal-play target.
 
 On the current candidate, filter `GameManager.AllAITypes` for root `BrainAI`,
 root `NetworkIdentity`, `WeaponsAI.SpawnWeapon=true`, and a non-empty

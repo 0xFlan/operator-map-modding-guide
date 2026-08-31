@@ -172,6 +172,14 @@ fixture spots across 19 room spaces. The live room-state split was 5 lit, 6
 dim, and 8 dark. Treat those counts as project evidence, not universal indoor
 defaults.
 
+For dense indoor fixtures, preserve the light contribution before reducing
+cost. Keep every visible lit/dim fixture and its wall/floor receiver coverage,
+but assign a bounded shadow budget such as one primary soft-shadow owner per
+lit room when the authored layout permits it. Secondary and dim fixtures may
+remain enabled with `LightShadows.None`. Validate the expected shadow-owner
+count against the room-state metadata in both authoring and live runtime; do
+not optimize by hiding fixtures or removing their direct illumination.
+
 The later Lot 12 ceiling correction uses an exact 0.080 m fixture-top gap from
 the measured interior underside. Its earlier top-face measurement could pass a
 small-gap check while leaving the fixture embedded inside the roof thickness.
@@ -215,6 +223,25 @@ baseline size 5 through 25 and cap the normal target at 22.56; this excludes
 the EOTech ring at 100 and legacy/special materials near 1. Snapshot original
 material references and restore/destroy owned clones on weapon change, scene
 load/unload, gate failure, restart, and plugin unload.
+
+## Native muzzle-flash and receiver rule
+
+Do not synthesize a replacement muzzle flash to repair a standalone map.
+OPERATOR's owned `WeaponV3.OnStartAuthority` lifecycle enables the local shot
+presentation graph; its shipped firing/RPC path owns bullets, hit registration,
+damage, recoil, particles, shot audio, and remote cosmetics. Repair and prove
+the native weapon `NetworkIdentity` authority instead of adding a projectile,
+damage hook, or custom network effect.
+
+After authority is confirmed, audit the equipped weapon's resident
+`MuzzleFlash` components. Require at least one native particle system or flash
+object, positive flash time/intensity, and a non-directional dynamic `Light`
+with a nonzero culling mask and range. Then prove visible map renderers use
+lit receiver shaders such as HDRP/Lit or the verified native lit template via
+`sharedMaterials`, and that their layers intersect the muzzle light culling
+mask. Never repair this by disabling all loaded lights or by instantiating a
+fake fireball. Runtime evidence still needs a real fired round from normal
+player input to promote visible-flash and surface-response support.
 
 Scale brightness arrays from snapshots, never from current scaled values. The
 accepted normal/NVG split is 2.0x capped at 3840 for normal and vanilla 1.0x

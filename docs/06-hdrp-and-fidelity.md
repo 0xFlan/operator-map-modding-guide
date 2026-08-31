@@ -256,6 +256,28 @@ An ECOTI-visible image with a black area outside the overlay usually means the
 base night signal is absent or crushed. It does not by itself prove an ECOTI
 material fault.
 
+## Preserve native muzzle flashes and lit receivers
+
+A standalone map must not replace OPERATOR's shot presentation or ballistics.
+Prove that the locally owned weapon completes its native authority lifecycle,
+then audit its resident muzzle particle/flash objects and non-directional
+dynamic light. Require positive flash time/intensity, nonzero light range and
+culling mask, and at least one native particle or flash object. Do not create a
+fake fireball, projectile, damage hook, recoil path, or network cosmetic.
+
+For reactive wall and ground light, validate both sides of the contract: map
+renderers use an installed lit shader through `sharedMaterials`, and each
+receiver layer intersects the native muzzle light's culling mask. Static graph
+proof is not visual proof of a fired shot; final acceptance requires firing the
+normal weapon in game and observing the native flash plus surface response.
+
+For dense interior ceiling arrays, keep every visible lit/dim fixture and its
+direct contribution to walls and floors. Reduce redundant shadow-map work by
+assigning a bounded owner such as one primary soft-shadow fixture per lit room,
+with secondary and dim fixtures left enabled but shadowless. Validate the exact
+shadow-owner count against authored room-state metadata rather than deleting
+lights or hiding fixture meshes.
+
 ## Separate fire, smoke, fog, and scorch responsibilities
 
 Fire, smoke, atmospheric fog, and ground scorching are different effects.
