@@ -727,9 +727,11 @@ framework MUST convert those markers to `SpawnPoint` objects and assign two
 non-empty `Il2CppSystem.Collections.Generic.List<SpawnPoint>` instances to
 `PvpGameode.Team1SpawnPoints` and `Team2SpawnPoints`.
 
-Marker discovery MUST be mode-isolated. PVE can consume its explicit
-`PVE_PlayerSpawn_` markers and shared Team 1 aliases, but it MUST ignore
-PVP-prefixed markers and every Team 2 marker. PVP can consume its explicit
+Marker discovery MUST be mode-isolated. PVE MUST prefer its explicit
+`PVE_PlayerSpawn_` markers. Shared Team 1 aliases are a legacy fallback only
+when the exact scene contains no explicit PVE player markers; the two sets
+MUST NOT be combined. PVE MUST ignore PVP-prefixed markers and every Team 2
+marker. PVP can consume its explicit
 PVP team markers and shared team aliases, but it MUST ignore
 `PVE_PlayerSpawn_`. For PVP, require at least
 `ceil(maxPlayers / 2)` accepted markers for each team before launch. The

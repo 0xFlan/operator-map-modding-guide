@@ -419,15 +419,18 @@ PVE_EnemySpawn_01
 PVE_HVTSpawn_00
 ```
 
-Accepted shared Team 1 aliases can include:
+Legacy shared Team 1 aliases can include:
 
 ```text
 Team1_Spawn_00
 Team1_Backup_Spawn_00
 ```
 
-`PVE_PlayerSpawn_` is PVE-only. `PVP_Team1Spawn_` is PVP-only. PVE ignores
-Team 2 and PVP-prefixed markers; PVP ignores PVE-prefixed markers.
+`PVE_PlayerSpawn_` is PVE-only. When any explicit PVE player marker exists,
+PVE uses only that explicit set. Shared Team 1 aliases are a fallback only for
+older scenes with no explicit PVE player markers, and they are never merged
+with the explicit set. `PVP_Team1Spawn_` is PVP-only. PVE ignores Team 2 and
+PVP-prefixed markers; PVP ignores PVE-prefixed markers.
 
 For team PVP:
 

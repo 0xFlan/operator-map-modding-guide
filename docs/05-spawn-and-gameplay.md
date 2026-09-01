@@ -150,6 +150,12 @@ both fields. Never mutate Tier 1, shipped operation arrays, vanilla enemy
 ranges, or PVP. Do not hard-code one map's count or marker coordinates in the
 generic adapter.
 
+The declared range is the map's complete entitlement. If a release claims a
+maximum of 60, set `maxEnemies` to 60, provide at least 60 navigation-safe
+candidates, reject any selected value above 60, and verify one host-only native
+population call. A higher framework safety ceiling does not increase the
+package maximum.
+
 ## Team PVP identity
 
 Do not assume that native team IDs are zero-based. In the current exact build,

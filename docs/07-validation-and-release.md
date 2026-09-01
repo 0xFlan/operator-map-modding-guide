@@ -10,8 +10,12 @@
 - every operation has complete row/briefing text, one or more infiltrations,
   valid normalized marker anchors, declared time codes, and a default time
   that occurs in the declared list;
-- dependency bundles open and contain no scene;
-- scene bundle opens and contains only the exact declared scene path;
+- a strict forced Unity rebuild succeeds from the current source; reusable
+  builder caches are cleared and old same-name bundles are not accepted as
+  current evidence;
+- dependency bundles reopen and contain no streamed scene;
+- scene bundles reopen, contain the exact declared scene union, and every
+  declared scene loads;
 - expected meshes/materials/textures are present;
 - no null material slots;
 - texture sizes, color spaces, and mips meet the intended contract;
@@ -31,8 +35,9 @@
   least `ceil(maxPlayers/2)` markers; the current 12-player maximum requires
   at least six per team;
 - schema-v2 `runtimeCompanion`, when present, binds one exact plugin GUID,
-  SemVer, lowercase DLL SHA-256, and distinct exact READY/FAILED scene-marker
-  names;
+  SemVer, selected-loader DLL SHA-256, the canonical loader-neutral
+  `runtimeContentId` derived from both BepInEx and MelonLoader hashes, and
+  distinct exact READY/FAILED scene-marker names;
 - each interactive prefab has a complete field/reference closure or is marked
   non-interactive;
 

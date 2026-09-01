@@ -111,8 +111,11 @@ source Unity asset path
 -> expected type, dimensions, encoding, and SHA-256
 ```
 
-Use `BuildPipeline.BuildAssetBundles` with `BuildAssetBundleOptions.StrictMode`
-and `BuildTarget.StandaloneWindows64`.
+For a release candidate, clear reusable builder caches and use
+`BuildPipeline.BuildAssetBundles` with `BuildAssetBundleOptions.StrictMode |
+BuildAssetBundleOptions.ForceRebuildAssetBundle` and
+`BuildTarget.StandaloneWindows64`. A prior bundle with the same filename is
+not evidence for the current source.
 
 Example build definition:
 
@@ -133,7 +136,8 @@ var builds = new[] {
 BuildPipeline.BuildAssetBundles(
     outputDirectory,
     builds,
-    BuildAssetBundleOptions.StrictMode,
+    BuildAssetBundleOptions.StrictMode |
+        BuildAssetBundleOptions.ForceRebuildAssetBundle,
     BuildTarget.StandaloneWindows64);
 ```
 

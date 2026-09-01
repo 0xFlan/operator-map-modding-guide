@@ -88,10 +88,12 @@ PVP_Team1Spawn_*
 PVP_Team2Spawn_*
 ```
 
-Discovery is mode-isolated. PVE ignores PVP-prefixed and Team 2 markers. PVP
-ignores `PVE_PlayerSpawn_` markers. Shared `Team1_Spawn_` and
-`Team1_Backup_Spawn_` aliases can remain valid for either mode; explicit PVE
-and PVP prefixes belong only to their own mode.
+Discovery is mode-isolated. PVE prefers explicit `PVE_PlayerSpawn_` markers.
+Shared `Team1_Spawn_` and `Team1_Backup_Spawn_` aliases are a legacy PVE
+fallback only when the exact scene contains no explicit PVE player markers;
+the framework never combines both sets. PVE ignores PVP-prefixed and Team 2
+markers. PVP ignores `PVE_PlayerSpawn_`; explicit PVP prefixes belong only to
+PVP.
 
 The first team uses integer team ID `1`. The second team uses integer team ID
 `2`. Do not use `0` and `1`. `PlayerMaster` passes

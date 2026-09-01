@@ -33,7 +33,7 @@ Read [references/implementation-locators.md](references/implementation-locators.
    - Resolve `NATIVE_PROXY_*`, library/template wrappers, and `MOD_*` names back to the original native material identity before selecting that profile. A proxy name must never decide whether a material is grass, leaf, bark, or a native special case.
 5. Treat foliage as a special case: validate alpha cutout, double-sided state, queue, material-type mask, shadow/depth passes, normal/map keywords, and native color values. Transparent image files alone do not make foliage transparent in HDRP.
 6. Treat spawn correction as a networked runtime behavior, not only a marker-placement task. For a standalone package, install only the current package scene's verified marker list after the framework reconstructs declared terrain and passes its walkable-ground contract, and before native player creation. An exact-map companion can add a diagnostic after its material, grounding, and A* work; it does not own generic terrain decoding or generic player registration. On the current exact build, team PVP is one-based: assign `SpawnPoint.Team=1` to Team 1 markers and `SpawnPoint.Team=2` to Team 2 markers, and select them from `PlayerMaster.MyTeamIdentifier.TeamID`. Do not infer a team from `ToString()` or retain a cached marker after the player's team changes. For a legacy retail-scene overlay, patch the selected spawn and move path and keep a bounded late-player safety repair that targets the actual local-player hierarchy and Smooth Sync ownership. If that legacy path loads a large bundle after OPERATOR reads template markers, prime the original markers and invisible support pads before bundle loading. Inspect the mode owner too: Standard PVP (`PvpGameode`) and FFA (`FFA`) can run first-round or respawn paths outside `GameManager.MovePlayerToSpawn`. Audit exact installed signatures, then use an idempotent map-scoped handoff at the game scene callback and relevant game-mode spawn phases.
-7. Build, run static layout/material validators, deploy only while the game is closed, and test a real operation. A forced-scene screenshot is diagnostic evidence only; it is not proof that a player spawns on ground or that gameplay rendering is correct.
+7. Build, run static layout/material validators, deploy only while the game is closed, and test a real operation. For a release candidate, perform a strict forced AssetBundle rebuild from the current Unity source after clearing the builder's reusable in-process caches; require Unity `BuildPipeline.BuildAssetBundles` success, reopen both emitted bundles, load every declared streamed scene, and bind the package manifest to the newly measured lengths and SHA-256 values. A prior bundle with a matching filename is not current evidence. A forced-scene screenshot is diagnostic evidence only; it is not proof that a player spawns on ground or that gameplay rendering is correct.
 8. Do not say the mod is ready while a user-reported visual, collision, spawn, or asset problem remains unverified.
 9. Keep standalone ownership explicit: Core/catalog and OPERATOR: Modded Operations stay map-independent; the package directory stays data-only; Modded Operations owns generic manifest-declared runtime TerrainData reconstruction; an optional separately installed companion owns only exact-package/exact-scene material, grounding, lighting, navigation, interactive, and diagnostic work and tears it down on unload. Install data packages beneath `<OPERATOR_INSTALL>/OperatorMods`, put BepInEx companions beneath `BepInEx/plugins`, and put MelonLoader companions beneath `Mods`. Do not put a companion DLL inside `OperatorMods` or put map-specific shader/navigation logic in the framework.
    For manifest scene variants, only `SceneVariants.Count > 1` opts in. A
@@ -183,7 +183,11 @@ Read [references/implementation-locators.md](references/implementation-locators.
     scene generation. Reject stale/future acknowledgements, connection-object
     replacement, membership changes, missing identities, and bounded timeout;
     never reuse unversioned readiness from the prior scene. Discover PVE and
-    PVP markers separately and require at least `ceil(maxPlayers/2)` markers
+    PVP markers separately. Prefer explicit `PVE_PlayerSpawn_*` markers for
+    PVE; shared Team 1 markers are a legacy fallback only when the exact scene
+    contains no explicit PVE player markers. PVP must never consume PVE
+    markers, and PVE must never mix explicit PVE markers with PVP Team 1
+    markers. Require at least `ceil(maxPlayers/2)` markers
     per PVP team; the pinned retail ceiling of 12 therefore requires six per
     side. The current agreement intentionally rejects late join. Never promote
     either mode from static/build evidence alone. Test separate host and remote
@@ -194,6 +198,16 @@ Read [references/implementation-locators.md](references/implementation-locators.
     completion, extraction, Restart on both peers, and exact teardown. Expose
     an enemy-count control only on the private modded-PVE operation clone; do
     not mutate Tier 1, shipped operation arrays, vanilla enemy ranges, or PVP.
+    Treat the manifest range as the map's complete entitlement: if a release
+    claims a maximum of 60, declare `maxEnemies=60`, author and validate at
+    least 60 navigation-safe candidates, reject a selected value above 60,
+    and verify the host performs exactly one native population call. A higher
+    framework safety ceiling does not increase a map's declared maximum.
+    For a dual-loader companion, compute `runtimeContentId` from the exact
+    domain line `operator-loader-neutral-runtime-pair-v1`, plugin GUID,
+    version, BepInEx SHA-256, and MelonLoader SHA-256, separated by `\n` with
+    no trailing newline. Bind protocol v6 to that ID and both selected-loader
+    receipts; never reuse a runtime-pair ID after either DLL changes.
 17. Make every post-readiness `Update` path bounded. Perform the exact full-scene
     marker/spawn/companion scan once, cache the accepted generation-owned
     object, and then validate that cached object's liveness, active state,
@@ -385,6 +399,8 @@ Promote a finding into this skill's reference only after it is reproducible from
 | Runtime navigation | Exact playable physics/bullet bounds + pre-nav marker containment + one resident playable-only scanned graph + tight ground and `IsPointOnNavmesh` proof for every enemy/HVT/mission marker before and after restart |
 | Interactive doors | Complete reference graph + hinge-axis pivot + two-sided FinalIK interaction + latch/hinge damage + native A* open/breach traversal + host/client/late-join/restart teardown |
 | Mission UI/lifecycle | One physical first Confirm without a second laptop interaction + tab/Back/Cancel/selector flow + exact scene + PVE/PVP isolation + reciprocal firearm damage + normal Restart; for Standard PVE, exactly one package-authored extraction trigger + initial lock + shipped all-AI-dead unlock + native ATAK marker + physical 15-second extraction + shipped Mission Successful return; separately prove native lethal damage -> shipped Mission Failed popup -> shipped Restart control -> fresh playable exact scene, with the mode singleton/timer reset |
+| Multiplayer | Offline protocol, identity, scene, placement, and population contracts are `PROVEN-STATIC` only. Promote PVE or PVP separately only after a host and remote on separate PCs prove exact package agreement, grounded spawns, synchronized movement, reciprocal native firearm hits/damage, mode-specific completion or score/respawn, Restart, and clean return. |
+| Bundles | Strict forced rebuild + successful Unity result + dependency bundle contains no streamed scene + scene bundle contains the exact declared scene union + every bundle reopens and every scene loads + manifest lengths/hashes match rebuilt bytes |
 | Public repository | Complete authored source + final-DLL decompiler snapshot + DLL/tool hashes and versions + exact placeholders for all omitted payloads + zero private machine paths |
 | Deployment | Source/deployed hashes match while OPERATOR was closed |
 
